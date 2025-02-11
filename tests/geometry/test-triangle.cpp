@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,22 @@
  *
  */
 
-#include <geode/basic/assert.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/assert.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/point.h>
-#include <geode/geometry/vector.h>
+#include <geode/geometry/point.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/geometry/distance.h>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/distance.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 void test()
 {
     const geode::Point3D a{ { 0.0, 0.0, 0.0 } };
     const geode::Point3D b_ref{ { 0.5, 0.1, 0.0 } };
-    const geode::Point3D b{ { 0.6, 0.3 * geode::global_epsilon, 0.0 } };
+    const geode::Point3D b{ { 0.6, 0.3 * geode::GLOBAL_EPSILON, 0.0 } };
     const geode::Point3D c{ { 1.0, 0.0, 0.0 } };
 
     const geode::Vector3D answer{ { 0, 0, -1 } };

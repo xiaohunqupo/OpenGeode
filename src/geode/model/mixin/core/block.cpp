@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,70 +21,81 @@
  *
  */
 
-#include <geode/model/mixin/core/block.h>
+#include <geode/model/mixin/core/block.hpp>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <memory>
+#include <string_view>
 
-#include <geode/mesh/builder/solid_mesh_builder.h>
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/polyhedral_solid.h>
+#include <bitsery/ext/inheritance.h>
 
-#include <geode/model/mixin/core/detail/mesh_storage.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+
+#include <geode/mesh/builder/solid_mesh_builder.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/mesh_id.hpp>
+#include <geode/mesh/core/polyhedral_solid.hpp>
+
+#include <geode/model/mixin/core/component.hpp>
+#include <geode/model/mixin/core/detail/mesh_storage.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    class Block< dimension >::Impl
-        : public detail::MeshStorage< SolidMesh< dimension > >
+    class Block< dimension >::Impl : public detail::MeshStorage< Mesh >
     {
     private:
         friend class bitsery::Access;
         template < typename Archive >
         void serialize( Archive& archive )
         {
-            archive.ext( *this,
-                Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
-                    a.ext( impl,
-                        bitsery::ext::BaseClass<
-                            detail::MeshStorage< SolidMesh< dimension > > >{} );
-                } } } );
+            archive.ext( *this, Growable< Archive,
+                                    Impl >{ { []( Archive& archive2,
+                                                  Impl& impl ) {
+                archive2.ext( impl,
+                    bitsery::ext::BaseClass< detail::MeshStorage< Mesh > >{} );
+            } } } );
         }
     };
 
     template < index_t dimension >
     Block< dimension >::Block()
         : Block( MeshFactory::default_impl(
-            PolyhedralSolid< dimension >::type_name_static() ) )
+              PolyhedralSolid< dimension >::type_name_static() ) )
     {
     }
 
     template < index_t dimension >
-    Block< dimension >::Block( Block&& other ) noexcept
-        : Component< dimension >{ std::move( other ) },
-          impl_{ std::move( other.impl_ ) }
+    Block< dimension >::Block( Block&& ) noexcept = default;
+
+    template < index_t dimension >
+    Block< dimension >::Block( BlocksKey /*unused*/ ) : Block()
+    {
+    }
+
+    template < index_t dimension >
+    Block< dimension >::Block( const MeshImpl& impl, BlocksKey /*unused*/ )
+        : Block( impl )
     {
     }
 
     template < index_t dimension >
     Block< dimension >::Block( const MeshImpl& impl )
     {
-        impl_->set_mesh( this->id(), SolidMesh< dimension >::create( impl ) );
+        impl_->set_mesh( this->id(), Mesh::create( impl ) );
     }
 
     template < index_t dimension >
-    Block< dimension >::~Block() // NOLINT
-    {
-    }
+    Block< dimension >::~Block() = default;
 
     template < index_t dimension >
-    const SolidMesh< dimension >& Block< dimension >::get_mesh() const
+    auto Block< dimension >::get_mesh() const -> const Mesh&
     {
         return impl_->mesh();
     }
 
     template < index_t dimension >
-    SolidMesh< dimension >& Block< dimension >::get_modifiable_mesh()
+    auto Block< dimension >::get_modifiable_mesh() -> Mesh&
     {
         return impl_->modifiable_mesh();
     }
@@ -101,34 +112,48 @@ namespace geode
     {
         archive.ext( *this,
             Growable< Archive, Block >{
-                { []( Archive& a, Block& block ) {
-                     a.object( block.impl_ );
-                     a.ext( block,
+                { []( Archive& archive2, Block& block ) {
+                     archive2.object( block.impl_ );
+                     archive2.ext( block,
                          bitsery::ext::BaseClass< Component< dimension > >{} );
                      IdentifierBuilder mesh_builder{
                          block.get_modifiable_mesh()
                      };
                      mesh_builder.set_id( block.id() );
                  },
-                    []( Archive& a, Block& block ) {
-                        a.object( block.impl_ );
-                        a.ext( block, bitsery::ext::BaseClass<
-                                          Component< dimension > >{} );
+                    []( Archive& archive2, Block& block ) {
+                        archive2.object( block.impl_ );
+                        archive2.ext( block, bitsery::ext::BaseClass<
+                                                 Component< dimension > >{} );
                     } } } );
     }
 
     template < index_t dimension >
     void Block< dimension >::set_mesh(
-        std::unique_ptr< SolidMesh< dimension > > mesh, BlocksKey )
+        std::unique_ptr< Mesh > mesh, BlocksKey /*unused*/ )
     {
         impl_->set_mesh( this->id(), std::move( mesh ) );
     }
 
     template < index_t dimension >
     void Block< dimension >::set_mesh(
-        std::unique_ptr< SolidMesh< dimension > > mesh, BlocksBuilderKey )
+        std::unique_ptr< Mesh > mesh, BlocksBuilderKey /*unused*/ )
     {
         impl_->set_mesh( this->id(), std::move( mesh ) );
+    }
+
+    template < index_t dimension >
+    void Block< dimension >::set_block_name(
+        std::string_view name, BlocksBuilderKey /*unused*/ )
+    {
+        this->set_name( name );
+    }
+
+    template < index_t dimension >
+    auto Block< dimension >::steal_mesh(
+        BlocksBuilderKey /*unused*/ ) -> std::unique_ptr< Mesh >
+    {
+        return impl_->steal_mesh();
     }
 
     template class opengeode_model_api Block< 3 >;

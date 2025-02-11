@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,18 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/builder/polygonal_surface_builder.h>
-#include <geode/mesh/core/polygonal_surface.h>
+#include <geode/mesh/builder/polygonal_surface_builder.hpp>
+#include <geode/mesh/core/polygonal_surface.hpp>
 
 #define PYTHON_POLYGONAL_SURFACE_BUILDER( dimension )                          \
     const auto name##dimension =                                               \
         "PolygonalSurfaceBuilder" + std::to_string( dimension ) + "D";         \
     pybind11::class_< PolygonalSurfaceBuilder##dimension##D,                   \
         SurfaceMeshBuilder##dimension##D >( module, name##dimension.c_str() )  \
-        .def_static( "create",                                                 \
-            ( std::unique_ptr< PolygonalSurfaceBuilder##dimension##D >( * )(   \
-                PolygonalSurface< dimension >& ) )                             \
-                & PolygonalSurfaceBuilder##dimension##D::create )
+        .def_static(                                                           \
+            "create", &PolygonalSurfaceBuilder##dimension##D::create )
 
 namespace geode
 {

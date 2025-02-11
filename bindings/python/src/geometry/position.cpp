@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,27 @@
  *
  */
 
-#include "../common.h"
+#include "../common.hpp"
 
-#include <geode/geometry/basic_objects/infinite_line.h>
-#include <geode/geometry/basic_objects/plane.h>
-#include <geode/geometry/basic_objects/segment.h>
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/geometry/information.h>
-#include <geode/geometry/position.h>
+#include <geode/geometry/basic_objects/infinite_line.hpp>
+#include <geode/geometry/basic_objects/plane.hpp>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/information.hpp>
+#include <geode/geometry/position.hpp>
 
 #define PYTHON_POSITION( dimension )                                           \
     const auto point_segment##dimension =                                      \
         "point_segment_position" + std::to_string( dimension ) + "D";          \
     module.def( point_segment##dimension.c_str(),                              \
-        ( Position( * )(                                                       \
-            const Point< dimension >&, const Segment< dimension >& ) )         \
-            & point_segment_position );                                        \
+        static_cast< POSITION ( * )( const Point< dimension >&,                \
+            const Segment< dimension >& ) >( &point_segment_position ) );      \
     const auto point_triangle##dimension =                                     \
         "point_triangle_position" + std::to_string( dimension ) + "D";         \
     module.def( point_triangle##dimension.c_str(),                             \
-        ( Position( * )(                                                       \
-            const Point< dimension >&, const Triangle< dimension >& ) )        \
-            & point_triangle_position )
+        static_cast< POSITION ( * )( const Point< dimension >&,                \
+            const Triangle< dimension >& ) >( &point_triangle_position ) )
 
 namespace geode
 {

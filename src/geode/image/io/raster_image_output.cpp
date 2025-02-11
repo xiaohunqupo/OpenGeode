@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,35 +21,57 @@
  *
  */
 
-#include <geode/image/io/raster_image_output.h>
+#include <geode/image/io/raster_image_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/image/core/raster_image.h>
+#include <absl/strings/str_cat.h>
+
+#include <geode/basic/detail/geode_output_impl.hpp>
+
+#include <geode/image/core/raster_image.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    void save_raster_image(
-        const RasterImage< dimension >& raster, absl::string_view filename )
+    std::vector< std::string > save_raster_image(
+        const RasterImage< dimension >& raster, std::string_view filename )
     {
+        const auto type = absl::StrCat( "RasterImage", dimension, "D" );
         try
         {
-            detail::geode_object_output_impl<
+            return detail::geode_object_output_impl<
                 RasterImageOutputFactory< dimension > >(
-                absl::StrCat( "RasterImage", dimension, "D" ), raster,
-                filename );
+                type, raster, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< RasterImageOutputFactory< dimension > >(
+                type );
             throw OpenGeodeException{ "Cannot save RasterImage in file: ",
                 filename };
         }
     }
 
-    template void opengeode_image_api save_raster_image(
-        const RasterImage< 2 >&, absl::string_view );
-    template void opengeode_image_api save_raster_image(
-        const RasterImage< 3 >&, absl::string_view );
+    template < index_t dimension >
+    bool is_raster_image_saveable(
+        const RasterImage< dimension >& raster, std::string_view filename )
+    {
+        const auto output = detail::geode_object_output_writer<
+            RasterImageOutputFactory< dimension > >( filename );
+        return output->is_saveable( raster );
+    }
+
+    template std::vector< std::string > opengeode_image_api save_raster_image(
+        const RasterImage< 2 >&, std::string_view );
+    template std::vector< std::string > opengeode_image_api save_raster_image(
+        const RasterImage< 3 >&, std::string_view );
+
+    template bool opengeode_image_api is_raster_image_saveable(
+        const RasterImage< 2 >&, std::string_view );
+    template bool opengeode_image_api is_raster_image_saveable(
+        const RasterImage< 3 >&, std::string_view );
 } // namespace geode

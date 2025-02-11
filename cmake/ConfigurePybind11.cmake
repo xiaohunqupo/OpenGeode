@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ ExternalProject_Add(pybind11
     BINARY_DIR ${PYBIND11_PATH}/build
     STAMP_DIR ${PYBIND11_PATH}/stamp
     GIT_REPOSITORY https://github.com/pybind/pybind11
-    GIT_TAG 2dd52544942be4bef80811ef18c8fcf1d3c7e246
+    GIT_TAG v2.13.1
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -42,3 +43,5 @@ ExternalProject_Add(pybind11
         -DCMAKE_INSTALL_PREFIX:PATH=${PYBIND11_INSTALL_PREFIX}
         -DPYBIND11_CMAKECONFIG_INSTALL_DIR:STRING=lib/cmake/pybind11
 )
+
+ExternalProject_Add_StepTargets(pybind11 download)

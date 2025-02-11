@@ -1,7 +1,7 @@
 # Modified from https://github.com/cpp-best-practices/cmake_template/blob/main/cmake/CompilerWarnings.cmake
 
 if(MSVC)
-    add_compile_options(
+    set(COMPILER_WARNINGS
         /W4 # Baseline reasonable warnings
         /w14242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
         /w14254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
@@ -29,7 +29,7 @@ if(MSVC)
         /DNOMINMAX # disable min/max macros
     )
 else() # Clang/GCC
-    add_compile_options(
+    set(COMPILER_WARNINGS
         -Wall
         -Wextra # reasonable and standard
         -Wshadow # warn the user if a variable declaration shadows one from a parent context
@@ -40,18 +40,23 @@ else() # Clang/GCC
         -Wunused # warn on anything being unused
         -Woverloaded-virtual # warn if you overload (not override) a virtual function
         -Wpedantic # warn if non-standard C++ is used
-        # -Wnull-dereference # warn if a null dereference is detected
+        -Wnull-dereference # warn if a null dereference is detected
         -Wformat=2 # warn on security issues around functions that format output (ie printf)
-        # -Wimplicit-fallthrough # warn on statements that fallthrough without an explicit annotation
         -Wno-attributes # ignore attribute warnings
+        -Wimplicit-fallthrough # warn on statements that fallthrough without an explicit annotation
+        -Werror # Make all compiler warnings errors
+        -Wno-error=deprecated-declarations # disable deprecated warnings
     )
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        add_compile_options(
-            # -Wmisleading-indentation # warn if indentation implies blocks where blocks do not exist
-            # -Wduplicated-cond # warn if if / else chain has duplicated conditions
-            # -Wduplicated-branches # warn if if / else branches have duplicated code
+        set(COMPILER_WARNINGS
+            ${COMPILER_WARNINGS}
+            -Wmisleading-indentation # warn if indentation implies blocks where blocks do not exist
+            -Wduplicated-cond # warn if if / else chain has duplicated conditions
+            -Wduplicated-branches # warn if if / else branches have duplicated code
             -Wlogical-op # warn about logical operations being used where bitwise were probably wanted
             -Wuseless-cast # warn if you perform a cast to the same type
+            -Wsuggest-override # warn if an overridden member function is not marked 'override' or 'final'
         )
     endif()
 endif()
+message(STATUS "Compiler warnings: ${COMPILER_WARNINGS}")

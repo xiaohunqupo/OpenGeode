@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include "../common.h"
+#include "../common.hpp"
 #include <pybind11/iostream.h>
 
-#include <geode/mesh/common.h>
+#include <geode/mesh/common.hpp>
 
 namespace geode
 {
@@ -78,11 +78,14 @@ namespace geode
     void define_euclidean_distance_transform( pybind11::module& );
     void define_repair_polygon_orientations( pybind11::module& );
     void define_geometrical_operations_on_mesh( pybind11::module& );
+    void define_gradient_computation( pybind11::module& module );
     void define_mesh_crs_helper( pybind11::module& );
+    void define_rasterize( pybind11::module& );
 
     void define_vertex_set_io( pybind11::module& );
     void define_graph_io( pybind11::module& );
     void define_edged_curve_io( pybind11::module& );
+    void define_light_regular_grid_io( pybind11::module& );
     void define_point_set_io( pybind11::module& );
     void define_polygonal_surface_io( pybind11::module& );
     void define_triangulated_surface_io( pybind11::module& );
@@ -158,11 +161,14 @@ PYBIND11_MODULE( opengeode_py_mesh, module )
     geode::define_euclidean_distance_transform( module );
     geode::define_repair_polygon_orientations( module );
     geode::define_geometrical_operations_on_mesh( module );
+    geode::define_gradient_computation( module );
     geode::define_mesh_crs_helper( module );
+    geode::define_rasterize( module );
 
     geode::define_vertex_set_io( module );
     geode::define_graph_io( module );
     geode::define_edged_curve_io( module );
+    geode::define_light_regular_grid_io( module );
     geode::define_point_set_io( module );
     geode::define_polygonal_surface_io( module );
     geode::define_triangulated_surface_io( module );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include <geode/mesh/builder/geode/geode_point_set_builder.h>
+#include <geode/mesh/builder/geode/geode_point_set_builder.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/mesh_builder_factory.h>
-#include <geode/mesh/core/geode/geode_point_set.h>
+#include <geode/mesh/builder/mesh_builder_factory.hpp>
+#include <geode/mesh/core/geode/geode_point_set.hpp>
 
 namespace geode
 {
@@ -34,7 +34,7 @@ namespace geode
     OpenGeodePointSetBuilder< dimension >::OpenGeodePointSetBuilder(
         VertexSet& vertex_set, MeshBuilderFactoryKey )
         : OpenGeodePointSetBuilder< dimension >(
-            dynamic_cast< OpenGeodePointSet< dimension >& >( vertex_set ) )
+              dynamic_cast< OpenGeodePointSet< dimension >& >( vertex_set ) )
     {
     }
 
@@ -44,6 +44,10 @@ namespace geode
         : PointSetBuilder< dimension >( mesh ), geode_point_set_( mesh )
     {
     }
+
+    template < index_t dimension >
+    OpenGeodePointSetBuilder< dimension >::OpenGeodePointSetBuilder(
+        OpenGeodePointSetBuilder< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     void OpenGeodePointSetBuilder< dimension >::do_create_vertex()
@@ -81,6 +85,7 @@ namespace geode
         // Operation is directly handled by the AttributeManager
     }
 
+    template class opengeode_mesh_api OpenGeodePointSetBuilder< 1 >;
     template class opengeode_mesh_api OpenGeodePointSetBuilder< 2 >;
     template class opengeode_mesh_api OpenGeodePointSetBuilder< 3 >;
 } // namespace geode

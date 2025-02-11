@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,18 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/builder/tetrahedral_solid_builder.h>
-#include <geode/mesh/core/tetrahedral_solid.h>
+#include <geode/mesh/builder/tetrahedral_solid_builder.hpp>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
 
 #define PYTHON_TETRAHEDRAL_SOLID_BUILDER( dimension )                          \
     const auto name##dimension =                                               \
         "TetrahedralSolidBuilder" + std::to_string( dimension ) + "D";         \
     pybind11::class_< TetrahedralSolidBuilder##dimension##D,                   \
         SolidMeshBuilder##dimension##D >( module, name##dimension.c_str() )    \
-        .def_static( "create",                                                 \
-            ( std::unique_ptr< TetrahedralSolidBuilder##dimension##D >( * )(   \
-                TetrahedralSolid< dimension >& ) )                             \
-                & TetrahedralSolidBuilder##dimension##D::create )              \
+        .def_static(                                                           \
+            "create", &TetrahedralSolidBuilder##dimension##D::create )         \
         .def( "create_tetrahedron",                                            \
             &TetrahedralSolidBuilder##dimension##D::create_tetrahedron )
 

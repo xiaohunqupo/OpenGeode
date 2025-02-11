@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,19 @@
  *
  */
 
-#include <geode/mesh/core/edged_curve.h>
+#include <geode/mesh/core/edged_curve.hpp>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/basic_objects/segment.h>
-#include <geode/geometry/bounding_box.h>
-#include <geode/geometry/vector.h>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/bounding_box.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/builder/edged_curve_builder.h>
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/texture1d.h>
-#include <geode/mesh/core/texture_storage.h>
+#include <geode/mesh/builder/edged_curve_builder.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/texture1d.hpp>
+#include <geode/mesh/core/texture_storage.hpp>
 
 namespace geode
 {
@@ -64,33 +64,17 @@ namespace geode
     };
 
     template < index_t dimension >
-    EdgedCurve< dimension >::EdgedCurve()
-    {
-    }
+    EdgedCurve< dimension >::EdgedCurve() = default;
 
     template < index_t dimension >
-    EdgedCurve< dimension >::EdgedCurve( EdgedCurve&& other )
-        : Graph{ std::move( other ) },
-          CoordinateReferenceSystemManagers< dimension >( std::move( other ) ),
-          impl_{ std::move( other.impl_ ) }
-    {
-    }
+    EdgedCurve< dimension >::EdgedCurve( EdgedCurve&& ) noexcept = default;
 
     template < index_t dimension >
     EdgedCurve< dimension >& EdgedCurve< dimension >::operator=(
-        EdgedCurve&& other )
-    {
-        Graph::operator=( std::move( other ) );
-        CoordinateReferenceSystemManagers< dimension >::operator=(
-            std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        EdgedCurve&& ) noexcept = default;
 
     template < index_t dimension >
-    EdgedCurve< dimension >::~EdgedCurve()
-    {
-    }
+    EdgedCurve< dimension >::~EdgedCurve() = default;
 
     template < index_t dimension >
     std::unique_ptr< EdgedCurve< dimension > > EdgedCurve< dimension >::create()
@@ -130,6 +114,12 @@ namespace geode
     }
 
     template < index_t dimension >
+    bool EdgedCurve< dimension >::is_edge_degenerated( index_t edge_id ) const
+    {
+        return edge_length( edge_id ) <= GLOBAL_EPSILON;
+    }
+
+    template < index_t dimension >
     template < typename Archive >
     void EdgedCurve< dimension >::serialize( Archive& archive )
     {
@@ -160,6 +150,7 @@ namespace geode
     {
         auto clone = create( impl_name() );
         auto builder = EdgedCurveBuilder< dimension >::create( *clone );
+        builder->copy_identifier( *this );
         builder->copy( *this );
         return clone;
     }
@@ -189,9 +180,11 @@ namespace geode
         return impl_->texture_manager( *this );
     }
 
+    template class opengeode_mesh_api EdgedCurve< 1 >;
     template class opengeode_mesh_api EdgedCurve< 2 >;
     template class opengeode_mesh_api EdgedCurve< 3 >;
 
+    SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, EdgedCurve< 1 > );
     SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, EdgedCurve< 2 > );
     SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, EdgedCurve< 3 > );
 } // namespace geode

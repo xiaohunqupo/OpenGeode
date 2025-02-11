@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,19 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/basic/attribute_manager.h>
+#include <geode/basic/attribute_manager.hpp>
 
-#include <geode/geometry/bounding_box.h>
-#include <geode/geometry/vector.h>
+#include <geode/geometry/bounding_box.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/core/hybrid_solid.h>
-#include <geode/mesh/core/polyhedral_solid.h>
-#include <geode/mesh/core/solid_edges.h>
-#include <geode/mesh/core/solid_facets.h>
-#include <geode/mesh/core/solid_mesh.h>
-#include <geode/mesh/core/tetrahedral_solid.h>
+#include <geode/mesh/core/hybrid_solid.hpp>
+#include <geode/mesh/core/polyhedral_solid.hpp>
+#include <geode/mesh/core/solid_edges.hpp>
+#include <geode/mesh/core/solid_facets.hpp>
+#include <geode/mesh/core/solid_mesh.hpp>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
 
 #define PYTHON_SOLID_MESH( dimension )                                         \
     const auto name##dimension =                                               \
@@ -41,9 +41,9 @@
     pybind11::class_< SolidMesh##dimension##D, VertexSet,                      \
         CoordinateReferenceSystemManagers##dimension##D >(                     \
         module, name##dimension.c_str() )                                      \
-        .def_static(                                                           \
-            "create", ( std::unique_ptr< SolidMesh##dimension##D >( * )() )    \
-                          & SolidMesh##dimension##D::create )                  \
+        .def_static( "create",                                                 \
+            static_cast< std::unique_ptr< SolidMesh##dimension##D > ( * )() >( \
+                &SolidMesh##dimension##D::create ) )                           \
         .def( "clone", &SolidMesh##dimension##D::clone )                       \
         .def( "nb_polyhedra", &SolidMesh##dimension##D::nb_polyhedra )         \
         .def(                                                                  \
@@ -51,18 +51,18 @@
         .def( "enable_edges", &SolidMesh##dimension##D::enable_edges )         \
         .def( "disable_edges", &SolidMesh##dimension##D::disable_edges )       \
         .def( "edges",                                                         \
-            ( const SolidEdges##dimension##D& (SolidMesh##dimension##D::*) ()  \
-                    const )                                                    \
-                & SolidMesh##dimension##D::edges,                              \
+            static_cast< const SolidEdges##dimension##D& (                     \
+                SolidMesh##dimension##D::*) () const >(                        \
+                &SolidMesh##dimension##D::edges ),                             \
             pybind11::return_value_policy::reference )                         \
         .def( "are_facets_enabled",                                            \
             &SolidMesh##dimension##D::are_facets_enabled )                     \
         .def( "enable_facets", &SolidMesh##dimension##D::enable_facets )       \
         .def( "disable_facets", &SolidMesh##dimension##D::disable_facets )     \
         .def( "facets",                                                        \
-            ( const SolidFacets##dimension##D& (SolidMesh##dimension##D::*) () \
-                    const )                                                    \
-                & SolidMesh##dimension##D::facets,                             \
+            static_cast< const SolidFacets##dimension##D& (                    \
+                SolidMesh##dimension##D::*) () const >(                        \
+                &SolidMesh##dimension##D::facets ),                            \
             pybind11::return_value_policy::reference )                         \
         .def( "nb_polyhedron_vertices",                                        \
             &SolidMesh##dimension##D::nb_polyhedron_vertices )                 \
@@ -95,27 +95,27 @@
             "polyhedron_volume", &SolidMesh##dimension##D::polyhedron_volume ) \
         .def( "polyhedron_facet_normal",                                       \
             &SolidMesh##dimension##D::polyhedron_facet_normal )                \
-        .def( "new_polyhedron_facet_normal",                                   \
-            &SolidMesh##dimension##D::new_polyhedron_facet_normal )            \
+        .def( "vertices_around_vertex",                                        \
+            &SolidMesh##dimension##D::vertices_around_vertex )                 \
         .def( "polyhedron_around_vertex",                                      \
             &SolidMesh##dimension##D::polyhedron_around_vertex )               \
         .def( "polyhedra_around_vertex",                                       \
-            ( const PolyhedraAroundVertex& (                                   \
-                SolidMesh##dimension##D::*) ( index_t ) const )                \
-                & SolidMesh##dimension##D::polyhedra_around_vertex )           \
+            static_cast< const PolyhedraAroundVertex& (                        \
+                SolidMesh##dimension##D::*) ( index_t ) const >(               \
+                &SolidMesh##dimension##D::polyhedra_around_vertex ) )          \
         .def( "polyhedra_around_polyhedron_vertex",                            \
-            ( const PolyhedraAroundVertex& (                                   \
+            static_cast< const PolyhedraAroundVertex& (                        \
                 SolidMesh##dimension##D::*) ( const PolyhedronVertex& )        \
-                    const )                                                    \
-                & SolidMesh##dimension##D::polyhedra_around_vertex )           \
+                    const >(                                                   \
+                &SolidMesh##dimension##D::polyhedra_around_vertex ) )          \
         .def( "polyhedra_around_edge",                                         \
-            ( PolyhedraAroundEdge( SolidMesh##dimension##D::* )(               \
-                const std::array< index_t, 2 >& ) const )                      \
-                & SolidMesh##dimension##D::polyhedra_around_edge )             \
+            static_cast< PolyhedraAroundEdge ( SolidMesh##dimension##D::* )(   \
+                const std::array< index_t, 2 >& ) const >(                     \
+                &SolidMesh##dimension##D::polyhedra_around_edge ) )            \
         .def( "polyhedra_around_edge_with_hint",                               \
-            ( PolyhedraAroundEdge( SolidMesh##dimension##D::* )(               \
-                const std::array< index_t, 2 >&, index_t ) const )             \
-                & SolidMesh##dimension##D::polyhedra_around_edge )             \
+            static_cast< PolyhedraAroundEdge ( SolidMesh##dimension##D::* )(   \
+                const std::array< index_t, 2 >&, index_t ) const >(            \
+                &SolidMesh##dimension##D::polyhedra_around_edge ) )            \
         .def( "polyhedra_from_facet_vertices",                                 \
             &SolidMesh##dimension##D::polyhedra_from_facet_vertices )          \
         .def( "polyhedron_attribute_manager",                                  \

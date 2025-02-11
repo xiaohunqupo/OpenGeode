@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,19 @@
  *
  */
 
-#include <geode/mesh/helpers/hausdorff_distance.h>
+#include <geode/mesh/helpers/hausdorff_distance.hpp>
 
-#include <geode/basic/assert.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/assert.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/aabb.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/aabb.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/core/triangulated_surface.h>
-#include <geode/mesh/helpers/aabb_surface_helpers.h>
-#include <geode/mesh/io/triangulated_surface_input.h>
+#include <geode/mesh/core/triangulated_surface.hpp>
+#include <geode/mesh/helpers/aabb_surface_helpers.hpp>
+#include <geode/mesh/io/triangulated_surface_input.hpp>
 
-#include <geode/mesh/helpers/aabb_surface_helpers.h>
+#include <geode/mesh/helpers/aabb_surface_helpers.hpp>
 
 namespace
 {
@@ -49,7 +49,7 @@ namespace
             const auto& query = mesh_A.point( v );
             const auto closest_element =
                 mesh_B_tree.closest_element_box( query, distance_action );
-            const auto distance = std::get< 2 >( closest_element );
+            const auto distance = std::get< 1 >( closest_element );
             if( distance > min_dist )
             {
                 min_dist = distance;

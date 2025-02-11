@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,33 +21,59 @@
  *
  */
 
-#include <geode/mesh/io/hybrid_solid_output.h>
+#include <geode/mesh/io/hybrid_solid_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/mesh/core/hybrid_solid.h>
+#include <absl/strings/str_cat.h>
+
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/mesh/core/hybrid_solid.hpp>
+#include <geode/mesh/io/vertex_set_output.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    void save_hybrid_solid( const HybridSolid< dimension >& hybrid_solid,
-        absl::string_view filename )
+    std::vector< std::string > save_hybrid_solid(
+        const HybridSolid< dimension >& hybrid_solid,
+        std::string_view filename )
     {
+        const auto type = absl::StrCat( "HybridSolid", dimension, "D" );
         try
         {
-            detail::geode_object_output_impl<
+            return detail::geode_object_output_impl<
                 HybridSolidOutputFactory< dimension > >(
-                absl::StrCat( "HybridSolid", dimension, "D" ), hybrid_solid,
-                filename );
+                type, hybrid_solid, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< HybridSolidOutputFactory< dimension > >(
+                type );
+            Logger::info( "Other extensions are available in parent classes." );
+            print_available_extensions< VertexSetOutputFactory >( "VertexSet" );
             throw OpenGeodeException{ "Cannot save HybridSolid in file: ",
                 filename };
         }
     }
 
-    template void opengeode_mesh_api save_hybrid_solid(
-        const HybridSolid< 3 >&, absl::string_view );
+    template < index_t dimension >
+    bool is_hybrid_solid_saveable( const HybridSolid< dimension >& hybrid_solid,
+        std::string_view filename )
+    {
+        const auto output = detail::geode_object_output_writer<
+            HybridSolidOutputFactory< dimension > >( filename );
+        return output->is_saveable( hybrid_solid );
+    }
+
+    template std::vector< std::string > opengeode_mesh_api save_hybrid_solid(
+        const HybridSolid< 3 >&, std::string_view );
+
+    template bool opengeode_mesh_api is_hybrid_solid_saveable(
+        const HybridSolid< 3 >&, std::string_view );
 } // namespace geode

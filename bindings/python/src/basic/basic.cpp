@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include "../common.h"
+#include "../common.hpp"
 #include <pybind11/iostream.h>
 
-#include <geode/basic/library.h>
+#include <geode/basic/library.hpp>
 
 namespace geode
 {
@@ -43,7 +43,7 @@ PYBIND11_MODULE( opengeode_py_basic, module )
     module.doc() = "OpenGeode Python binding for basic";
     module.attr( "NO_ID" ) = geode::NO_ID;
     module.attr( "NO_LID" ) = geode::NO_LID;
-    module.attr( "global_epsilon" ) = geode::global_epsilon;
+    module.attr( "GLOBAL_EPSILON" ) = geode::GLOBAL_EPSILON;
     pybind11::class_< geode::OpenGeodeBasicLibrary >(
         module, "OpenGeodeBasicLibrary" )
         .def( "initialize", &geode::OpenGeodeBasicLibrary::initialize );

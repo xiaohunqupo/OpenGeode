@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include <geode/basic/identifier_builder.h>
+#include <geode/basic/identifier_builder.hpp>
 
-#include <geode/basic/identifier.h>
-#include <geode/basic/uuid.h>
+#include <geode/basic/identifier.hpp>
+#include <geode/basic/uuid.hpp>
 
 namespace geode
 {
@@ -38,12 +38,17 @@ namespace geode
         identifier_.set_id( unique_id, {} );
     }
 
-    void IdentifierBuilder::set_name( absl::string_view name )
+    void IdentifierBuilder::set_name( std::string_view name )
     {
         identifier_.set_name( name, {} );
     }
 
-    void IdentifierBuilder::load_identifier( absl::string_view directory )
+    void IdentifierBuilder::copy_identifier( const Identifier& other )
+    {
+        identifier_.copy_identifier( other, {} );
+    }
+
+    void IdentifierBuilder::load_identifier( std::string_view directory )
     {
         identifier_.load_identifier( directory, {} );
     }

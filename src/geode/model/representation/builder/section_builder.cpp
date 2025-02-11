@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,27 @@
  *
  */
 
-#include <geode/model/representation/builder/section_builder.h>
+#include <geode/model/representation/builder/section_builder.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/mesh_id.h>
-#include <geode/mesh/core/point_set.h>
-#include <geode/mesh/core/surface_mesh.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/model_boundary.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/builder/detail/copy.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/mesh/builder/edged_curve_builder.hpp>
+#include <geode/mesh/builder/point_set_builder.hpp>
+#include <geode/mesh/builder/surface_mesh_builder.hpp>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/mesh_id.hpp>
+#include <geode/mesh/core/point_set.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
+
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/corner_collection.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/line_collection.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/surface_collection.hpp>
+#include <geode/model/representation/builder/detail/copy.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
@@ -43,6 +51,9 @@ namespace geode
           LinesBuilder2D( section ),
           SurfacesBuilder2D( section ),
           ModelBoundariesBuilder2D( section ),
+          CornerCollectionsBuilder2D( section ),
+          LineCollectionsBuilder2D( section ),
+          SurfaceCollectionsBuilder2D( section ),
           IdentifierBuilder( section ),
           section_( section )
     {
@@ -58,7 +69,7 @@ namespace geode
             "Section components in a Section which is not empty, use "
             "ModelConcatener." );
         set_name( section.name() );
-        const auto mapping = copy_components( section );
+        auto mapping = copy_components( section );
         copy_relationships( mapping, section );
         copy_component_geometry( mapping, section );
         return mapping;
@@ -67,14 +78,20 @@ namespace geode
     ModelCopyMapping SectionBuilder::copy_components( const Section& section )
     {
         ModelCopyMapping mappings;
-        mappings.emplace( Corner2D::component_type_static(),
-            detail::copy_corner_components( section, *this ) );
-        mappings.emplace( Line2D::component_type_static(),
-            detail::copy_line_components( section, *this ) );
-        mappings.emplace( Surface2D::component_type_static(),
-            detail::copy_surface_components( section, *this ) );
-        mappings.emplace( ModelBoundary2D::component_type_static(),
-            detail::copy_model_boundary_components( section, *this ) );
+        detail::copy_corner_components(
+            section, *this, mappings[Corner2D::component_type_static()] );
+        detail::copy_line_components(
+            section, *this, mappings[Line2D::component_type_static()] );
+        detail::copy_surface_components(
+            section, *this, mappings[Surface2D::component_type_static()] );
+        detail::copy_model_boundary_components( section, *this,
+            mappings[ModelBoundary2D::component_type_static()] );
+        detail::copy_corner_collection_components( section, *this,
+            mappings[CornerCollection2D::component_type_static()] );
+        detail::copy_line_collection_components( section, *this,
+            mappings[LineCollection2D::component_type_static()] );
+        detail::copy_surface_collection_components( section, *this,
+            mappings[SurfaceCollection2D::component_type_static()] );
         return mappings;
     }
 
@@ -82,13 +99,19 @@ namespace geode
         ModelCopyMapping& mapping, const Section& section )
     {
         detail::copy_corner_components(
-            section, *this, mapping[Corner3D::component_type_static()] );
+            section, *this, mapping[Corner2D::component_type_static()] );
         detail::copy_line_components(
-            section, *this, mapping[Line3D::component_type_static()] );
+            section, *this, mapping[Line2D::component_type_static()] );
         detail::copy_surface_components(
-            section, *this, mapping[Surface3D::component_type_static()] );
+            section, *this, mapping[Surface2D::component_type_static()] );
         detail::copy_model_boundary_components(
-            section, *this, mapping[ModelBoundary3D::component_type_static()] );
+            section, *this, mapping[ModelBoundary2D::component_type_static()] );
+        detail::copy_corner_collection_components( section, *this,
+            mapping[CornerCollection2D::component_type_static()] );
+        detail::copy_line_collection_components( section, *this,
+            mapping[LineCollection2D::component_type_static()] );
+        detail::copy_surface_collection_components( section, *this,
+            mapping[SurfaceCollection2D::component_type_static()] );
     }
 
     void SectionBuilder::copy_component_geometry(
@@ -154,6 +177,24 @@ namespace geode
         return id;
     }
 
+    const uuid& SectionBuilder::add_corner_collection()
+    {
+        const auto& id = create_corner_collection();
+        return id;
+    }
+
+    const uuid& SectionBuilder::add_line_collection()
+    {
+        const auto& id = create_line_collection();
+        return id;
+    }
+
+    const uuid& SectionBuilder::add_surface_collection()
+    {
+        const auto& id = create_surface_collection();
+        return id;
+    }
+
     void SectionBuilder::add_corner( uuid corner_id )
     {
         create_corner( std::move( corner_id ) );
@@ -187,6 +228,21 @@ namespace geode
     void SectionBuilder::add_model_boundary( uuid model_boundary_id )
     {
         create_model_boundary( std::move( model_boundary_id ) );
+    }
+
+    void SectionBuilder::add_corner_collection( uuid corner_collection_id )
+    {
+        create_corner_collection( std::move( corner_collection_id ) );
+    }
+
+    void SectionBuilder::add_line_collection( uuid line_collection_id )
+    {
+        create_line_collection( std::move( line_collection_id ) );
+    }
+
+    void SectionBuilder::add_surface_collection( uuid surface_collection_id )
+    {
+        create_surface_collection( std::move( surface_collection_id ) );
     }
 
     void SectionBuilder::update_corner_mesh(
@@ -241,6 +297,27 @@ namespace geode
         delete_model_boundary( boundary );
     }
 
+    void SectionBuilder::remove_corner_collection(
+        const CornerCollection2D& collection )
+    {
+        unregister_component( collection.id() );
+        delete_corner_collection( collection );
+    }
+
+    void SectionBuilder::remove_line_collection(
+        const LineCollection2D& collection )
+    {
+        unregister_component( collection.id() );
+        delete_line_collection( collection );
+    }
+
+    void SectionBuilder::remove_surface_collection(
+        const SurfaceCollection2D& collection )
+    {
+        unregister_component( collection.id() );
+        delete_surface_collection( collection );
+    }
+
     void SectionBuilder::add_corner_line_boundary_relationship(
         const Corner2D& corner, const Line2D& line )
     {
@@ -269,5 +346,52 @@ namespace geode
         const Line2D& line, const ModelBoundary2D& boundary )
     {
         add_item_in_collection( line.component_id(), boundary.component_id() );
+    }
+
+    void SectionBuilder::add_corner_in_corner_collection(
+        const Corner2D& corner, const CornerCollection2D& collection )
+    {
+        add_item_in_collection(
+            corner.component_id(), collection.component_id() );
+    }
+
+    void SectionBuilder::add_line_in_line_collection(
+        const Line2D& line, const LineCollection2D& collection )
+    {
+        add_item_in_collection(
+            line.component_id(), collection.component_id() );
+    }
+
+    void SectionBuilder::add_surface_in_surface_collection(
+        const Surface2D& surface, const SurfaceCollection2D& collection )
+    {
+        add_item_in_collection(
+            surface.component_id(), collection.component_id() );
+    }
+
+    void SectionBuilder::set_point(
+        index_t unique_vertex, const Point2D& point )
+    {
+        for( const auto& cmv :
+            section_.component_mesh_vertices( unique_vertex ) )
+        {
+            if( cmv.component_id.type() == Surface2D::component_type_static() )
+            {
+                surface_mesh_builder( cmv.component_id.id() )
+                    ->set_point( cmv.vertex, point );
+            }
+            else if( cmv.component_id.type()
+                     == Line2D::component_type_static() )
+            {
+                line_mesh_builder( cmv.component_id.id() )
+                    ->set_point( cmv.vertex, point );
+            }
+            else if( cmv.component_id.type()
+                     == Corner2D::component_type_static() )
+            {
+                corner_mesh_builder( cmv.component_id.id() )
+                    ->set_point( cmv.vertex, point );
+            }
+        }
     }
 } // namespace geode

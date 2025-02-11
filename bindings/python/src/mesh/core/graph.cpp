@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/basic/attribute_manager.h>
+#include <geode/basic/attribute_manager.hpp>
 
-#include <geode/mesh/core/graph.h>
+#include <geode/mesh/core/graph.hpp>
 
 namespace geode
 {
@@ -33,7 +33,8 @@ namespace geode
     {
         pybind11::class_< Graph, VertexSet >( module, "Graph" )
             .def_static(
-                "create", ( std::unique_ptr< Graph >( * )() ) & Graph::create )
+                "create", static_cast< std::unique_ptr< Graph > ( * )() >(
+                              &Graph::create ) )
             .def( "clone", &Graph::clone )
             .def( "edge_vertex", &Graph::edge_vertex )
             .def( "edge_vertices", &Graph::edge_vertices )

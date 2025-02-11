@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,69 +21,85 @@
  *
  */
 
-#include <geode/model/mixin/core/line.h>
+#include <geode/model/mixin/core/line.hpp>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <memory>
+#include <string_view>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <bitsery/ext/inheritance.h>
 
-#include <geode/model/mixin/core/detail/mesh_storage.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/mesh_id.hpp>
+
+#include <geode/model/mixin/core/component.hpp>
+#include <geode/model/mixin/core/detail/mesh_storage.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    class Line< dimension >::Impl
-        : public detail::MeshStorage< EdgedCurve< dimension > >
+    class Line< dimension >::Impl : public detail::MeshStorage< Mesh >
     {
     private:
         friend class bitsery::Access;
         template < typename Archive >
         void serialize( Archive& archive )
         {
-            archive.ext( *this, Growable< Archive, Impl >{ { []( Archive& a,
-                                                                 Impl& impl ) {
-                a.ext( impl,
-                    bitsery::ext::BaseClass<
-                        detail::MeshStorage< EdgedCurve< dimension > > >{} );
+            archive.ext( *this, Growable< Archive,
+                                    Impl >{ { []( Archive& archive2,
+                                                  Impl& impl ) {
+                archive2.ext( impl,
+                    bitsery::ext::BaseClass< detail::MeshStorage< Mesh > >{} );
             } } } );
         }
     };
 
     template < index_t dimension >
-    Line< dimension >::~Line() // NOLINT
-    {
-    }
+    Line< dimension >::~Line() = default;
 
     template < index_t dimension >
     Line< dimension >::Line()
-        : Line( MeshFactory::default_impl(
-            EdgedCurve< dimension >::type_name_static() ) )
+        : Line( MeshFactory::default_impl( Mesh::type_name_static() ) )
     {
     }
 
     template < index_t dimension >
-    Line< dimension >::Line( Line&& other ) noexcept
-        : Component< dimension >{ std::move( other ) },
-          impl_( std::move( other.impl_ ) )
+    Line< dimension >::Line( Line&& ) noexcept = default;
+
+    template < index_t dimension >
+    Line< dimension >::Line( LinesKey /*unused*/ ) : Line()
+    {
+    }
+
+    template < index_t dimension >
+    Line< dimension >::Line( const MeshImpl& impl, LinesKey /*unused*/ )
+        : Line( impl )
     {
     }
 
     template < index_t dimension >
     Line< dimension >::Line( const MeshImpl& impl )
     {
-        impl_->set_mesh( this->id(), EdgedCurve< dimension >::create( impl ) );
+        impl_->set_mesh( this->id(), Mesh::create( impl ) );
     }
 
     template < index_t dimension >
-    const EdgedCurve< dimension >& Line< dimension >::mesh() const
+    auto Line< dimension >::mesh() const -> const Mesh&
     {
         return impl_->mesh();
     }
 
     template < index_t dimension >
-    EdgedCurve< dimension >& Line< dimension >::modifiable_mesh()
+    auto Line< dimension >::modifiable_mesh( LinesKey /*unused*/ ) -> Mesh&
+    {
+        return modifiable_mesh();
+    }
+
+    template < index_t dimension >
+    auto Line< dimension >::modifiable_mesh() -> Mesh&
     {
         return impl_->modifiable_mesh();
     }
@@ -100,32 +116,53 @@ namespace geode
     {
         archive.ext( *this,
             Growable< Archive, Line >{
-                { []( Archive& a, Line& line ) {
-                     a.object( line.impl_ );
-                     a.ext( line,
+                { []( Archive& archive2, Line& line ) {
+                     archive2.object( line.impl_ );
+                     archive2.ext( line,
                          bitsery::ext::BaseClass< Component< dimension > >{} );
                      IdentifierBuilder mesh_builder{ line.modifiable_mesh() };
                      mesh_builder.set_id( line.id() );
                  },
-                    []( Archive& a, Line& line ) {
-                        a.object( line.impl_ );
-                        a.ext( line, bitsery::ext::BaseClass<
-                                         Component< dimension > >{} );
+                    []( Archive& archive2, Line& line ) {
+                        archive2.object( line.impl_ );
+                        archive2.ext( line, bitsery::ext::BaseClass<
+                                                Component< dimension > >{} );
                     } } } );
     }
 
     template < index_t dimension >
     void Line< dimension >::set_mesh(
-        std::unique_ptr< EdgedCurve< dimension > > mesh, LinesKey )
+        std::unique_ptr< Mesh > mesh, LinesKey /*unused*/ )
     {
         impl_->set_mesh( this->id(), std::move( mesh ) );
     }
 
     template < index_t dimension >
     void Line< dimension >::set_mesh(
-        std::unique_ptr< EdgedCurve< dimension > > mesh, LinesBuilderKey )
+        std::unique_ptr< Mesh > mesh, LinesBuilderKey /*unused*/ )
     {
         impl_->set_mesh( this->id(), std::move( mesh ) );
+    }
+
+    template < index_t dimension >
+    void Line< dimension >::set_line_name(
+        std::string_view name, LinesBuilderKey /*unused*/ )
+    {
+        this->set_name( name );
+    }
+
+    template < index_t dimension >
+    auto Line< dimension >::modifiable_mesh(
+        LinesBuilderKey /*unused*/ ) -> Mesh&
+    {
+        return modifiable_mesh();
+    }
+
+    template < index_t dimension >
+    auto Line< dimension >::steal_mesh(
+        LinesBuilderKey /*unused*/ ) -> std::unique_ptr< Mesh >
+    {
+        return impl_->steal_mesh();
     }
 
     template class opengeode_model_api Line< 2 >;

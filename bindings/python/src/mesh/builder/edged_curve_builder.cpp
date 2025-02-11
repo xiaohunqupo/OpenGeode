@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/edged_curve_builder.h>
-#include <geode/mesh/core/edged_curve.h>
+#include <geode/mesh/builder/edged_curve_builder.hpp>
+#include <geode/mesh/core/edged_curve.hpp>
 
 #define PYTHON_EDGED_CURVE_BUILDER( dimension )                                \
     const auto name##dimension =                                               \
@@ -34,10 +34,7 @@
     pybind11::class_< EdgedCurveBuilder##dimension##D, GraphBuilder,           \
         CoordinateReferenceSystemManagersBuilder##dimension##D >(              \
         module, name##dimension.c_str() )                                      \
-        .def_static( "create",                                                 \
-            ( std::unique_ptr< EdgedCurveBuilder##dimension##D >( * )(         \
-                EdgedCurve< dimension >& ) )                                   \
-                & EdgedCurveBuilder##dimension##D::create )                    \
+        .def_static( "create", &EdgedCurveBuilder##dimension##D::create )      \
         .def( "create_point", &EdgedCurveBuilder##dimension##D::create_point )
 
 namespace geode

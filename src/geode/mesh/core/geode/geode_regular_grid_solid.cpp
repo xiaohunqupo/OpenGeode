@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,43 +21,44 @@
  *
  */
 
-#include <geode/mesh/core/geode/geode_regular_grid_solid.h>
+#include <geode/mesh/core/geode/geode_regular_grid_solid.hpp>
 
 #include <fstream>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/logger.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/logger.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/regular_grid_solid_builder.h>
-#include <geode/mesh/core/private/grid_impl.h>
-#include <geode/mesh/core/private/points_impl.h>
-#include <geode/mesh/core/regular_grid_solid.h>
+#include <geode/mesh/builder/regular_grid_solid_builder.hpp>
+#include <geode/mesh/core/internal/grid_impl.hpp>
+#include <geode/mesh/core/internal/points_impl.hpp>
+#include <geode/mesh/core/regular_grid_solid.hpp>
 
 namespace
 {
     static constexpr std::array< std::array< geode::local_index_t, 3 >, 8 >
-        cell_vertices_translations{ { { 0, 0, 0 }, { 1, 0, 0 }, { 0, 1, 0 },
-            { 1, 1, 0 }, { 0, 0, 1 }, { 1, 0, 1 }, { 0, 1, 1 }, { 1, 1, 1 } } };
+        SOLID_CELL_VERTICES_TRANSLATIONS{ { { 0, 0, 0 }, { 1, 0, 0 },
+            { 0, 1, 0 }, { 1, 1, 0 }, { 0, 0, 1 }, { 1, 0, 1 }, { 0, 1, 1 },
+            { 1, 1, 1 } } };
 
     // -X +X -Y +Y -Z +Z
     static constexpr std::array< std::array< geode::local_index_t, 4 >, 6 >
-        cell_facet_vertices{ { { 0, 2, 6, 4 }, { 1, 5, 7, 3 }, { 0, 4, 5, 1 },
-            { 2, 3, 7, 6 }, { 0, 1, 3, 2 }, { 4, 6, 7, 5 } } };
+        SOLID_CELL_FACET_VERTICES{ { { 0, 2, 6, 4 }, { 1, 5, 7, 3 },
+            { 0, 4, 5, 1 }, { 2, 3, 7, 6 }, { 0, 1, 3, 2 }, { 4, 6, 7, 5 } } };
 } // namespace
 
 namespace geode
 {
-    class OpenGeodeRegularGrid< 3 >::Impl : public detail::PointsImpl< 3 >,
-                                            public detail::GridImpl< 3 >
+    class OpenGeodeRegularGrid< 3 >::Impl : public internal::PointsImpl< 3 >,
+                                            public internal::GridImpl< 3 >
     {
         friend class bitsery::Access;
 
     public:
         Impl( OpenGeodeRegularGrid< 3 >& mesh )
-            : detail::PointsImpl< 3 >( mesh )
+            : internal::PointsImpl< 3 >( mesh )
         {
         }
 
@@ -81,7 +82,8 @@ namespace geode
             for( const auto d : LRange{ 3 } )
             {
                 cell_vertex[d] +=
-                    cell_vertices_translations[polyhedron_vertex.vertex_id][d];
+                    SOLID_CELL_VERTICES_TRANSLATIONS[polyhedron_vertex
+                                                         .vertex_id][d];
             }
             return vertex_index( grid, cell_vertex );
         }
@@ -91,12 +93,12 @@ namespace geode
         {
             const auto& facet = polyhedron_facet_vertex.polyhedron_facet;
             const auto vertex =
-                cell_facet_vertices[facet.facet_id]
-                                   [polyhedron_facet_vertex.vertex_id];
+                SOLID_CELL_FACET_VERTICES[facet.facet_id]
+                                         [polyhedron_facet_vertex.vertex_id];
             return { facet.polyhedron_id, vertex };
         }
 
-        absl::optional< index_t > cell_adjacent( const RegularGrid3D& grid,
+        std::optional< index_t > cell_adjacent( const RegularGrid3D& grid,
             const PolyhedronFacet& polyhedron_facet ) const
         {
             const auto cell =
@@ -117,7 +119,7 @@ namespace geode
                     return grid.cell_index( adj.value() );
                 }
             }
-            return absl::nullopt;
+            return std::nullopt;
         }
 
     private:
@@ -126,36 +128,25 @@ namespace geode
         template < typename Archive >
         void serialize( Archive& archive )
         {
-            archive.ext( *this,
-                Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
-                    a.ext( impl,
-                        bitsery::ext::BaseClass< detail::PointsImpl< 3 > >{} );
-                    a.ext( impl,
-                        bitsery::ext::BaseClass< detail::GridImpl< 3 > >{} );
-                } } } );
+            archive.ext( *this, Growable< Archive, Impl >{ { []( Archive& a,
+                                                                 Impl& impl ) {
+                a.ext( impl,
+                    bitsery::ext::BaseClass< internal::PointsImpl< 3 > >{} );
+                a.ext( impl,
+                    bitsery::ext::BaseClass< internal::GridImpl< 3 > >{} );
+            } } } );
         }
     };
 
     OpenGeodeRegularGrid< 3 >::OpenGeodeRegularGrid() : impl_( *this ) {}
 
     OpenGeodeRegularGrid< 3 >::OpenGeodeRegularGrid(
-        OpenGeodeRegularGrid&& other )
-        : RegularGrid< 3 >( std::move( other ) ),
-          impl_( std::move( other.impl_ ) )
-    {
-    }
+        OpenGeodeRegularGrid&& ) noexcept = default;
 
     OpenGeodeRegularGrid< 3 >& OpenGeodeRegularGrid< 3 >::operator=(
-        OpenGeodeRegularGrid&& other )
-    {
-        RegularGrid< 3 >::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        OpenGeodeRegularGrid&& ) noexcept = default;
 
-    OpenGeodeRegularGrid< 3 >::~OpenGeodeRegularGrid() // NOLINT
-    {
-    }
+    OpenGeodeRegularGrid< 3 >::~OpenGeodeRegularGrid() = default;
 
     index_t OpenGeodeRegularGrid< 3 >::cell_index(
         const Grid3D::CellIndices& index ) const
@@ -193,9 +184,8 @@ namespace geode
         return impl_->get_polyhedron_facet_vertex_id( polyhedron_facet_vertex );
     }
 
-    absl::optional< index_t >
-        OpenGeodeRegularGrid< 3 >::get_polyhedron_adjacent(
-            const PolyhedronFacet& polyhedron_facet ) const
+    std::optional< index_t > OpenGeodeRegularGrid< 3 >::get_polyhedron_adjacent(
+        const PolyhedronFacet& polyhedron_facet ) const
     {
         return impl_->cell_adjacent( *this, polyhedron_facet );
     }

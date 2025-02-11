@@ -16,10 +16,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/C%2B%2B-11-blue.svg" alt="Language">
+  <img src="https://img.shields.io/badge/C%2B%2B-17-blue.svg" alt="Language">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
   <img src="https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg" alt="Semantic-release">
-  <a href="https://opengeode-slack-invite.herokuapp.com">
+  <a href="https://geode-solutions.com/#slack">
     <img src="https://opengeode-slack-invite.herokuapp.com/badge.svg" alt="Slack invite">
   </a>
   <a href="https://doi.org/10.5281/zenodo.3610370">
@@ -35,51 +35,48 @@ OpenGeode is an open source framework for representing and manipulating geometri
 
 ## Ecosystem
 
-| Project                     | Version                               | Description                                                     |
-|-----------------------------|---------------------------------------|-----------------------------------------------------------------|
-| [OpenGeode-IO]              | ![OpenGeode-IO-version]               | Implementation of input and output formats                      |
-| [OpenGeode-Geosciences]     | ![OpenGeode-Geosciences-version]      | Custom objects and algorithms tailored for Geosciences          |
-| [OpenGeode-GeosciencesIO]   | ![OpenGeode-GeosciencesIO-version]    | Implementation of input and output formats for Geosciences      |
-| [OpenGeode-ModuleTemplate]  | ![OpenGeode-ModuleTemplate-version]   | Template for creating your own OpenGeode modules                |
-| [OpenGeode-Inspector]       | ![OpenGeode-Inspector-version]        | Inspecting meshes and models                                    |
-| [Geode]                     | ![Geode-version]                      | Open-source software for visualization, modeling and much more  |
+| Project                    | Version                             | Description                                                    |
+| -------------------------- | ----------------------------------- | -------------------------------------------------------------- |
+| [OpenGeode-IO]             | ![OpenGeode-IO-version]             | Implementation of input and output formats                     |
+| [OpenGeode-Geosciences]    | ![OpenGeode-Geosciences-version]    | Custom objects and algorithms tailored for Geosciences         |
+| [OpenGeode-GeosciencesIO]  | ![OpenGeode-GeosciencesIO-version]  | Implementation of input and output formats for Geosciences     |
+| [OpenGeode-ModuleTemplate] | ![OpenGeode-ModuleTemplate-version] | Template for creating your own OpenGeode modules               |
+| [OpenGeode-Inspector]      | ![OpenGeode-Inspector-version]      | Inspecting meshes and models                                   |
+| [Geode]                    | ![Geode-version]                    | Open-source software for visualization, modeling and much more |
 
 [OpenGeode-IO]: https://github.com/Geode-solutions/OpenGeode-IO
 [OpenGeode-IO-version]: https://img.shields.io/github/release/Geode-solutions/OpenGeode-IO.svg
-
 [OpenGeode-Geosciences]: https://github.com/Geode-solutions/OpenGeode-Geosciences
 [OpenGeode-Geosciences-version]: https://img.shields.io/github/release/Geode-solutions/OpenGeode-Geosciences.svg
-
 [OpenGeode-GeosciencesIO]: https://github.com/Geode-solutions/OpenGeode-GeosciencesIO
 [OpenGeode-GeosciencesIO-version]: https://img.shields.io/github/release/Geode-solutions/OpenGeode-GeosciencesIO.svg
-
 [OpenGeode-Inspector]: https://github.com/Geode-solutions/OpenGeode-Inspector
 [OpenGeode-Inspector-version]: https://img.shields.io/github/release/Geode-solutions/OpenGeode-Inspector.svg
-
 [OpenGeode-ModuleTemplate]: https://github.com/Geode-solutions/OpenGeode-ModuleTemplate
 [OpenGeode-ModuleTemplate-version]: https://img.shields.io/github/release/Geode-solutions/OpenGeode-ModuleTemplate.svg
-
 [Geode]: https://github.com/Geode-solutions/GeodePackage
 [Geode-version]: https://img.shields.io/github/release/Geode-solutions/GeodePackage.svg
 
 ## Documentation
+
 Code and API are fully documented inside the code itself.
 To check out our live documentation, visit [docs.geode-solutions.com](https://docs.geode-solutions.com).
 
 Installing OpenGeode is done:
- * either, by compiling the C++ source. Check [this documentation page](https://docs.geode-solutions.com/guides/how-to-compile) for more details.
- * or, by using pip command ```pip install OpenGeode-core``` and add ```import opengeode``` in your Python script. Check [this documentation page](https://docs.geode-solutions.com/guides/how-to-use-binding) for more details.
 
+- either, by compiling the C++ source. Check [this documentation page](https://docs.geode-solutions.com/guides/compile-opengeode.html) for more details.
+- or, by using pip command `pip install OpenGeode-core` and add `import opengeode` in your Python script. Check [this documentation page](https://docs.geode-solutions.com/guides/use-opengeode-binding.html) for more details.
 
 ## Questions
-For questions and support please use the official [slack](https://opengeode-slack-invite.herokuapp.com). The issue list of this repo is exclusively for bug reports and feature requests. 
 
+For questions and support please use the official [slack](https://geode-solutions.com/#slack). The issue list of this repo is exclusively for bug reports and feature requests.
 
 ## Changelog
+
 Detailed changes for each release are documented in the [release notes](https://github.com/Geode-solutions/OpenGeode/releases).
 
-
 ## License
+
 [MIT](https://opensource.org/licenses/MIT)
 
-Copyright (c) 2019 - 2023, Geode-solutions
+Copyright (c) 2019 - 2025, Geode-solutions

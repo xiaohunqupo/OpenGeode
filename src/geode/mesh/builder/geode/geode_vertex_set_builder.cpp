@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,17 @@
  *
  */
 
-#include <geode/mesh/builder/geode/geode_vertex_set_builder.h>
+#include <geode/mesh/builder/geode/geode_vertex_set_builder.hpp>
 
-#include <geode/mesh/builder/mesh_builder_factory.h>
-#include <geode/mesh/core/geode/geode_vertex_set.h>
+#include <geode/mesh/builder/mesh_builder_factory.hpp>
+#include <geode/mesh/core/geode/geode_vertex_set.hpp>
 
 namespace geode
 {
     OpenGeodeVertexSetBuilder::OpenGeodeVertexSetBuilder(
         VertexSet& vertex_set, MeshBuilderFactoryKey )
         : OpenGeodeVertexSetBuilder(
-            dynamic_cast< OpenGeodeVertexSet& >( vertex_set ) )
+              dynamic_cast< OpenGeodeVertexSet& >( vertex_set ) )
     {
     }
 
@@ -40,6 +40,9 @@ namespace geode
         : VertexSetBuilder( mesh ), geode_vertex_set_( mesh )
     {
     }
+
+    OpenGeodeVertexSetBuilder::OpenGeodeVertexSetBuilder(
+        OpenGeodeVertexSetBuilder&& ) noexcept = default;
 
     void OpenGeodeVertexSetBuilder::do_create_vertex()
     {

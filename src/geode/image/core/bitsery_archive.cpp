@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include <geode/image/core/bitsery_archive.h>
+#include <geode/image/core/bitsery_archive.hpp>
 
-#include <geode/basic/attribute_manager.h>
+#include <geode/basic/attribute_manager.hpp>
 
-#include <geode/image/core/greyscale_color.h>
-#include <geode/image/core/rgb_color.h>
+#include <geode/image/core/greyscale_color.hpp>
+#include <geode/image/core/rgb_color.hpp>
 
 namespace
 {

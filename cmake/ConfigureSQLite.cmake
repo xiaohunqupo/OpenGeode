@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,3 +43,5 @@ ExternalProject_Add(sqlite
         -DCMAKE_INSTALL_PREFIX:PATH=${SQLITE_INSTALL_PREFIX}
         -DBUILD_SHELL:BOOL=ON
 )
+
+ExternalProject_Add_StepTargets(sqlite download)

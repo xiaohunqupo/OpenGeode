@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,14 @@
  *
  */
 
-#include <geode/mesh/core/vertex_set.h>
+#include <geode/mesh/core/vertex_set.hpp>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/mesh/builder/vertex_set_builder.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/mesh/builder/vertex_set_builder.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
 
 namespace geode
 {
@@ -55,21 +55,13 @@ namespace geode
         mutable AttributeManager vertex_attribute_manager_;
     };
 
-    VertexSet::VertexSet() {} // NOLINT
+    VertexSet::VertexSet() = default;
 
-    VertexSet::VertexSet( VertexSet&& other ) noexcept
-        : Identifier{ std::move( other ) }, impl_( std::move( other.impl_ ) )
-    {
-    }
+    VertexSet::VertexSet( VertexSet&& ) noexcept = default;
 
-    VertexSet& VertexSet::operator=( VertexSet&& other )
-    {
-        Identifier::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+    VertexSet& VertexSet::operator=( VertexSet&& ) noexcept = default;
 
-    VertexSet::~VertexSet() {} // NOLINT
+    VertexSet::~VertexSet() = default;
 
     std::unique_ptr< VertexSet > VertexSet::create()
     {
@@ -116,7 +108,8 @@ namespace geode
     {
         auto clone = create( impl_name() );
         auto builder = VertexSetBuilder::create( *clone );
-        builder->copy( *this );
+        builder->copy_identifier( *this );
+        builder->copy( *this, {} );
         return clone;
     }
 

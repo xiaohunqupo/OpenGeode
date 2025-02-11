@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  *
  */
 
-#include <geode/model/mixin/builder/relationships_builder.h>
+#include <geode/model/mixin/builder/relationships_builder.hpp>
 
 namespace geode
 {
@@ -66,7 +66,7 @@ namespace geode
         relationships_.copy_relationships( mapping, relationships, {} );
     }
 
-    void RelationshipsBuilder::load_relationships( absl::string_view directory )
+    void RelationshipsBuilder::load_relationships( std::string_view directory )
     {
         relationships_.load_relationships( directory, {} );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,18 +21,19 @@
  *
  */
 
-#include <geode/image/core/raster_image.h>
+#include <geode/image/core/raster_image.hpp>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/private/array_impl.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/internal/array_impl.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/image/core/rgb_color.h>
+#include <geode/image/core/rgb_color.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    class RasterImage< dimension >::Impl : public detail::ArrayImpl< dimension >
+    class RasterImage< dimension >::Impl
+        : public internal::ArrayImpl< dimension >
     {
         friend class bitsery::Access;
 
@@ -70,7 +71,7 @@ namespace geode
             archive.ext( *this,
                 Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
                     a.ext( impl, bitsery::ext::BaseClass<
-                                     detail::ArrayImpl< dimension > >{} );
+                                     internal::ArrayImpl< dimension > >{} );
                     a.container( impl.colors_, impl.colors_.max_size() );
                 } } } );
         }
@@ -80,14 +81,10 @@ namespace geode
     };
 
     template < index_t dimension >
-    RasterImage< dimension >::RasterImage()
-    {
-    }
+    RasterImage< dimension >::RasterImage() = default;
 
     template < index_t dimension >
-    RasterImage< dimension >::~RasterImage()
-    {
-    }
+    RasterImage< dimension >::~RasterImage() = default;
 
     template < index_t dimension >
     RasterImage< dimension >::RasterImage(
@@ -98,21 +95,11 @@ namespace geode
     }
 
     template < index_t dimension >
-    RasterImage< dimension >::RasterImage( RasterImage&& other ) noexcept
-        : CellArray< dimension >{ std::move( other ) },
-          Identifier{ std::move( other ) },
-          impl_( std::move( other.impl_ ) )
-    {
-    }
+    RasterImage< dimension >::RasterImage( RasterImage&& ) noexcept = default;
 
     template < index_t dimension >
     RasterImage< dimension >& RasterImage< dimension >::operator=(
-        RasterImage&& other )
-    {
-        CellArray< dimension >::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        RasterImage&& ) noexcept = default;
 
     template < index_t dimension >
     index_t RasterImage< dimension >::cell_index(
@@ -122,8 +109,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    auto RasterImage< dimension >::cell_indices( index_t index ) const
-        -> CellIndices
+    auto RasterImage< dimension >::cell_indices(
+        index_t index ) const -> CellIndices
     {
         return impl_->cell_indices( *this, index );
     }

@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ ExternalProject_Add(bitsery
     BINARY_DIR ${BITSERY_PATH}/build
     STAMP_DIR ${BITSERY_PATH}/stamp
     GIT_REPOSITORY https://github.com/Geode-solutions/bitsery
-    GIT_TAG bf5d1fb305b86730021418df572228f60369f499
+    GIT_TAG 20240711
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -36,3 +37,5 @@ ExternalProject_Add(bitsery
     CMAKE_CACHE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=${BITSERY_INSTALL_PREFIX}
 )
+
+ExternalProject_Add_StepTargets(bitsery download)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,9 @@
  *
  */
 
-#include <geode/geometry/basic_objects/plane.h>
+#include <geode/geometry/basic_objects/plane.hpp>
+
+#include <geode/geometry/basic_objects/triangle.hpp>
 
 namespace geode
 {
@@ -32,32 +34,25 @@ namespace geode
     {
     }
     template < typename PointType >
-    GenericPlane< PointType >::GenericPlane( const GenericPlane& other )
-        : normal_( other.normal_ ), origin_( other.origin_ )
+    GenericPlane< PointType >::GenericPlane( const Triangle3D& triangle )
+        : normal_( triangle.normal().value() ),
+          origin_( triangle.vertices()[0] )
     {
     }
+
+    template < typename PointType >
+    GenericPlane< PointType >::GenericPlane( const GenericPlane& ) = default;
     template < typename PointType >
     GenericPlane< PointType >& GenericPlane< PointType >::operator=(
-        const GenericPlane& other )
-    {
-        normal_ = other.normal_;
-        origin_ = other.origin_;
-        return *this;
-    }
+        const GenericPlane& ) = default;
     template < typename PointType >
-    GenericPlane< PointType >::GenericPlane( GenericPlane&& other )
-        : normal_( std::move( other.normal_ ) ),
-          origin_( std::move( other.origin_ ) )
-    {
-    }
+    GenericPlane< PointType >::GenericPlane(
+        GenericPlane&& ) noexcept = default;
+
     template < typename PointType >
     GenericPlane< PointType >& GenericPlane< PointType >::operator=(
-        GenericPlane&& other )
-    {
-        normal_ = std::move( other.normal_ );
-        origin_ = std::move( other.origin_ );
-        return *this;
-    }
+        GenericPlane&& ) noexcept = default;
+
     template < typename PointType >
     const Vector3D& GenericPlane< PointType >::normal() const
     {
@@ -83,39 +78,27 @@ namespace geode
         : Base( normal, std::move( origin ) )
     {
     }
-    OwnerPlane::OwnerPlane( const OwnerPlane& other ) : Base( other ) {}
-    OwnerPlane& OwnerPlane::operator=( const OwnerPlane& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
-    OwnerPlane::OwnerPlane( OwnerPlane&& other ) : Base( other ) {}
-    OwnerPlane& OwnerPlane::operator=( OwnerPlane&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+    OwnerPlane::OwnerPlane( const Triangle3D& triangle ) : Base( triangle ) {}
+
+    OwnerPlane::OwnerPlane( const OwnerPlane& ) = default;
+    OwnerPlane& OwnerPlane::operator=( const OwnerPlane& ) = default;
+    OwnerPlane::OwnerPlane( OwnerPlane&& ) noexcept = default;
+    OwnerPlane& OwnerPlane::operator=( OwnerPlane&& ) noexcept = default;
 
     Plane::Plane( const Vector3D& normal, const Point3D& origin )
         : Base( normal, origin )
     {
     }
-    Plane::Plane( const Plane& other ) : Base( other ) {}
+    Plane::Plane( const Triangle3D& triangle ) : Base( triangle ) {}
+
+    Plane::Plane( const Plane& ) = default;
     Plane::Plane( const OwnerPlane& other )
         : Base( other.normal(), other.origin() )
     {
     }
-    Plane& Plane::operator=( const Plane& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
-    Plane::Plane( Plane&& other ) : Base( other ) {}
-    Plane& Plane::operator=( Plane&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+    Plane& Plane::operator=( const Plane& ) = default;
+    Plane::Plane( Plane&& ) noexcept = default;
+    Plane& Plane::operator=( Plane&& ) noexcept = default;
 
     template class opengeode_geometry_api GenericPlane< Point< 3 > >;
     template class opengeode_geometry_api GenericPlane< RefPoint< 3 > >;

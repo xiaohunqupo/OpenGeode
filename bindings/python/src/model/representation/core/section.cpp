@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,26 @@
  *
  */
 
-#include "../../../common.h"
+#include "../../../common.hpp"
 
-#include <geode/geometry/bounding_box.h>
+#include <geode/geometry/bounding_box.hpp>
 
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/model_boundary.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/corner_collection.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/line_collection.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/surface_collection.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
     void define_section( pybind11::module& module )
     {
         pybind11::class_< Section, Topology, Corners2D, Lines2D, Surfaces2D,
-            ModelBoundaries2D, Identifier >( module, "Section" )
+            ModelBoundaries2D, CornerCollections2D, LineCollections2D,
+            SurfaceCollections2D, Identifier >( module, "Section" )
             .def( pybind11::init<>() )
             .def(
                 "boundary_corners",
@@ -151,6 +155,45 @@ namespace geode
                     return components;
                 },
                 pybind11::return_value_policy::reference )
+            .def(
+                "corner_collection_items",
+                []( const Section& section,
+                    const CornerCollection2D& collection ) {
+                    std::vector< const Corner2D* > components;
+                    for( const auto& component :
+                        section.corner_collection_items( collection ) )
+                    {
+                        components.push_back( &component );
+                    }
+                    return components;
+                },
+                pybind11::return_value_policy::reference )
+            .def(
+                "line_collection_items",
+                []( const Section& section,
+                    const LineCollection2D& collection ) {
+                    std::vector< const Line2D* > components;
+                    for( const auto& component :
+                        section.line_collection_items( collection ) )
+                    {
+                        components.push_back( &component );
+                    }
+                    return components;
+                },
+                pybind11::return_value_policy::reference )
+            .def(
+                "surface_collection_items",
+                []( const Section& section,
+                    const SurfaceCollection2D& collection ) {
+                    std::vector< const Surface2D* > components;
+                    for( const auto& component :
+                        section.surface_collection_items( collection ) )
+                    {
+                        components.push_back( &component );
+                    }
+                    return components;
+                },
+                pybind11::return_value_policy::reference )
             .def( "is_line_closed", &Section::is_closed )
             .def( "is_line_boundary",
                 static_cast< bool ( Section::* )( const Corner2D&,
@@ -165,6 +208,11 @@ namespace geode
                 static_cast< bool ( Section::* )( const Line2D&,
                     const Surface2D& ) const >( &Section::is_internal ) )
             .def( "is_model_boundary_item", &Section::is_model_boundary_item )
+            .def( "is_corner_collection_item",
+                &Section::is_corner_collection_item )
+            .def( "is_line_collection_item", &Section::is_line_collection_item )
+            .def( "is_surface_collection_item",
+                &Section::is_surface_collection_item )
             .def( "bounding_box", &Section::bounding_box )
             .def( "native_extension", &Section::native_extension );
     }

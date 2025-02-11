@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,15 +20,15 @@
  * SOFTWARE.
  *
  */
-#include <geode/basic/logger.h>
+#include <geode/basic/logger.hpp>
 #include <iostream>
 
-#include <geode/mesh/builder/geode/geode_graph_builder.h>
-#include <geode/mesh/core/geode/geode_graph.h>
-#include <geode/mesh/io/graph_input.h>
-#include <geode/mesh/io/graph_output.h>
+#include <geode/mesh/builder/geode/geode_graph_builder.hpp>
+#include <geode/mesh/core/geode/geode_graph.hpp>
+#include <geode/mesh/io/graph_input.hpp>
+#include <geode/mesh/io/graph_output.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 void test_create_vertices(
     const geode::Graph& graph, geode::GraphBuilder& builder )
@@ -123,7 +123,9 @@ void test_delete_edge( const geode::Graph& graph, geode::GraphBuilder& builder )
 void test_io( const geode::Graph& graph, const std::string& filename )
 {
     geode::save_graph( graph, filename );
-    geode::load_graph( geode::OpenGeodeGraph::impl_name_static(), filename );
+    const auto graph2 = geode::load_graph(
+        geode::OpenGeodeGraph::impl_name_static(), filename );
+    geode_unused( graph2 );
 }
 
 void test_backward_io( const std::string& filename )
@@ -166,7 +168,7 @@ void test()
     test_create_edges( *graph, *builder );
     test_io( *graph, absl::StrCat( "test.", graph->native_extension() ) );
     test_backward_io( absl::StrCat(
-        geode::data_path, "test_v7.", graph->native_extension() ) );
+        geode::DATA_PATH, "test_v7.", graph->native_extension() ) );
 
     test_delete_edge( *graph, *builder );
     test_clone( *graph );

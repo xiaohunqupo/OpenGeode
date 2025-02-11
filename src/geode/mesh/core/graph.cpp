@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,36 @@
  *
  */
 
-#include <geode/mesh/core/graph.h>
+#include <geode/mesh/core/graph.hpp>
 
 #include <algorithm>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/vector.h>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/builder/graph_builder.h>
-#include <geode/mesh/core/bitsery_archive.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/mesh/builder/graph_builder.hpp>
+#include <geode/mesh/core/bitsery_archive.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
 
 namespace geode
 {
     class Graph::Impl
     {
-        static constexpr auto attribute_name = "edges_around_vertex";
+        static constexpr auto ATTRIBUTE_NAME = "edges_around_vertex";
         friend class bitsery::Access;
 
     public:
         explicit Impl( Graph& graph )
             : edges_around_vertex_(
-                graph.vertex_attribute_manager()
-                    .template find_or_create_attribute< VariableAttribute,
-                        EdgesAroundVertex >(
-                        attribute_name, EdgesAroundVertex{} ) )
+                  graph.vertex_attribute_manager()
+                      .template find_or_create_attribute< VariableAttribute,
+                          EdgesAroundVertex >(
+                          ATTRIBUTE_NAME, EdgesAroundVertex{} ) )
         {
         }
-
-        Impl( Impl&& other ) = default;
 
         AttributeManager& edge_attribute_manager() const
         {
@@ -144,19 +142,11 @@ namespace geode
 
     Graph::Graph() : impl_( *this ) {}
 
-    Graph::Graph( Graph&& other )
-        : VertexSet( std::move( other ) ), impl_( std::move( other.impl_ ) )
-    {
-    }
+    Graph::Graph( Graph&& ) noexcept = default;
 
-    Graph& Graph::operator=( Graph&& other )
-    {
-        VertexSet::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+    Graph& Graph::operator=( Graph&& ) noexcept = default;
 
-    Graph::~Graph() {} // NOLINT
+    Graph::~Graph() = default;
 
     std::unique_ptr< Graph > Graph::create()
     {
@@ -202,12 +192,27 @@ namespace geode
         return impl_->edges_around_vertex( vertex_id );
     }
 
+    CurveVerticesAroundVertex Graph::vertices_around_vertex(
+        index_t vertex_id ) const
+    {
+        CurveVerticesAroundVertex result;
+        for( const auto& edge_v : this->edges_around_vertex( vertex_id ) )
+        {
+            const auto candidate = this->edge_vertex( edge_v.opposite() );
+            if( absl::c_find( result, candidate ) == result.end() )
+            {
+                result.push_back( candidate );
+            }
+        }
+        return result;
+    }
+
     bool Graph::is_vertex_isolated( index_t vertex_id ) const
     {
         return edges_around_vertex( vertex_id ).empty();
     }
 
-    absl::optional< index_t > Graph::edge_from_vertices(
+    std::optional< index_t > Graph::edge_from_vertices(
         index_t v0, index_t v1 ) const
     {
         for( const auto& edge : edges_around_vertex( v0 ) )
@@ -218,7 +223,7 @@ namespace geode
                 return edge.edge_id;
             }
         }
-        return absl::nullopt;
+        return std::nullopt;
     }
 
     void Graph::set_edges_around_vertex(
@@ -260,6 +265,7 @@ namespace geode
     {
         auto clone = create( impl_name() );
         auto builder = GraphBuilder::create( *clone );
+        builder->copy_identifier( *this );
         builder->copy( *this );
         return clone;
     }

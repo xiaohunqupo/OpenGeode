@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/builder/coordinate_reference_system_manager_builder.h>
-#include <geode/mesh/core/coordinate_reference_system.h>
-#include <geode/mesh/core/coordinate_reference_system_manager.h>
+#include <geode/mesh/builder/coordinate_reference_system_manager_builder.hpp>
+#include <geode/mesh/core/coordinate_reference_system.hpp>
+#include <geode/mesh/core/coordinate_reference_system_manager.hpp>
 
 #define PYTHON_CRS_MANAGER_BUILDER( dimension )                                \
     const auto name##dimension = "CoordinateReferenceSystemManagerBuilder"     \
@@ -36,7 +36,7 @@
             CoordinateReferenceSystemManager< dimension >& >() )               \
         .def( "register_coordinate_reference_system",                          \
             []( CoordinateReferenceSystemManagerBuilder< dimension >& manager, \
-                absl::string_view name,                                        \
+                std::string_view name,                                         \
                 std::shared_ptr< CoordinateReferenceSystem< dimension > >&     \
                     crs ) {                                                    \
                 manager.register_coordinate_reference_system(                  \

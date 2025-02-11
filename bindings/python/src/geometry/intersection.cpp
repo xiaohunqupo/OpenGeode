@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,33 +21,33 @@
  *
  */
 
-#include "../common.h"
+#include "../common.hpp"
 
-#include <geode/geometry/basic_objects/circle.h>
-#include <geode/geometry/basic_objects/cylinder.h>
-#include <geode/geometry/basic_objects/infinite_line.h>
-#include <geode/geometry/basic_objects/plane.h>
-#include <geode/geometry/basic_objects/segment.h>
-#include <geode/geometry/basic_objects/sphere.h>
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/geometry/intersection.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/basic_objects/circle.hpp>
+#include <geode/geometry/basic_objects/cylinder.hpp>
+#include <geode/geometry/basic_objects/infinite_line.hpp>
+#include <geode/geometry/basic_objects/plane.hpp>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/basic_objects/sphere.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/intersection.hpp>
+#include <geode/geometry/point.hpp>
 
 #define PYTHON_INTERSECTION( dimension )                                       \
     const auto line_sphere##dimension =                                        \
         "line_sphere_intersection" + std::to_string( dimension ) + "D";        \
     module.def( line_sphere##dimension.c_str(),                                \
-        ( IntersectionResult<                                                  \
-            absl::InlinedVector< Point< dimension >, 2 > >( * )(               \
-            const InfiniteLine< dimension >&, const Sphere< dimension >& ) )   \
-            & line_sphere_intersection );                                      \
+        static_cast< IntersectionResult<                                       \
+            absl::InlinedVector< Point< dimension >, 2 > > ( * )(              \
+            const InfiniteLine< dimension >&, const Sphere< dimension >& ) >(  \
+            &line_sphere_intersection ) );                                     \
     const auto segment_sphere##dimension =                                     \
         "segment_sphere_intersection" + std::to_string( dimension ) + "D";     \
     module.def( segment_sphere##dimension.c_str(),                             \
-        ( IntersectionResult<                                                  \
-            absl::InlinedVector< Point< dimension >, 2 > >( * )(               \
-            const Segment< dimension >&, const Sphere< dimension >& ) )        \
-            & segment_sphere_intersection )
+        static_cast< IntersectionResult<                                       \
+            absl::InlinedVector< Point< dimension >, 2 > > ( * )(              \
+            const Segment< dimension >&, const Sphere< dimension >& ) >(       \
+            &segment_sphere_intersection ) )
 
 #define PYTHON_INTERSECTION_RESULT( Type )                                     \
     const auto result##Type = std::string( "IntersectionResult" ) + #Type;     \

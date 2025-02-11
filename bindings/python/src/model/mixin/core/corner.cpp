@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@
  *
  */
 
-#include "../../../common.h"
+#include "../../../common.hpp"
 
-#include <geode/mesh/core/point_set.h>
+#include <geode/mesh/core/point_set.hpp>
 
-#include <geode/model/mixin/core/corner.h>
+#include <geode/model/mixin/core/corner.hpp>
 
 #define PYTHON_CORNER( dimension )                                             \
     const auto name##dimension = "Corner" + std::to_string( dimension ) + "D"; \

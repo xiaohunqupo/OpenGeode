@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  *
  */
 
-#include <geode/geometry/basic_objects/circle.h>
+#include <geode/geometry/basic_objects/circle.hpp>
 
-#include <geode/geometry/bounding_box.h>
+#include <geode/geometry/bounding_box.hpp>
 
 namespace geode
 {
@@ -33,32 +33,18 @@ namespace geode
     {
     }
     template < typename PlaneType >
-    GenericCircle< PlaneType >::GenericCircle( const GenericCircle& other )
-        : plane_( other.plane_ ), radius_( other.radius_ )
-    {
-    }
+    GenericCircle< PlaneType >::GenericCircle( const GenericCircle& ) = default;
     template < typename PlaneType >
     GenericCircle< PlaneType >& GenericCircle< PlaneType >::operator=(
-        const GenericCircle& other )
-    {
-        plane_ = other.plane_;
-        radius_ = other.radius_;
-        return *this;
-    }
+        const GenericCircle& ) = default;
     template < typename PlaneType >
-    GenericCircle< PlaneType >::GenericCircle( GenericCircle&& other )
-        : plane_( std::move( other.plane_ ) ),
-          radius_( std::move( other.radius_ ) )
-    {
-    }
+    GenericCircle< PlaneType >::GenericCircle(
+        GenericCircle&& ) noexcept = default;
+
     template < typename PlaneType >
     GenericCircle< PlaneType >& GenericCircle< PlaneType >::operator=(
-        GenericCircle&& other )
-    {
-        plane_ = std::move( other.plane_ );
-        radius_ = std::move( other.radius_ );
-        return *this;
-    }
+        GenericCircle&& ) noexcept = default;
+
     template < typename PlaneType >
     const PlaneType& GenericCircle< PlaneType >::plane() const
     {
@@ -84,9 +70,9 @@ namespace geode
             }
             return std::sqrt( 1 - dP * dP );
         };
-        const auto x = sin_angle( { { 1, 0, 0 } } );
-        const auto y = sin_angle( { { 0, 1, 0 } } );
-        const auto z = sin_angle( { { 0, 0, 1 } } );
+        const auto x = sin_angle( Vector3D{ { 1, 0, 0 } } );
+        const auto y = sin_angle( Vector3D{ { 0, 1, 0 } } );
+        const auto z = sin_angle( Vector3D{ { 0, 0, 1 } } );
         const auto translation = Vector3D{ { x, y, z } } * radius_;
         BoundingBox3D bbox;
         bbox.add_point( plane_.origin() + translation );
@@ -104,34 +90,22 @@ namespace geode
         Base::operator=( other );
         return *this;
     }
-    OwnerCircle::OwnerCircle( OwnerCircle&& other ) : Base( other ) {}
-    OwnerCircle& OwnerCircle::operator=( OwnerCircle&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+    OwnerCircle::OwnerCircle( OwnerCircle&& ) noexcept = default;
+    OwnerCircle& OwnerCircle::operator=( OwnerCircle&& ) noexcept = default;
 
     Circle::Circle( Plane plane, double radius )
         : Base( std::move( plane ), radius )
     {
     }
-    Circle::Circle( const Circle& other ) : Base( other ) {}
+    Circle::Circle( const Circle& ) = default;
     Circle::Circle( const OwnerCircle& other )
-        : Base(
-            { other.plane().normal(), other.plane().origin() }, other.radius() )
+        : Base( { other.plane().normal(), other.plane().origin() },
+              other.radius() )
     {
     }
-    Circle& Circle::operator=( const Circle& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
-    Circle::Circle( Circle&& other ) : Base( other ) {}
-    Circle& Circle::operator=( Circle&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+    Circle& Circle::operator=( const Circle& ) = default;
+    Circle::Circle( Circle&& ) noexcept = default;
+    Circle& Circle::operator=( Circle&& ) noexcept = default;
 
     template class opengeode_geometry_api GenericCircle< Plane >;
     template class opengeode_geometry_api GenericCircle< OwnerPlane >;

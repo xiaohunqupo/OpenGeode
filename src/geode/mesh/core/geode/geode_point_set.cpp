@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,28 +21,28 @@
  *
  */
 
-#include <geode/mesh/core/geode/geode_point_set.h>
+#include <geode/mesh/core/geode/geode_point_set.hpp>
 
 #include <fstream>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/core/private/points_impl.h>
+#include <geode/mesh/core/internal/points_impl.hpp>
 
 namespace geode
 {
     template < index_t dimension >
     class OpenGeodePointSet< dimension >::Impl
-        : public detail::PointsImpl< dimension >
+        : public internal::PointsImpl< dimension >
     {
         friend class bitsery::Access;
 
     public:
         explicit Impl( OpenGeodePointSet< dimension >& mesh )
-            : detail::PointsImpl< dimension >( mesh )
+            : internal::PointsImpl< dimension >( mesh )
         {
         }
 
@@ -55,7 +55,7 @@ namespace geode
             archive.ext( *this,
                 Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
                     a.ext( impl, bitsery::ext::BaseClass<
-                                     detail::PointsImpl< dimension > >{} );
+                                     internal::PointsImpl< dimension > >{} );
                 } } } );
         }
     };
@@ -67,25 +67,14 @@ namespace geode
 
     template < index_t dimension >
     OpenGeodePointSet< dimension >::OpenGeodePointSet(
-        OpenGeodePointSet&& other )
-        : PointSet< dimension >( std::move( other ) ),
-          impl_( std::move( other.impl_ ) )
-    {
-    }
+        OpenGeodePointSet&& ) noexcept = default;
 
     template < index_t dimension >
     OpenGeodePointSet< dimension >& OpenGeodePointSet< dimension >::operator=(
-        OpenGeodePointSet&& other )
-    {
-        PointSet< dimension >::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        OpenGeodePointSet&& ) noexcept = default;
 
     template < index_t dimension >
-    OpenGeodePointSet< dimension >::~OpenGeodePointSet() // NOLINT
-    {
-    }
+    OpenGeodePointSet< dimension >::~OpenGeodePointSet() = default;
 
     template < index_t dimension >
     void OpenGeodePointSet< dimension >::set_vertex(
@@ -113,9 +102,11 @@ namespace geode
                     } } } );
     }
 
+    template class opengeode_mesh_api OpenGeodePointSet< 1 >;
     template class opengeode_mesh_api OpenGeodePointSet< 2 >;
     template class opengeode_mesh_api OpenGeodePointSet< 3 >;
 
+    SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, OpenGeodePointSet< 1 > );
     SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, OpenGeodePointSet< 2 > );
     SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, OpenGeodePointSet< 3 > );
 } // namespace geode

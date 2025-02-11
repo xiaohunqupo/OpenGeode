@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,16 @@
  *
  */
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
-#include "../../common.h"
+#include <string>
 
-#include <geode/mesh/core/regular_grid_solid.h>
-#include <geode/mesh/core/regular_grid_surface.h>
-#include <geode/mesh/io/regular_grid_input.h>
-#include <geode/mesh/io/regular_grid_output.h>
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+#include "../../common.hpp"
+
+#include <geode/mesh/core/regular_grid_solid.hpp>
+#include <geode/mesh/core/regular_grid_surface.hpp>
+#include <geode/mesh/io/regular_grid_input.hpp>
+#include <geode/mesh/io/regular_grid_output.hpp>
 
 #define PYTHON_REGULAR_GRID_IO( dimension )                                    \
     const auto save##dimension =                                               \
@@ -38,13 +40,21 @@
         "load_regular_grid" + std::to_string( dimension ) + "D";               \
     module.def( load##dimension.c_str(),                                       \
         static_cast< std::unique_ptr< RegularGrid< dimension > > ( * )(        \
-            absl::string_view ) >( &load_regular_grid< dimension > ) );        \
+            std::string_view ) >( &load_regular_grid< dimension > ) );         \
     const auto check##dimension = "check_regular_grid_missing_files"           \
                                   + std::to_string( dimension ) + "D";         \
     module.def( check##dimension.c_str(),                                      \
         &check_regular_grid_missing_files< dimension > );                      \
-    PYTHON_INPUT_CLASS( std::unique_ptr< RegularGrid< dimension > >,           \
+    const auto loadable##dimension =                                           \
+        "is_regular_grid_loadable" + std::to_string( dimension ) + "D";        \
+    module.def(                                                                \
+        loadable##dimension.c_str(), &is_regular_grid_loadable< dimension > ); \
+    PYTHON_INPUT_MESH_CLASS( std::unique_ptr< RegularGrid< dimension > >,      \
         "RegularGrid" + std::to_string( dimension ) + "D" );                   \
+    const auto saveable##dimension =                                           \
+        "is_regular_grid_saveable" + std::to_string( dimension ) + "D";        \
+    module.def(                                                                \
+        saveable##dimension.c_str(), &is_regular_grid_saveable< dimension > ); \
     PYTHON_FACTORY_CLASS( RegularGridInputFactory##dimension##D );             \
     PYTHON_FACTORY_CLASS( RegularGridOutputFactory##dimension##D )
 

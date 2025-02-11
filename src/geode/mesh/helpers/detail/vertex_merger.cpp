@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,23 @@
  *
  */
 
-#include <geode/mesh/helpers/detail/vertex_merger.h>
+#include <geode/mesh/helpers/detail/vertex_merger.hpp>
 
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/nn_search.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/nn_search.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/edged_curve_builder.h>
-#include <geode/mesh/builder/solid_mesh_builder.h>
-#include <geode/mesh/builder/surface_mesh_builder.h>
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/solid_mesh.h>
-#include <geode/mesh/core/surface_mesh.h>
-
-namespace
-{
-    template < typename Mesh >
-    std::unique_ptr< Mesh > create_mesh(
-        absl::Span< const std::reference_wrapper< const Mesh > > meshes )
-    {
-        const auto type = meshes.front().get().type_name();
-        for( const auto& mesh : meshes )
-        {
-            if( mesh.get().type_name() != type )
-            {
-                return Mesh::create();
-            }
-        }
-        return Mesh::create( geode::MeshFactory::default_impl( type ) );
-    }
-} // namespace
+#include <geode/mesh/builder/edged_curve_builder.hpp>
+#include <geode/mesh/builder/point_set_builder.hpp>
+#include <geode/mesh/builder/solid_mesh_builder.hpp>
+#include <geode/mesh/builder/surface_mesh_builder.hpp>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/point_set.hpp>
+#include <geode/mesh/core/solid_mesh.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
+#include <geode/mesh/helpers/detail/create_mesh.hpp>
 
 namespace geode
 {
@@ -183,9 +168,10 @@ namespace geode
         }
 
         template < typename Mesh >
-        VertexMerger< Mesh >::~VertexMerger()
-        {
-        }
+        VertexMerger< Mesh >::VertexMerger( VertexMerger&& ) noexcept = default;
+
+        template < typename Mesh >
+        VertexMerger< Mesh >::~VertexMerger() = default;
 
         template < typename Mesh >
         index_t VertexMerger< Mesh >::vertex_in_merged(
@@ -195,8 +181,8 @@ namespace geode
         }
 
         template < typename Mesh >
-        auto VertexMerger< Mesh >::vertex_origins( index_t vertex ) const
-            -> const VertexOrigins&
+        auto VertexMerger< Mesh >::vertex_origins(
+            index_t vertex ) const -> const VertexOrigins&
         {
             return impl_->vertex_origins( vertex );
         }
@@ -231,6 +217,9 @@ namespace geode
         {
             impl_->create_points();
         }
+
+        template class opengeode_mesh_api VertexMerger< PointSet2D >;
+        template class opengeode_mesh_api VertexMerger< PointSet3D >;
 
         template class opengeode_mesh_api VertexMerger< EdgedCurve2D >;
         template class opengeode_mesh_api VertexMerger< EdgedCurve3D >;

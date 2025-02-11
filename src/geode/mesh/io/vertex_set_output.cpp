@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,27 +21,43 @@
  *
  */
 
-#include <geode/mesh/io/vertex_set_output.h>
+#include <geode/mesh/io/vertex_set_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/mesh/core/vertex_set.h>
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+
+#include <geode/mesh/core/vertex_set.hpp>
 
 namespace geode
 {
-    void save_vertex_set(
-        const VertexSet& vertex_set, absl::string_view filename )
+    std::vector< std::string > save_vertex_set(
+        const VertexSet& vertex_set, std::string_view filename )
     {
+        constexpr auto TYPE = "VertexSet";
         try
         {
-            detail::geode_object_output_impl< VertexSetOutputFactory >(
-                "VertexSet", vertex_set, filename );
+            return detail::geode_object_output_impl< VertexSetOutputFactory >(
+                TYPE, vertex_set, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< VertexSetOutputFactory >( TYPE );
             throw OpenGeodeException{ "Cannot save VertexSet in file: ",
                 filename };
         }
+    }
+
+    bool is_vertex_set_saveable(
+        const VertexSet& vertex_set, std::string_view filename )
+    {
+        const auto output =
+            detail::geode_object_output_writer< VertexSetOutputFactory >(
+                filename );
+        return output->is_saveable( vertex_set );
     }
 } // namespace geode

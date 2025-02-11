@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include <geode/geometry/sign.h>
+#include <geode/geometry/sign.hpp>
 
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/geometry/private/position_from_sides.h>
-#include <geode/geometry/private/predicates.h>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/internal/position_from_sides.hpp>
+#include <geode/geometry/internal/predicates.hpp>
 
 namespace
 {
@@ -42,14 +42,14 @@ namespace geode
     Sign tetrahedron_volume_sign( const Tetrahedron& tetra )
     {
         const auto& vertices = tetra.vertices();
-        return detail::side( GEO::PCK::orient_3d(
+        return internal::side( GEO::PCK::orient_3d(
             vertices[0], vertices[1], vertices[2], vertices[3] ) );
     }
 
     Sign triangle_area_sign( const Triangle2D& triangle )
     {
         const auto& vertices = triangle.vertices();
-        return detail::side(
+        return internal::side(
             GEO::PCK::orient_2d( vertices[0], vertices[1], vertices[2] ) );
     }
 

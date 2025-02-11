@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include <geode/mesh/core/polygonal_surface.h>
+#include <geode/mesh/core/polygonal_surface.hpp>
 
-#include <geode/mesh/builder/polygonal_surface_builder.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/mesh/builder/polygonal_surface_builder.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
 
 namespace geode
 {
@@ -57,6 +57,7 @@ namespace geode
     {
         auto clone = create( this->impl_name() );
         auto builder = PolygonalSurfaceBuilder< dimension >::create( *clone );
+        builder->copy_identifier( *this );
         builder->copy( *this );
         return clone;
     }

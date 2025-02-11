@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,27 +21,27 @@
  *
  */
 
-#include <geode/mesh/core/texture3d.h>
+#include <geode/mesh/core/texture3d.hpp>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/image/core/raster_image.h>
+#include <geode/image/core/raster_image.hpp>
 
-#include <geode/mesh/core/private/texture_impl.h>
+#include <geode/mesh/core/internal/texture_impl.hpp>
 
 namespace geode
 {
-    class Texture< 3 >::Impl : public detail::TextureImpl< 3 >
+    class Texture< 3 >::Impl : public internal::TextureImpl< 3 >
     {
         friend class bitsery::Access;
 
     public:
         Impl() = default;
-        Impl( AttributeManager& manager, absl::string_view name )
-            : detail::TextureImpl< 3 >{ manager, name }
+        Impl( AttributeManager& manager, std::string_view name )
+            : internal::TextureImpl< 3 >{ manager, name }
         {
         }
 
@@ -63,26 +63,24 @@ namespace geode
         template < typename Archive >
         void serialize( Archive& archive )
         {
-            archive.ext( *this,
-                Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
-                    a.ext( impl,
-                        bitsery::ext::BaseClass< detail::TextureImpl< 3 > >{} );
-                } } } );
+            archive.ext( *this, Growable< Archive, Impl >{ { []( Archive& a,
+                                                                 Impl& impl ) {
+                a.ext( impl,
+                    bitsery::ext::BaseClass< internal::TextureImpl< 3 > >{} );
+            } } } );
         }
     };
 
-    Texture< 3 >::Texture( AttributeManager& manager, absl::string_view name )
+    Texture< 3 >::Texture( AttributeManager& manager, std::string_view name )
         : impl_{ manager, name }
     {
     }
 
-    Texture< 3 >::Texture( Texture&& other ) : impl_{ std::move( other.impl_ ) }
-    {
-    }
+    Texture< 3 >::Texture( Texture&& ) noexcept = default;
 
-    Texture< 3 >::Texture() {}
+    Texture< 3 >::Texture() = default;
 
-    Texture< 3 >::~Texture() {}
+    Texture< 3 >::~Texture() = default;
 
     const RasterImage3D& Texture< 3 >::image() const
     {

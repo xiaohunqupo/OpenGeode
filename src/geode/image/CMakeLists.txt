@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +28,15 @@ add_geode_library(
         "io/raster_image_input.cpp"
         "io/raster_image_output.cpp"
     PUBLIC_HEADERS
-        "common.h"
-        "core/bitsery_archive.h"
-        "core/greyscale_color.h"
-        "core/raster_image.h"
-        "core/rgb_color.h"
-        "io/raster_image_input.h"
-        "io/raster_image_output.h"
-        "io/geode/geode_bitsery_raster_input.h"
-        "io/geode/geode_bitsery_raster_output.h"
+        "common.hpp"
+        "core/bitsery_archive.hpp"
+        "core/greyscale_color.hpp"
+        "core/raster_image.hpp"
+        "core/rgb_color.hpp"
+        "io/raster_image_input.hpp"
+        "io/raster_image_output.hpp"
+        "io/geode/geode_bitsery_raster_input.hpp"
+        "io/geode/geode_bitsery_raster_output.hpp"
     PUBLIC_DEPENDENCIES
         ${PROJECT_NAME}::basic
 )

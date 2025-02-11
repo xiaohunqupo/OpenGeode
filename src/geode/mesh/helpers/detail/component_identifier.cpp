@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,20 @@
  *
  */
 
-#include <geode/mesh/helpers/detail/component_identifier.h>
+#include <geode/mesh/helpers/detail/component_identifier.hpp>
 
 #include <queue>
 
-#include <geode/basic/attribute.h>
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute.hpp>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/logger.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/solid_mesh.h>
-#include <geode/mesh/core/surface_mesh.h>
-#include <geode/mesh/helpers/generic_solid_accessor.h>
-#include <geode/mesh/helpers/generic_surface_accessor.h>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/solid_mesh.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
+#include <geode/mesh/helpers/generic_solid_accessor.hpp>
+#include <geode/mesh/helpers/generic_surface_accessor.hpp>
 
 namespace
 {
@@ -56,89 +57,98 @@ namespace
         }
     }
 
-    template < typename Mesh >
-    class Propagator
-    {
-        OPENGEODE_DISABLE_COPY_AND_MOVE( Propagator< Mesh > );
-
-    public:
-        virtual ~Propagator() = default;
-
-        geode::index_t identifier( geode::index_t element ) const
-        {
-            OPENGEODE_ASSERT( element < identification_.size(),
-                "[Propagator::identifier] Wrong element index required" );
-            return identification_[element];
-        }
-
-        geode::index_t identify_elements()
-        {
-            for( const auto p : geode::Indices{ identification_ } )
-            {
-                if( identifier( p ) == geode::NO_ID )
-                {
-                    propagate( p, nb_components_ );
-                    nb_components_++;
-                }
-            }
-            return nb_components_;
-        }
-
-        absl::FixedArray< std::vector< geode::index_t > >
-            identified_components() const
-        {
-            absl::FixedArray< std::vector< geode::index_t > > components(
-                nb_components_ );
-            for( const auto p : geode::Indices{ identification_ } )
-            {
-                components[identifier( p )].push_back( p );
-            }
-            return components;
-        }
-
-    protected:
-        Propagator( const Mesh& mesh, geode::index_t nb_elements )
-            : mesh_( mesh ), identification_( nb_elements, geode::NO_ID )
-        {
-        }
-
-        const Mesh& mesh() const
-        {
-            return mesh_;
-        }
-
-    private:
-        void propagate( geode::index_t element_from, geode::index_t tag_id )
-        {
-            std::queue< geode::index_t > queue;
-            queue.emplace( element_from );
-            while( !queue.empty() )
-            {
-                const auto cur_el = queue.front();
-                queue.pop();
-                if( identifier( cur_el ) != geode::NO_ID )
-                {
-                    continue;
-                }
-                identification_[cur_el] = tag_id;
-                add_adjacents( cur_el, queue );
-            }
-        }
-
-        virtual void add_adjacents( geode::index_t element_id,
-            std::queue< geode::index_t >& queue ) const = 0;
-
-    private:
-        const Mesh& mesh_;
-        absl::FixedArray< geode::index_t > identification_;
-        geode::index_t nb_components_{ 0 };
-    };
 } // namespace
 
 namespace geode
 {
     namespace detail
     {
+        template < typename Mesh >
+        class Propagator
+        {
+            OPENGEODE_DISABLE_COPY_AND_MOVE( Propagator< Mesh > );
+
+        public:
+            virtual ~Propagator() = default;
+
+            index_t identifier( index_t element ) const
+            {
+                OPENGEODE_ASSERT( element < identification_.size(),
+                    "[Propagator::identifier] Wrong element index required" );
+                return identification_[element];
+            }
+
+            index_t identify_elements()
+            {
+                return identify_elements( identification_.size() );
+            }
+
+            index_t identify_elements( index_t nb_max_elements )
+            {
+                for( const auto p : Indices{ identification_ } )
+                {
+                    if( identifier( p ) == NO_ID )
+                    {
+                        propagate( p, nb_components_, nb_max_elements );
+                        nb_components_++;
+                    }
+                }
+                return nb_components_;
+            }
+
+            absl::FixedArray< std::vector< index_t > >
+                identified_components() const
+            {
+                absl::FixedArray< std::vector< index_t > > components(
+                    nb_components_ );
+                for( const auto p : Indices{ identification_ } )
+                {
+                    components[identifier( p )].push_back( p );
+                }
+                return components;
+            }
+
+        protected:
+            Propagator( const Mesh& mesh, index_t nb_elements )
+                : mesh_( mesh ), identification_( nb_elements, NO_ID )
+            {
+            }
+
+            const Mesh& mesh() const
+            {
+                return mesh_;
+            }
+
+        private:
+            void propagate(
+                index_t element_from, index_t tag_id, index_t nb_max_elements )
+            {
+                index_t counter{ 0 };
+                std::queue< index_t > queue;
+                queue.emplace( element_from );
+                while( !queue.empty() && counter < nb_max_elements )
+                {
+                    const auto cur_el = queue.front();
+                    queue.pop();
+                    if( identifier( cur_el ) != NO_ID )
+                    {
+                        continue;
+                    }
+                    identification_[cur_el] = tag_id;
+                    counter++;
+                    add_adjacents( cur_el, queue );
+                }
+            }
+
+            virtual void add_adjacents(
+                index_t element_id, std::queue< index_t >& queue ) const = 0;
+
+        private:
+            const Mesh& mesh_;
+            absl::FixedArray< index_t > identification_{};
+            index_t nb_components_{ 0 };
+        };
+
         class GraphIdentifier::Impl : public Propagator< Graph >
         {
         public:
@@ -168,13 +178,16 @@ namespace geode
         {
         }
 
-        GraphIdentifier::~GraphIdentifier() // NOLINT
-        {
-        }
+        GraphIdentifier::~GraphIdentifier() = default;
 
         index_t GraphIdentifier::identify_vertices()
         {
             return impl_->identify_elements();
+        }
+
+        index_t GraphIdentifier::identify_vertices( index_t nb_max_vertices )
+        {
+            return impl_->identify_elements( nb_max_vertices );
         }
 
         index_t GraphIdentifier::vertex_identifier( index_t vertex_id ) const
@@ -195,7 +208,7 @@ namespace geode
         public:
             explicit Impl( const EdgedCurve< dimension >& curve )
                 : Propagator< EdgedCurve< dimension > >(
-                    curve, curve.nb_edges() )
+                      curve, curve.nb_edges() )
             {
             }
 
@@ -227,9 +240,7 @@ namespace geode
         }
 
         template < index_t dimension >
-        EdgedCurveIdentifier< dimension >::~EdgedCurveIdentifier() // NOLINT
-        {
-        }
+        EdgedCurveIdentifier< dimension >::~EdgedCurveIdentifier() = default;
 
         template < index_t dimension >
         index_t EdgedCurveIdentifier< dimension >::identify_edges()
@@ -259,7 +270,7 @@ namespace geode
         public:
             explicit Impl( const SurfaceMesh< dimension >& surface )
                 : Propagator< SurfaceMesh< dimension > >(
-                    surface, surface.nb_polygons() )
+                      surface, surface.nb_polygons() )
             {
             }
 
@@ -282,9 +293,7 @@ namespace geode
         }
 
         template < index_t dimension >
-        SurfaceIdentifier< dimension >::~SurfaceIdentifier() // NOLINT
-        {
-        }
+        SurfaceIdentifier< dimension >::~SurfaceIdentifier() = default;
 
         template < index_t dimension >
         index_t SurfaceIdentifier< dimension >::identify_polygons()
@@ -330,9 +339,7 @@ namespace geode
         {
         }
 
-        SolidIdentifier::~SolidIdentifier() // NOLINT
-        {
-        }
+        SolidIdentifier::~SolidIdentifier() = default;
 
         index_t SolidIdentifier::identify_polyhedra()
         {

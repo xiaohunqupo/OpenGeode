@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,15 @@
  *
  */
 
-#include <geode/model/mixin/core/component.h>
+#include <geode/model/mixin/core/component.hpp>
 
 #include <algorithm>
 
 #include <bitsery/traits/string.h>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/uuid.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/uuid.hpp>
 
 namespace geode
 {
@@ -37,12 +37,12 @@ namespace geode
     class Component< dimension >::Impl
     {
     public:
-        absl::string_view name() const
+        std::string_view name() const
         {
             return name_;
         }
 
-        void set_name( absl::string_view name )
+        void set_name( std::string_view name )
         {
             name_ = to_string( name );
         }
@@ -70,20 +70,13 @@ namespace geode
     };
 
     template < index_t dimension >
-    Component< dimension >::~Component() // NOLINT
-    {
-    }
+    Component< dimension >::~Component() = default;
 
     template < index_t dimension >
-    Component< dimension >::Component() // NOLINT
-    {
-    }
+    Component< dimension >::Component() = default;
 
     template < index_t dimension >
-    Component< dimension >::Component( Component&& other ) noexcept
-        : Identifier{ std::move( other ) }, impl_{ std::move( other.impl_ ) }
-    {
-    }
+    Component< dimension >::Component( Component&& ) noexcept = default;
 
     template < index_t dimension >
     template < typename Archive >

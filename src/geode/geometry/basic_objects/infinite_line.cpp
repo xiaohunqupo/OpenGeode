@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,11 @@
  *
  */
 
-#include <geode/geometry/basic_objects/infinite_line.h>
+#include <geode/geometry/basic_objects/infinite_line.hpp>
 
-#include <geode/geometry/basic_objects/segment.h>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/perpendicular.hpp>
+#include <geode/geometry/vector.hpp>
 
 namespace geode
 {
@@ -35,41 +37,26 @@ namespace geode
     }
     template < typename PointType, index_t dimension >
     GenericLine< PointType, dimension >::GenericLine(
-        const GenericSegment< PointType, dimension >& segment )
+        const Segment< dimension >& segment )
         : GenericLine( segment.normalized_direction(), segment.vertices()[0] )
     {
     }
     template < typename PointType, index_t dimension >
     GenericLine< PointType, dimension >::GenericLine(
-        const GenericLine< PointType, dimension >& other )
-        : direction_( other.direction_ ), origin_( other.origin_ )
-    {
-    }
+        const GenericLine< PointType, dimension >& ) = default;
     template < typename PointType, index_t dimension >
     GenericLine< PointType, dimension >&
         GenericLine< PointType, dimension >::operator=(
-            const GenericLine< PointType, dimension >& other )
-    {
-        direction_ = other.direction_;
-        origin_ = other.origin_;
-        return *this;
-    }
+            const GenericLine< PointType, dimension >& ) = default;
     template < typename PointType, index_t dimension >
     GenericLine< PointType, dimension >::GenericLine(
-        GenericLine< PointType, dimension >&& other )
-        : direction_( std::move( other.direction_ ) ),
-          origin_( std::move( other.origin_ ) )
-    {
-    }
+        GenericLine< PointType, dimension >&& ) noexcept = default;
+
     template < typename PointType, index_t dimension >
     GenericLine< PointType, dimension >&
         GenericLine< PointType, dimension >::operator=(
-            GenericLine< PointType, dimension >&& other )
-    {
-        direction_ = std::move( other.direction_ );
-        origin_ = std::move( other.origin_ );
-        return *this;
-    }
+            GenericLine< PointType, dimension >&& ) noexcept = default;
+
     template < typename PointType, index_t dimension >
     const Point< dimension >&
         GenericLine< PointType, dimension >::origin() const
@@ -82,6 +69,20 @@ namespace geode
     {
         return direction_;
     }
+    template < typename PointType, index_t dimension >
+    template < index_t T >
+    typename std::enable_if< T == 2, double >::type
+        GenericLine< PointType, dimension >::line_constant() const
+    {
+        double line_constant{ 0.0 };
+        const auto perpendicular_direction = perpendicular( direction() );
+        for( const auto i : LRange{ dimension } )
+        {
+            line_constant -=
+                origin().value( i ) * perpendicular_direction.value( i );
+        }
+        return line_constant;
+    }
 
     template < index_t dimension >
     OwnerInfiniteLine< dimension >::OwnerInfiniteLine(
@@ -92,36 +93,22 @@ namespace geode
     template < index_t dimension >
     OwnerInfiniteLine< dimension >::OwnerInfiniteLine(
         const Segment< dimension >& segment )
-        : OwnerInfiniteLine(
-            segment.normalized_direction(), segment.vertices()[0] )
+        : Base( segment )
     {
     }
     template < index_t dimension >
     OwnerInfiniteLine< dimension >::OwnerInfiniteLine(
-        const OwnerInfiniteLine< dimension >& other )
-        : Base( other )
-    {
-    }
+        const OwnerInfiniteLine< dimension >& ) = default;
     template < index_t dimension >
     OwnerInfiniteLine< dimension >& OwnerInfiniteLine< dimension >::operator=(
-        const OwnerInfiniteLine< dimension >& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        const OwnerInfiniteLine< dimension >& ) = default;
     template < index_t dimension >
     OwnerInfiniteLine< dimension >::OwnerInfiniteLine(
-        OwnerInfiniteLine< dimension >&& other )
-        : Base( other )
-    {
-    }
+        OwnerInfiniteLine< dimension >&& ) noexcept = default;
+
     template < index_t dimension >
     OwnerInfiniteLine< dimension >& OwnerInfiniteLine< dimension >::operator=(
-        OwnerInfiniteLine< dimension >&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        OwnerInfiniteLine< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     InfiniteLine< dimension >::InfiniteLine(
@@ -132,15 +119,12 @@ namespace geode
     template < index_t dimension >
     InfiniteLine< dimension >::InfiniteLine(
         const Segment< dimension >& segment )
-        : InfiniteLine( segment.normalized_direction(), segment.vertices()[0] )
+        : Base( segment )
     {
     }
     template < index_t dimension >
     InfiniteLine< dimension >::InfiniteLine(
-        const InfiniteLine< dimension >& other )
-        : Base( other )
-    {
-    }
+        const InfiniteLine< dimension >& ) = default;
     template < index_t dimension >
     InfiniteLine< dimension >::InfiniteLine(
         const OwnerInfiniteLine< dimension >& other )
@@ -149,23 +133,14 @@ namespace geode
     }
     template < index_t dimension >
     InfiniteLine< dimension >& InfiniteLine< dimension >::operator=(
-        const InfiniteLine< dimension >& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        const InfiniteLine< dimension >& ) = default;
     template < index_t dimension >
-    InfiniteLine< dimension >::InfiniteLine( InfiniteLine< dimension >&& other )
-        : Base( other )
-    {
-    }
+    InfiniteLine< dimension >::InfiniteLine(
+        InfiniteLine< dimension >&& ) noexcept = default;
+
     template < index_t dimension >
     InfiniteLine< dimension >& InfiniteLine< dimension >::operator=(
-        InfiniteLine< dimension >&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        InfiniteLine< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     OwnerRay< dimension >::OwnerRay(
@@ -175,33 +150,21 @@ namespace geode
     }
     template < index_t dimension >
     OwnerRay< dimension >::OwnerRay( const Segment< dimension >& segment )
-        : OwnerRay( segment.normalized_direction(), segment.vertices()[0] )
+        : Base( segment )
     {
     }
     template < index_t dimension >
-    OwnerRay< dimension >::OwnerRay( const OwnerRay< dimension >& other )
-        : Base( other )
-    {
-    }
+    OwnerRay< dimension >::OwnerRay( const OwnerRay< dimension >& ) = default;
     template < index_t dimension >
     OwnerRay< dimension >& OwnerRay< dimension >::operator=(
-        const OwnerRay< dimension >& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        const OwnerRay< dimension >& ) = default;
     template < index_t dimension >
-    OwnerRay< dimension >::OwnerRay( OwnerRay< dimension >&& other )
-        : Base( other )
-    {
-    }
+    OwnerRay< dimension >::OwnerRay(
+        OwnerRay< dimension >&& ) noexcept = default;
+
     template < index_t dimension >
     OwnerRay< dimension >& OwnerRay< dimension >::operator=(
-        OwnerRay< dimension >&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        OwnerRay< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     Ray< dimension >::Ray(
@@ -211,13 +174,11 @@ namespace geode
     }
     template < index_t dimension >
     Ray< dimension >::Ray( const Segment< dimension >& segment )
-        : Ray( segment.normalized_direction(), segment.vertices()[0] )
+        : Base( segment )
     {
     }
     template < index_t dimension >
-    Ray< dimension >::Ray( const Ray< dimension >& other ) : Base( other )
-    {
-    }
+    Ray< dimension >::Ray( const Ray< dimension >& ) = default;
     template < index_t dimension >
     Ray< dimension >::Ray( const OwnerRay< dimension >& other )
         : Base( other.direction(), other.origin() )
@@ -225,21 +186,13 @@ namespace geode
     }
     template < index_t dimension >
     Ray< dimension >& Ray< dimension >::operator=(
-        const Ray< dimension >& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        const Ray< dimension >& ) = default;
     template < index_t dimension >
-    Ray< dimension >::Ray( Ray< dimension >&& other ) : Base( other )
-    {
-    }
+    Ray< dimension >::Ray( Ray< dimension >&& ) noexcept = default;
+
     template < index_t dimension >
-    Ray< dimension >& Ray< dimension >::operator=( Ray< dimension >&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+    Ray< dimension >& Ray< dimension >::operator=(
+        Ray< dimension >&& ) noexcept = default;
 
     template class opengeode_geometry_api GenericLine< Point< 1 >, 1 >;
     template class opengeode_geometry_api GenericLine< Point< 2 >, 2 >;
@@ -259,4 +212,9 @@ namespace geode
     template class opengeode_geometry_api Ray< 1 >;
     template class opengeode_geometry_api Ray< 2 >;
     template class opengeode_geometry_api Ray< 3 >;
+
+    template opengeode_geometry_api double
+        GenericLine< Point< 2 >, 2 >::line_constant< 2 >() const;
+    template opengeode_geometry_api double
+        GenericLine< RefPoint< 2 >, 2 >::line_constant< 2 >() const;
 } // namespace geode

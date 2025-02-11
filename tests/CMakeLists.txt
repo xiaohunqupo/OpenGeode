@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ if(NOT TARGET OpenGeode::basic)
 endif()
 
 set(DATA_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data)
-set(test_common_file_in ${CMAKE_CURRENT_LIST_DIR}/common.h.in)
-set(test_common_file ${PROJECT_BINARY_DIR}/geode/tests/common.h)
+set(test_common_file_in ${CMAKE_CURRENT_LIST_DIR}/common.hpp.in)
+set(test_common_file ${PROJECT_BINARY_DIR}/geode/tests/common.hpp)
 configure_file(${test_common_file_in} ${test_common_file})
 include_directories(${PROJECT_BINARY_DIR})
 

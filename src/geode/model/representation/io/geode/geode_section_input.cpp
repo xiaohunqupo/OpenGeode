@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,25 +21,28 @@
  *
  */
 
-#include <geode/model/representation/io/geode/geode_section_input.h>
+#include <geode/model/representation/io/geode/geode_section_input.hpp>
 
 #include <async++.h>
 
-#include <geode/basic/uuid.h>
-#include <geode/basic/zip_file.h>
+#include <geode/basic/uuid.hpp>
+#include <geode/basic/zip_file.hpp>
 
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/model_boundary.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/builder/detail/filter.h>
-#include <geode/model/representation/builder/section_builder.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/corner_collection.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/line_collection.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/surface_collection.hpp>
+#include <geode/model/representation/builder/detail/filter.hpp>
+#include <geode/model/representation/builder/section_builder.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
     void OpenGeodeSectionInput::load_section_files(
-        Section& section, absl::string_view directory )
+        Section& section, std::string_view directory )
     {
         SectionBuilder builder{ section };
         async::parallel_invoke(
@@ -53,6 +56,9 @@ namespace geode
             },
             [&builder, &directory] {
                 builder.load_model_boundaries( directory );
+                builder.load_corner_collections( directory );
+                builder.load_line_collections( directory );
+                builder.load_surface_collections( directory );
             },
             [&builder, &directory] {
                 builder.load_relationships( directory );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include <geode/basic/cell_array.h>
+#include <geode/basic/cell_array.hpp>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
 namespace geode
 {
@@ -53,28 +53,28 @@ namespace geode
             return cells_number_.at( direction );
         }
 
-        absl::optional< CellIndices > next_cell(
+        std::optional< CellIndices > next_cell(
             const CellIndices& index, index_t direction ) const
         {
             if( index[direction] + 1 < nb_cells_in_direction( direction ) )
             {
-                auto next = index;
-                next[direction]++;
-                return next;
+                std::optional< CellIndices > result{ index };
+                result->at( direction )++;
+                return result;
             }
-            return absl::nullopt;
+            return std::nullopt;
         }
 
-        absl::optional< CellIndices > previous_cell(
+        std::optional< CellIndices > previous_cell(
             const CellIndices& index, index_t direction ) const
         {
             if( index[direction] > 0 )
             {
-                auto prev = index;
-                prev[direction]--;
-                return prev;
+                std::optional< CellIndices > result{ index };
+                result->at( direction )--;
+                return result;
             }
-            return absl::nullopt;
+            return std::nullopt;
         }
 
         bool is_cell_on_border( const CellIndices& cell_indices ) const
@@ -121,9 +121,7 @@ namespace geode
     };
 
     template < index_t dimension >
-    CellArray< dimension >::CellArray() // NOLINT
-    {
-    }
+    CellArray< dimension >::CellArray() = default;
 
     template < index_t dimension >
     CellArray< dimension >::CellArray(
@@ -133,23 +131,14 @@ namespace geode
     }
 
     template < index_t dimension >
-    CellArray< dimension >::CellArray( CellArray&& other ) noexcept
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+    CellArray< dimension >::CellArray( CellArray&& ) noexcept = default;
 
     template < index_t dimension >
-    auto CellArray< dimension >::operator=( CellArray&& other ) noexcept
-        -> CellArray&
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+    auto CellArray< dimension >::operator=(
+        CellArray&& ) noexcept -> CellArray& = default;
 
     template < index_t dimension >
-    CellArray< dimension >::~CellArray() // NOLINT
-    {
-    }
+    CellArray< dimension >::~CellArray() = default;
 
     template < index_t dimension >
     index_t CellArray< dimension >::nb_cells() const
@@ -166,14 +155,14 @@ namespace geode
 
     template < index_t dimension >
     auto CellArray< dimension >::next_cell( const CellIndices& index,
-        index_t direction ) const -> absl::optional< CellIndices >
+        index_t direction ) const -> std::optional< CellIndices >
     {
         return impl_->next_cell( index, direction );
     }
 
     template < index_t dimension >
     auto CellArray< dimension >::previous_cell( const CellIndices& index,
-        index_t direction ) const -> absl::optional< CellIndices >
+        index_t direction ) const -> std::optional< CellIndices >
     {
         return impl_->previous_cell( index, direction );
     }

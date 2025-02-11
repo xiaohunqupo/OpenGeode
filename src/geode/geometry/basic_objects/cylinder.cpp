@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  *
  */
 
-#include <geode/geometry/basic_objects/cylinder.h>
+#include <geode/geometry/basic_objects/cylinder.hpp>
 
-#include <geode/basic/logger.h>
+#include <geode/basic/logger.hpp>
 
 namespace geode
 {
@@ -32,29 +32,13 @@ namespace geode
     {
     }
 
-    Cylinder::Cylinder( const Cylinder& other )
-        : axis_( other.axis_ ), radius_( other.radius_ )
-    {
-    }
+    Cylinder::Cylinder( const Cylinder& ) = default;
 
-    Cylinder& Cylinder::operator=( const Cylinder& other )
-    {
-        axis_ = other.axis_;
-        radius_ = other.radius_;
-        return *this;
-    }
+    Cylinder& Cylinder::operator=( const Cylinder& ) = default;
 
-    Cylinder::Cylinder( Cylinder&& other )
-        : axis_( other.axis_ ), radius_( other.radius_ )
-    {
-    }
+    Cylinder::Cylinder( Cylinder&& ) noexcept = default;
 
-    Cylinder& Cylinder::operator=( Cylinder&& other )
-    {
-        axis_ = other.axis_;
-        radius_ = other.radius_;
-        return *this;
-    }
+    Cylinder& Cylinder::operator=( Cylinder&& ) noexcept = default;
 
     const Segment3D& Cylinder::axis() const
     {

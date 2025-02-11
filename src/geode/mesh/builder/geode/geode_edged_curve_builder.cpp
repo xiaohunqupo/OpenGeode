@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include <geode/mesh/builder/geode/geode_edged_curve_builder.h>
+#include <geode/mesh/builder/geode/geode_edged_curve_builder.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/mesh_builder_factory.h>
-#include <geode/mesh/core/geode/geode_edged_curve.h>
+#include <geode/mesh/builder/mesh_builder_factory.hpp>
+#include <geode/mesh/core/geode/geode_edged_curve.hpp>
 
 namespace geode
 {
@@ -34,7 +34,7 @@ namespace geode
     OpenGeodeEdgedCurveBuilder< dimension >::OpenGeodeEdgedCurveBuilder(
         VertexSet& vertex_set, MeshBuilderFactoryKey )
         : OpenGeodeEdgedCurveBuilder< dimension >(
-            dynamic_cast< OpenGeodeEdgedCurve< dimension >& >( vertex_set ) )
+              dynamic_cast< OpenGeodeEdgedCurve< dimension >& >( vertex_set ) )
     {
     }
 
@@ -44,6 +44,10 @@ namespace geode
         : EdgedCurveBuilder< dimension >( mesh ), geode_edged_curve_( mesh )
     {
     }
+
+    template < index_t dimension >
+    OpenGeodeEdgedCurveBuilder< dimension >::OpenGeodeEdgedCurveBuilder(
+        OpenGeodeEdgedCurveBuilder&& ) noexcept = default;
 
     template < index_t dimension >
     void OpenGeodeEdgedCurveBuilder< dimension >::do_create_vertex()
@@ -124,6 +128,7 @@ namespace geode
         // Operation is directly handled by the AttributeManager
     }
 
+    template class opengeode_mesh_api OpenGeodeEdgedCurveBuilder< 1 >;
     template class opengeode_mesh_api OpenGeodeEdgedCurveBuilder< 2 >;
     template class opengeode_mesh_api OpenGeodeEdgedCurveBuilder< 3 >;
 } // namespace geode

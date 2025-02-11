@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,21 @@
  *
  */
 
-#include <geode/model/helpers/component_mesh_polyhedra.h>
+#include <geode/model/helpers/component_mesh_polyhedra.hpp>
+
+#include <functional>
+#include <vector>
 
 #include <absl/container/inlined_vector.h>
+#include <absl/types/span.h>
 
-#include <geode/basic/algorithm.h>
+#include <geode/basic/algorithm.hpp>
 
-#include <geode/mesh/core/detail/vertex_cycle.h>
+#include <geode/mesh/core/detail/vertex_cycle.hpp>
 
-#include <geode/model/helpers/component_mesh_vertices.h>
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/representation/core/brep.h>
+#include <geode/model/helpers/component_mesh_vertices.hpp>
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/representation/core/brep.hpp>
 
 namespace
 {
@@ -39,7 +43,8 @@ namespace
     {
     public:
         PolyhedronVerticesPossibilities(
-            absl::Span< const std::vector< geode::ComponentMeshVertex > >
+            absl::Span< const std::reference_wrapper<
+                const std::vector< geode::ComponentMeshVertex > > >
                 unique_vertices_cmvs )
             : unique_vertices_cmvs_{ unique_vertices_cmvs },
               nb_unique_vertices_{ static_cast< geode::local_index_t >(
@@ -56,14 +61,19 @@ namespace
             }
             for( const auto& cmvs : unique_vertices_cmvs_ )
             {
-                if( cmvs.empty() )
+                if( cmvs.get().empty() )
                 {
                     return {};
                 }
             }
             common_block_vertices_list_.clear();
-            for( const auto& first_cmv : unique_vertices_cmvs_[0] )
+            for( const auto& first_cmv : unique_vertices_cmvs_[0].get() )
             {
+                if( first_cmv.component_id.type()
+                    != geode::Block3D::component_type_static() )
+                {
+                    continue;
+                }
                 const auto& mesh_vertices = block_mesh_vertices( first_cmv );
                 if( mesh_vertices.empty() )
                 {
@@ -87,9 +97,8 @@ namespace
             for( const auto other_cmv_list_id :
                 geode::LRange{ 1, nb_unique_vertices_ } )
             {
-                const auto& other_cmv_list =
-                    unique_vertices_cmvs_[other_cmv_list_id];
-                for( const auto& other_cmv : other_cmv_list )
+                for( const auto& other_cmv :
+                    unique_vertices_cmvs_[other_cmv_list_id].get() )
                 {
                     if( first_cmv_block_id == other_cmv.component_id.id() )
                     {
@@ -127,7 +136,8 @@ namespace
         }
 
     private:
-        absl::Span< const std::vector< geode::ComponentMeshVertex > >
+        absl::Span< const std::reference_wrapper<
+            const std::vector< geode::ComponentMeshVertex > > >
             unique_vertices_cmvs_;
         const geode::local_index_t nb_unique_vertices_;
         std::vector< std::pair< geode::uuid, geode::PolyhedronVertices > >
@@ -156,12 +166,14 @@ namespace geode
     std::vector< MeshElement > component_mesh_polyhedra(
         const BRep& brep, const PolyhedronVertices& unique_vertices )
     {
-        std::vector< std::vector< ComponentMeshVertex > > unique_vertices_cmvs(
-            unique_vertices.size() );
-        for( const auto v_id : LIndices{ unique_vertices } )
+        std::vector<
+            std::reference_wrapper< const std::vector< ComponentMeshVertex > > >
+            unique_vertices_cmvs;
+        unique_vertices_cmvs.reserve( unique_vertices.size() );
+        for( const auto unique_vertex : unique_vertices )
         {
-            unique_vertices_cmvs[v_id] = brep.component_mesh_vertices(
-                unique_vertices[v_id], Block3D::component_type_static() );
+            unique_vertices_cmvs.emplace_back(
+                brep.component_mesh_vertices( unique_vertex ) );
         }
         std::vector< MeshElement > result;
         PolyhedronVerticesPossibilities vertices_pair_computer{

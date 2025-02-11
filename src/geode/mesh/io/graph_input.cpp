@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,46 +21,61 @@
  *
  */
 
-#include <geode/mesh/io/graph_input.h>
+#include <geode/mesh/io/graph_input.hpp>
 
-#include <geode/basic/detail/geode_input_impl.h>
+#include <string_view>
 
-#include <geode/mesh/core/graph.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/basic/detail/geode_input_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/mesh/core/graph.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/io/vertex_set_input.hpp>
 
 namespace geode
 {
     std::unique_ptr< Graph > load_graph(
-        const MeshImpl& impl, absl::string_view filename )
+        const MeshImpl& impl, std::string_view filename )
     {
+        constexpr auto TYPE = "Graph";
         try
         {
-            const auto type = "Graph";
             auto graph = detail::geode_object_input_impl< GraphInputFactory >(
-                type, filename, impl );
-            Logger::info( type, " has: ", graph->nb_vertices(), " vertices, ",
+                TYPE, filename, impl );
+            Logger::info( TYPE, " has: ", graph->nb_vertices(), " vertices, ",
                 graph->nb_edges(), " edges" );
             return graph;
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< GraphInputFactory >( TYPE );
+            Logger::info( "Other extensions are available in parent classes." );
+            print_available_extensions< VertexSetInputFactory >( "VertexSet" );
             throw OpenGeodeException{ "Cannot load Graph from file: ",
                 filename };
         }
     }
 
-    std::unique_ptr< Graph > load_graph( absl::string_view filename )
+    std::unique_ptr< Graph > load_graph( std::string_view filename )
     {
         return load_graph(
             MeshFactory::default_impl( Graph::type_name_static() ), filename );
     }
 
     typename GraphInput::MissingFiles check_graph_missing_files(
-        absl::string_view filename )
+        std::string_view filename )
     {
         const auto input =
             detail::geode_object_input_reader< GraphInputFactory >( filename );
         return input->check_missing_files();
+    }
+
+    bool is_graph_loadable( std::string_view filename )
+    {
+        const auto input =
+            detail::geode_object_input_reader< GraphInputFactory >( filename );
+        return input->is_loadable();
     }
 } // namespace geode

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,17 @@
  *
  */
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/coordinate_reference_system_manager_builder.h>
-#include <geode/mesh/core/attribute_coordinate_reference_system.h>
-#include <geode/mesh/core/coordinate_reference_system.h>
-#include <geode/mesh/core/coordinate_reference_system_manager.h>
+#include <geode/mesh/builder/coordinate_reference_system_manager_builder.hpp>
+#include <geode/mesh/core/attribute_coordinate_reference_system.hpp>
+#include <geode/mesh/core/coordinate_reference_system.hpp>
+#include <geode/mesh/core/coordinate_reference_system_manager.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 void test()
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,29 @@
  *
  */
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/bounding_box.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/bounding_box.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/geode/geode_edged_curve_builder.h>
-#include <geode/mesh/core/geode/geode_edged_curve.h>
-#include <geode/mesh/io/edged_curve_input.h>
-#include <geode/mesh/io/edged_curve_output.h>
+#include <geode/mesh/builder/geode/geode_edged_curve_builder.hpp>
+#include <geode/mesh/core/geode/geode_edged_curve.hpp>
+#include <geode/mesh/io/edged_curve_input.hpp>
+#include <geode/mesh/io/edged_curve_output.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 void test_create_vertices( const geode::EdgedCurve3D& edged_curve,
     geode::EdgedCurveBuilder3D& builder )
 {
-    builder.create_point( { { 0.1, 0.2, 0.3 } } );
-    builder.create_point( { { 2.1, 9.4, 6.7 } } );
+    builder.create_point( geode::Point3D{ { 0.1, 0.2, 0.3 } } );
+    builder.create_point( geode::Point3D{ { 2.1, 9.4, 6.7 } } );
     OPENGEODE_EXCEPTION( edged_curve.nb_vertices() == 2,
         "[Test] EdgedCurve should have 2 vertices" );
     builder.create_vertices( 2 );
-    builder.set_point( 2, { { 7.5, 5.2, 6.3 } } );
-    builder.set_point( 3, { { 8.7, 1.4, 4.7 } } );
+    builder.set_point( 2, geode::Point3D{ { 7.5, 5.2, 6.3 } } );
+    builder.set_point( 3, geode::Point3D{ { 8.7, 1.4, 4.7 } } );
     OPENGEODE_EXCEPTION( edged_curve.nb_vertices() == 4,
         "[Test] EdgedCurve should have 4 vertices" );
 }
@@ -180,6 +180,24 @@ void test_create_edges( const geode::EdgedCurve3D& edged_curve,
         "[Test] edges_around_2 has wrong value" );
     OPENGEODE_EXCEPTION( edges_around_2[2].vertex_id == 1,
         "[Test] edges_around_2 has wrong value" );
+
+    const auto vertices_around_1 = edged_curve.vertices_around_vertex( 1 );
+    OPENGEODE_EXCEPTION( vertices_around_1.size() == 2,
+        "[Test] vertices_around_1 should have 2 vertices, not ",
+        vertices_around_1.size() );
+    for( const auto vertex_id : vertices_around_1 )
+    {
+        OPENGEODE_EXCEPTION( vertex_id == 0 || vertex_id == 2,
+            "vertices_around_1 has wrong values." );
+    }
+    const auto vertices_around_2 = edged_curve.vertices_around_vertex( 2 );
+    OPENGEODE_EXCEPTION( vertices_around_2.size() == 3,
+        "[Test] vertices_around_2 should have 3 vertex" );
+    for( const auto vertex_id : vertices_around_2 )
+    {
+        OPENGEODE_EXCEPTION( vertex_id == 0 || vertex_id == 1 || vertex_id == 3,
+            "vertices_around_2 has wrong values." );
+    }
 }
 
 void test_delete_edge( const geode::EdgedCurve3D& edged_curve,
@@ -208,14 +226,16 @@ void test_io(
     const geode::EdgedCurve3D& edged_curve, const std::string& filename )
 {
     geode::save_edged_curve( edged_curve, filename );
-    geode::load_edged_curve< 3 >( filename );
-    const auto reload = geode::load_edged_curve< 3 >(
+    const auto reload = geode::load_edged_curve< 3 >( filename );
+    geode_unused( reload );
+    const auto edged_curve2 = geode::load_edged_curve< 3 >(
         geode::OpenGeodeEdgedCurve3D::impl_name_static(), filename );
-    OPENGEODE_EXCEPTION( reload->nb_edges() == edged_curve.nb_edges(),
+    OPENGEODE_EXCEPTION( edged_curve2->nb_edges() == edged_curve.nb_edges(),
         "[Test] Reload EdgedCurve has wrong number of edges" );
-    OPENGEODE_EXCEPTION( reload->nb_vertices() == edged_curve.nb_vertices(),
+    OPENGEODE_EXCEPTION(
+        edged_curve2->nb_vertices() == edged_curve.nb_vertices(),
         "[Test] Reload EdgedCurve has wrong number of vertices" );
-    auto manager = reload->texture_manager();
+    auto manager = edged_curve2->texture_manager();
     auto texture_names = manager.texture_names();
     OPENGEODE_EXCEPTION( texture_names.size() == 1,
         "[Test] Reloaded EdgedCurve has wrong number of textures" );
@@ -223,8 +243,9 @@ void test_io(
         "[Test] Reloaded EdgedCurve has wrong texture name" );
     for( const auto vertex_id : geode::Range{ edged_curve.nb_vertices() } )
     {
-        OPENGEODE_EXCEPTION( edged_curve.point( vertex_id )
-                                 .inexact_equal( reload->point( vertex_id ) ),
+        OPENGEODE_EXCEPTION(
+            edged_curve.point( vertex_id )
+                .inexact_equal( edged_curve2->point( vertex_id ) ),
             "[Test] Reloaded EdgedCurve has wrong point coordinates" );
     }
 }
@@ -244,8 +265,8 @@ void test_edge_requests( const geode::EdgedCurve3D& edged_curve,
     OPENGEODE_EXCEPTION( edged_curve.edge_barycenter( 0 ).inexact_equal(
                              geode::Point3D( { 4.8, 7.3, 6.5 } ) ),
         "[Test] Edge barycenter is not correct" );
-    const auto p0 = builder.create_point( { { 1, 1, 1 } } );
-    const auto p1 = builder.create_point( { { 1, 4, -3 } } );
+    const auto p0 = builder.create_point( geode::Point3D{ { 1, 1, 1 } } );
+    const auto p1 = builder.create_point( geode::Point3D{ { 1, 4, -3 } } );
     OPENGEODE_EXCEPTION(
         edged_curve.edge_length( builder.create_edge( p0, p1 ) ) == 5,
         "[Test] Edge length is not correct" );
@@ -295,7 +316,7 @@ void test()
     test_io( *edged_curve,
         absl::StrCat( "test.", edged_curve->native_extension() ) );
     test_backward_io( absl::StrCat(
-        geode::data_path, "test_v12.", edged_curve->native_extension() ) );
+        geode::DATA_PATH, "test_v12.", edged_curve->native_extension() ) );
 
     test_permutation( *edged_curve, *builder );
     test_delete_edge( *edged_curve, *builder );

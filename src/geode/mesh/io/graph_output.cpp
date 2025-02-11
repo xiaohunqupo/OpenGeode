@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,25 +21,46 @@
  *
  */
 
-#include <geode/mesh/io/graph_output.h>
+#include <geode/mesh/io/graph_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/mesh/core/graph.h>
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/mesh/core/graph.hpp>
+#include <geode/mesh/io/vertex_set_output.hpp>
 
 namespace geode
 {
-    void save_graph( const Graph& graph, absl::string_view filename )
+    std::vector< std::string > save_graph(
+        const Graph& graph, std::string_view filename )
     {
+        constexpr auto TYPE = "Graph";
         try
         {
-            detail::geode_object_output_impl< GraphOutputFactory >(
-                "Graph", graph, filename );
+            return detail::geode_object_output_impl< GraphOutputFactory >(
+                TYPE, graph, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< GraphOutputFactory >( TYPE );
+            Logger::info( "Other extensions are available in parent classes." );
+            print_available_extensions< VertexSetOutputFactory >( "VertexSet" );
             throw OpenGeodeException{ "Cannot save Graph in file: ", filename };
         }
     }
+
+    bool is_graph_saveable( const Graph& graph, std::string_view filename )
+    {
+        const auto output =
+            detail::geode_object_output_writer< GraphOutputFactory >(
+                filename );
+        return output->is_saveable( graph );
+    }
+
 } // namespace geode

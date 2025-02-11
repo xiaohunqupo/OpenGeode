@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@
  *
  */
 
-#include <geode/basic/timer.h>
+#include <geode/basic/timer.hpp>
 
 #include <absl/time/clock.h>
 
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/pimpl_impl.hpp>
 
 namespace geode
 {
@@ -37,9 +37,14 @@ namespace geode
             reset();
         }
 
+        absl::Duration raw_duration() const
+        {
+            return absl::Now() - start_time_;
+        }
+
         std::string duration() const
         {
-            return absl::FormatDuration( absl::Now() - start_time_ );
+            return absl::FormatDuration( raw_duration() );
         }
 
         void reset()
@@ -51,13 +56,16 @@ namespace geode
         absl::Time start_time_;
     };
 
-    Timer::Timer() {} // NOLINT
+    Timer::Timer() = default;
 
-    Timer::Timer( Timer&& other ) noexcept : impl_{ std::move( other.impl_ ) }
+    Timer::Timer( Timer&& ) noexcept = default;
+
+    Timer::~Timer() = default;
+
+    absl::Duration Timer::raw_duration() const
     {
+        return impl_->raw_duration();
     }
-
-    Timer::~Timer() {} // NOLINT
 
     std::string Timer::duration() const
     {

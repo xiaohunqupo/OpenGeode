@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,19 @@
  *
  */
 
-#include <geode/geometry/frame.h>
+#include <optional>
+
+#include <geode/geometry/frame.hpp>
+
+#include <geode/geometry/vector.hpp>
 
 namespace
 {
     template < geode::index_t dimension >
-    absl::optional< geode::Frame< dimension > > compute_inverse(
+    std::optional< geode::Frame< dimension > > compute_inverse(
         geode::Frame< dimension > frame )
     {
-        geode::Frame< dimension > result;
+        std::optional< geode::Frame< dimension > > result{ std::in_place };
         for( const auto i : geode::LRange{ dimension } )
         {
             auto value = frame.direction( i ).value( i );
@@ -46,21 +50,21 @@ namespace
 
             if( value == 0 )
             {
-                return absl::nullopt;
+                return std::nullopt;
             }
 
             if( index != i )
             {
-                auto temp_result = result.direction( i );
-                result.set_direction( i, result.direction( index ) );
-                result.set_direction( index, std::move( temp_result ) );
+                auto temp_result = result->direction( i );
+                result->set_direction( i, result->direction( index ) );
+                result->set_direction( index, std::move( temp_result ) );
                 auto temp_frame = frame.direction( i );
                 frame.set_direction( i, frame.direction( index ) );
                 frame.set_direction( index, std::move( temp_frame ) );
             }
 
             frame.set_direction( i, frame.direction( i ) / value );
-            result.set_direction( i, result.direction( i ) / value );
+            result->set_direction( i, result->direction( i ) / value );
 
             for( const auto j : geode::LRange{ dimension } )
             {
@@ -71,8 +75,8 @@ namespace
                 const auto scale = frame.direction( j ).value( i );
                 frame.set_direction(
                     j, frame.direction( j ) - frame.direction( i ) * scale );
-                result.set_direction(
-                    j, result.direction( j ) - result.direction( i ) * scale );
+                result->set_direction( j,
+                    result->direction( j ) - result->direction( i ) * scale );
             }
         }
 
@@ -131,6 +135,18 @@ namespace geode
         for( const auto d : geode::LRange{ dimension } )
         {
             result.set_direction( d, direction( d ) + rhs.direction( d ) );
+        }
+        return result;
+    }
+
+    template < index_t dimension >
+    Vector< dimension > Frame< dimension >::operator*(
+        const Vector< dimension >& rhs ) const
+    {
+        Vector< dimension > result;
+        for( const auto d : geode::LRange{ dimension } )
+        {
+            result.set_value( d, direction( d ).dot( rhs ) );
         }
         return result;
     }

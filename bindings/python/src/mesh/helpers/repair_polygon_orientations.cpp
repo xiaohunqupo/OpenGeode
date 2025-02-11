@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,20 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/core/surface_mesh.h>
-#include <geode/mesh/helpers/repair_polygon_orientations.h>
+#include <geode/mesh/core/surface_mesh.hpp>
+#include <geode/mesh/helpers/repair_polygon_orientations.hpp>
 
 namespace geode
 {
     void define_repair_polygon_orientations( pybind11::module& module )
     {
         module.def( "repair_polygon_orientations2D",
-            ( void ( * )( SurfaceMesh< 2 >& ) )
-                & repair_polygon_orientations< 2 > );
+            static_cast< void ( * )( SurfaceMesh< 2 >& ) >(
+                &repair_polygon_orientations< 2 > ) );
         module.def( "repair_polygon_orientations3D",
-            ( void ( * )( SurfaceMesh< 3 >& ) )
-                & repair_polygon_orientations< 3 > );
+            static_cast< void ( * )( SurfaceMesh< 3 >& ) >(
+                &repair_polygon_orientations< 3 > ) );
     }
 } // namespace geode

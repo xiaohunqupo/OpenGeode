@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/builder/triangulated_surface_builder.h>
-#include <geode/mesh/core/triangulated_surface.h>
+#include <geode/mesh/builder/triangulated_surface_builder.hpp>
+#include <geode/mesh/core/triangulated_surface.hpp>
 
 #define PYTHON_TRIANGULATED_SURFACE_BUILDER( dimension )                       \
     const auto name##dimension =                                               \
@@ -32,10 +32,7 @@
     pybind11::class_< TriangulatedSurfaceBuilder##dimension##D,                \
         SurfaceMeshBuilder##dimension##D >( module, name##dimension.c_str() )  \
         .def_static(                                                           \
-            "create", ( std::unique_ptr<                                       \
-                          TriangulatedSurfaceBuilder##dimension##D >( * )(     \
-                          TriangulatedSurface< dimension >& ) )                \
-                          & TriangulatedSurfaceBuilder##dimension##D::create ) \
+            "create", &TriangulatedSurfaceBuilder##dimension##D::create )      \
         .def( "create_triangle",                                               \
             &TriangulatedSurfaceBuilder##dimension##D::create_triangle )
 

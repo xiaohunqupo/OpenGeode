@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ ExternalProject_Add(abseil
     BINARY_DIR ${ABSEIL_PATH}/build
     STAMP_DIR ${ABSEIL_PATH}/stamp
     GIT_REPOSITORY https://github.com/Geode-solutions/abseil-cpp
-    GIT_TAG 2b4b4fa49aeaa07be934d7b4bddd183d6f850bcb
+    GIT_TAG 20240715
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -35,11 +36,12 @@ ExternalProject_Add(abseil
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_INSTALL_MESSAGE=LAZY
         -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}        
+        -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
         -DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=${CMAKE_MSVC_RUNTIME_LIBRARY}
         -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
-        -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
-        -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
-    CMAKE_CACHE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=${ABSEIL_INSTALL_PREFIX}
+        -DABSL_BUILD_TESTING:BOOL=OFF
 )
+
+ExternalProject_Add_StepTargets(abseil download)

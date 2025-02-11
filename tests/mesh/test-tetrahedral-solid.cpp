@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,33 +21,34 @@
  *
  */
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/mensuration.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/mensuration.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/geode/geode_tetrahedral_solid_builder.h>
-#include <geode/mesh/builder/solid_edges_builder.h>
-#include <geode/mesh/builder/solid_facets_builder.h>
-#include <geode/mesh/core/geode/geode_tetrahedral_solid.h>
-#include <geode/mesh/core/solid_edges.h>
-#include <geode/mesh/core/solid_facets.h>
-#include <geode/mesh/io/tetrahedral_solid_input.h>
-#include <geode/mesh/io/tetrahedral_solid_output.h>
+#include <geode/mesh/builder/geode/geode_tetrahedral_solid_builder.hpp>
+#include <geode/mesh/builder/solid_edges_builder.hpp>
+#include <geode/mesh/builder/solid_facets_builder.hpp>
+#include <geode/mesh/core/geode/geode_tetrahedral_solid.hpp>
+#include <geode/mesh/core/solid_edges.hpp>
+#include <geode/mesh/core/solid_facets.hpp>
+#include <geode/mesh/io/tetrahedral_solid_input.hpp>
+#include <geode/mesh/io/tetrahedral_solid_output.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 void test_create_vertices( const geode::TetrahedralSolid3D& solid,
     geode::TetrahedralSolidBuilder3D& builder )
 {
-    builder.create_point( { { 0.1, 0.2, 0.3 } } );
-    builder.create_point( { { 2.1, 9.4, 6.7 } } );
-    builder.create_point( { { 7.5, 5.2, 6.3 } } );
-    builder.create_point( { { 8.1, 1.4, 4.7 } } );
-    builder.create_point( { { 4.7, 2.1, 1.3 } } );
-    builder.create_point( { { 1.6, 8.7, 6.1 } } );
+    builder.create_point( geode::Point3D{ { 0.1, 0.2, 0.3 } } );
+    builder.create_point( geode::Point3D{ { 2.1, 9.4, 6.7 } } );
+    builder.create_point( geode::Point3D{ { 7.5, 5.2, 6.3 } } );
+    builder.create_point( geode::Point3D{ { 8.1, 1.4, 4.7 } } );
+    builder.create_point( geode::Point3D{ { 4.7, 2.1, 1.3 } } );
+    builder.create_point( geode::Point3D{ { 1.6, 8.7, 6.1 } } );
     OPENGEODE_EXCEPTION( solid.nb_vertices() == 6,
         "[Test] TetrahedralSolid should have 6 vertices" );
 }
@@ -77,8 +78,23 @@ void test_polyhedron_volumes( const geode::TetrahedralSolid3D& solid )
         OPENGEODE_EXCEPTION( std::fabs( solid.polyhedron_volume( p )
                                         - geode::tetrahedron_signed_volume(
                                             solid.tetrahedron( p ) ) )
-                                 < geode::global_epsilon,
+                                 < geode::GLOBAL_EPSILON,
             "[Test] Not correct tetrahedron volume computation" );
+    }
+}
+
+void test_polyhedron_facet_area( const geode::TetrahedralSolid3D& solid )
+{
+    for( const auto p : geode::Range{ solid.nb_polyhedra() } )
+    {
+        for( const auto f : geode::LRange{ solid.nb_polyhedron_facets( p ) } )
+        {
+            auto actual = std::fabs( solid.polyhedron_facet_area( { p, f } ) );
+            auto expected = geode::triangle_area( solid.triangle( { p, f } ) );
+            OPENGEODE_EXCEPTION(
+                std::fabs( actual - expected ) < geode::GLOBAL_EPSILON,
+                "[Test] Not correct tetrahedron facet area computation" );
+        }
     }
 }
 
@@ -107,6 +123,26 @@ void test_polyhedron_adjacencies( const geode::TetrahedralSolid3D& solid,
         "[Test] TetrahedralSolid should have 10 facets" );
     OPENGEODE_EXCEPTION( solid.edges().nb_edges() == 12,
         "[Test] TetrahedralSolid should have 12 edges" );
+
+    const auto around_0 = solid.vertices_around_vertex( 0 );
+    OPENGEODE_EXCEPTION( around_0.size() == 3,
+        "[Test] There should be 3 vertices around vertex 0, not ",
+        around_0.size() );
+    for( const auto vertex_id : around_0 )
+    {
+        OPENGEODE_EXCEPTION( vertex_id == 1 || vertex_id == 2 || vertex_id == 3,
+            "[Test] Wrong vertices around vertex 0." );
+    }
+    const auto around_1 = solid.vertices_around_vertex( 1 );
+    OPENGEODE_EXCEPTION( around_1.size() == 5,
+        "[Test] There should be 5 vertices around vertex 1, not ",
+        around_1.size() );
+    for( const auto vertex_id : around_1 )
+    {
+        OPENGEODE_EXCEPTION( vertex_id == 0 || vertex_id == 2 || vertex_id == 3
+                                 || vertex_id == 4 || vertex_id == 5,
+            "[Test] Wrong vertices around vertex 1." );
+    }
 }
 
 void test_is_on_border( const geode::TetrahedralSolid3D& solid )
@@ -229,7 +265,8 @@ void test_io(
     const geode::TetrahedralSolid3D& solid, const std::string& filename )
 {
     geode::save_tetrahedral_solid( solid, filename );
-    geode::load_tetrahedral_solid< 3 >( filename );
+    const auto reloaded = geode::load_tetrahedral_solid< 3 >( filename );
+    geode_unused( reloaded );
     const auto new_solid = geode::load_tetrahedral_solid< 3 >(
         geode::OpenGeodeTetrahedralSolid3D::impl_name_static(), filename );
     OPENGEODE_EXCEPTION( new_solid->nb_vertices() == 6,
@@ -349,6 +386,7 @@ void test()
     test_create_vertices( *solid, *builder );
     test_create_tetrahedra( *solid, *builder );
     test_polyhedron_volumes( *solid );
+    test_polyhedron_facet_area( *solid );
     test_polyhedron_adjacencies( *solid, *builder );
     test_is_on_border( *solid );
     test_io( *solid, absl::StrCat( "test.", solid->native_extension() ) );

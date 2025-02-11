@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,62 @@
  *
  */
 
-#include <geode/model/helpers/ray_tracing.h>
+#include <geode/model/helpers/ray_tracing.hpp>
 
-#include <geode/geometry/aabb.h>
+#include <geode/geometry/aabb.hpp>
 
-#include <geode/mesh/core/surface_mesh.h>
-#include <geode/mesh/helpers/aabb_surface_helpers.h>
+#include <geode/mesh/core/surface_mesh.hpp>
+#include <geode/mesh/helpers/aabb_surface_helpers.hpp>
 
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/core/brep.h>
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/representation/core/brep.hpp>
+
+namespace
+{
+    const std::array< geode::Vector3D, 12 > directions = { { geode::Vector3D{
+                                                                 { 1., 0.,
+                                                                     0. } },
+        geode::Vector3D{ { 1., 0., 0.1 } }, geode::Vector3D{ { 1., 0., 0.3 } },
+        geode::Vector3D{ { 1., 0., 0.5 } }, geode::Vector3D{ { 0., 1., 0. } },
+        geode::Vector3D{ { 0.1, 1., 0. } }, geode::Vector3D{ { 0.3, 1., 0. } },
+        geode::Vector3D{ { 0.5, 1., 0. } }, geode::Vector3D{ { 0., 0., 1. } },
+        geode::Vector3D{ { 0., 0.1, 1. } }, geode::Vector3D{ { 0., 0.3, 1. } },
+        geode::Vector3D{ { 0., 0.5, 1. } } } };
+
+    std::vector< geode::RayTracing3D::PolygonDistance >
+        find_intersections_with_boundaries(
+            const geode::Ray3D& ray, const geode::SurfaceMesh3D& surface )
+    {
+        const auto aabb = geode::create_aabb_tree( surface );
+        geode::RayTracing3D ray_tracing{ surface, ray };
+        aabb.compute_ray_element_bbox_intersections( ray, ray_tracing );
+        return ray_tracing.all_intersections();
+    }
+
+    std::optional< geode::index_t > count_real_intersections_with_boundaries(
+        const geode::Ray3D& ray, const geode::SurfaceMesh3D& surface )
+    {
+        geode::index_t nb_intersections{ 0 };
+        const auto tracing = find_intersections_with_boundaries( ray, surface );
+        for( const auto& intersection : tracing )
+        {
+            if( intersection.position != geode::POSITION::inside )
+            {
+                return std::nullopt;
+            }
+            if( std::fabs( intersection.distance ) <= geode::GLOBAL_EPSILON )
+            {
+                continue;
+            }
+            else
+            {
+                nb_intersections += 1;
+            }
+        }
+        return nb_intersections;
+    }
+} // namespace
 
 namespace geode
 {
@@ -49,6 +95,68 @@ namespace geode
             result[surface.id()] = ray_tracing.all_intersections();
         }
         return result;
+    }
+
+    bool is_point_inside_block(
+        const BRep& brep, const Block3D& block, const Point3D& point )
+    {
+        for( const auto& direction : directions )
+        {
+            const Ray3D ray{ direction, point };
+            index_t nb_intersections{ 0 };
+            bool could_determine{ true };
+            for( const auto& surface : brep.boundaries( block ) )
+            {
+                auto intersections = count_real_intersections_with_boundaries(
+                    ray, surface.mesh() );
+                if( !intersections.has_value() )
+                {
+                    could_determine = false;
+                    break;
+                }
+                nb_intersections += intersections.value();
+            }
+            if( could_determine )
+            {
+                return ( nb_intersections % 2 == 1 );
+            }
+        }
+        throw OpenGeodeException{
+            "Cannot determine the point is inside the block or not "
+            "(ambigous intersection with rays)."
+        };
+    }
+
+    bool is_point_inside_closed_surface(
+        const SurfaceMesh3D& surface, const Point3D& point )
+    {
+        for( const auto& direction : directions )
+        {
+            const Ray3D ray{ direction, point };
+            auto nb_intersections =
+                count_real_intersections_with_boundaries( ray, surface );
+            if( nb_intersections.has_value() )
+            {
+                return ( nb_intersections.value() % 2 == 1 );
+            }
+        }
+        throw OpenGeodeException{
+            "Cannot determine the point is inside the block or not "
+            "(ambigous intersection with rays)."
+        };
+    }
+
+    std::optional< uuid > block_containing_point(
+        const BRep& brep, const Point3D& point )
+    {
+        for( const auto& block : brep.blocks() )
+        {
+            if( is_point_inside_block( brep, block, point ) )
+            {
+                return block.id();
+            }
+        }
+        return std::nullopt;
     }
 
 } // namespace geode

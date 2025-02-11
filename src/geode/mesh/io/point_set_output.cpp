@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,36 +21,62 @@
  *
  */
 
-#include <geode/mesh/io/point_set_output.h>
+#include <geode/mesh/io/point_set_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/mesh/core/point_set.h>
-#include <geode/mesh/io/vertex_set_output.h>
+#include <absl/strings/str_cat.h>
+
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/mesh/core/point_set.hpp>
+#include <geode/mesh/io/vertex_set_output.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    void save_point_set(
-        const PointSet< dimension >& point_set, absl::string_view filename )
+    std::vector< std::string > save_point_set(
+        const PointSet< dimension >& point_set, std::string_view filename )
     {
+        const auto type = absl::StrCat( "PointSet", dimension, "D" );
         try
         {
-            detail::geode_object_output_impl<
+            return detail::geode_object_output_impl<
                 PointSetOutputFactory< dimension > >(
-                absl::StrCat( "PointSet", dimension, "D" ), point_set,
-                filename );
+                type, point_set, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< PointSetOutputFactory< dimension > >(
+                type );
+            Logger::info( "Other extensions are available in parent classes." );
+            print_available_extensions< VertexSetOutputFactory >( "VertexSet" );
             throw OpenGeodeException{ "Cannot save PointSet in file: ",
                 filename };
         }
     }
 
-    template void opengeode_mesh_api save_point_set(
-        const PointSet< 2 >&, absl::string_view );
-    template void opengeode_mesh_api save_point_set(
-        const PointSet< 3 >&, absl::string_view );
+    template < index_t dimension >
+    bool is_point_set_saveable(
+        const PointSet< dimension >& point_set, std::string_view filename )
+    {
+        const auto output = detail::geode_object_output_writer<
+            PointSetOutputFactory< dimension > >( filename );
+        return output->is_saveable( point_set );
+    }
+
+    template std::vector< std::string > opengeode_mesh_api save_point_set(
+        const PointSet< 2 >&, std::string_view );
+    template std::vector< std::string > opengeode_mesh_api save_point_set(
+        const PointSet< 3 >&, std::string_view );
+
+    template bool opengeode_mesh_api is_point_set_saveable(
+        const PointSet< 2 >&, std::string_view );
+    template bool opengeode_mesh_api is_point_set_saveable(
+        const PointSet< 3 >&, std::string_view );
 } // namespace geode

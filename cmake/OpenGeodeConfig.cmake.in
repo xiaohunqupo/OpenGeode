@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,12 +38,11 @@ endif()
 include(CMakeFindDependencyMacro)
 find_dependency(absl)
 find_dependency(Bitsery)
-find_dependency(ghc_filesystem)
 find_dependency(Threads)
+find_dependency(Async++)
 
 get_target_property(library_type OpenGeode::basic TYPE)
 if(library_type STREQUAL "STATIC_LIBRARY")
-    find_dependency(Async++)
     find_dependency(minizip-ng)
     find_dependency(nanoflann)
     find_dependency(spdlog)

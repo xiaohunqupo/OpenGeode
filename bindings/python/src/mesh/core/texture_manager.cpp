@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/core/texture1d.h>
-#include <geode/mesh/core/texture2d.h>
-#include <geode/mesh/core/texture3d.h>
-#include <geode/mesh/core/texture_manager.h>
+#include <geode/mesh/core/texture1d.hpp>
+#include <geode/mesh/core/texture2d.hpp>
+#include <geode/mesh/core/texture3d.hpp>
+#include <geode/mesh/core/texture_manager.hpp>
 
 #define PYTHON_TEXTURE_MANAGER( dimension )                                    \
     const auto name##dimension =                                               \
@@ -34,8 +34,10 @@
     pybind11::class_< TextureManager< dimension > >(                           \
         module, name##dimension.c_str() )                                      \
         .def( "find_or_create_texture",                                        \
-            &TextureManager< dimension >::find_or_create_texture )             \
-        .def( "find_texture", &TextureManager< dimension >::find_texture )     \
+            &TextureManager< dimension >::find_or_create_texture,              \
+            pybind11::return_value_policy::reference )                         \
+        .def( "find_texture", &TextureManager< dimension >::find_texture,      \
+            pybind11::return_value_policy::reference )                         \
         .def( "texture_names", &TextureManager< dimension >::texture_names )   \
         .def( "texture_exists", &TextureManager< dimension >::texture_exists ) \
         .def( "delete_texture", &TextureManager< dimension >::delete_texture )

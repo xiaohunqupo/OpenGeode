@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,19 @@
  *
  */
 
-#include <geode/mesh/builder/geode/geode_regular_grid_solid_builder.h>
+#include <geode/mesh/builder/geode/geode_regular_grid_solid_builder.hpp>
 
-#include <geode/geometry/vector.h>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/builder/mesh_builder_factory.h>
-#include <geode/mesh/core/geode/geode_regular_grid_solid.h>
+#include <geode/mesh/builder/mesh_builder_factory.hpp>
+#include <geode/mesh/core/geode/geode_regular_grid_solid.hpp>
 
 namespace geode
 {
     OpenGeodeRegularGridBuilder< 3 >::OpenGeodeRegularGridBuilder(
         VertexSet& vertex_set, MeshBuilderFactoryKey )
         : OpenGeodeRegularGridBuilder< 3 >(
-            dynamic_cast< OpenGeodeRegularGrid< 3 >& >( vertex_set ) )
+              dynamic_cast< OpenGeodeRegularGrid< 3 >& >( vertex_set ) )
     {
     }
 
@@ -42,6 +42,9 @@ namespace geode
         : RegularGridBuilder< 3 >( mesh ), geode_regular_grid_( mesh )
     {
     }
+
+    OpenGeodeRegularGridBuilder< 3 >::OpenGeodeRegularGridBuilder(
+        OpenGeodeRegularGridBuilder&& ) noexcept = default;
 
     void OpenGeodeRegularGridBuilder< 3 >::update_origin(
         const Point3D& origin )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,40 +21,40 @@
  *
  */
 
-#include <geode/mesh/core/geode/geode_regular_grid_surface.h>
+#include <geode/mesh/core/geode/geode_regular_grid_surface.hpp>
 
 #include <fstream>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/regular_grid_surface_builder.h>
-#include <geode/mesh/core/private/grid_impl.h>
-#include <geode/mesh/core/private/points_impl.h>
-#include <geode/mesh/core/regular_grid_surface.h>
+#include <geode/mesh/builder/regular_grid_surface_builder.hpp>
+#include <geode/mesh/core/internal/grid_impl.hpp>
+#include <geode/mesh/core/internal/points_impl.hpp>
+#include <geode/mesh/core/regular_grid_surface.hpp>
 
 namespace
 {
     static constexpr std::array< std::array< geode::local_index_t, 2 >, 4 >
-        cell_vertices_translations{ { { 0, 0 }, { 1, 0 }, { 1, 1 },
+        SURFACE_CELL_VERTICES_TRANSLATIONS{ { { 0, 0 }, { 1, 0 }, { 1, 1 },
             { 0, 1 } } };
     static constexpr std::array< std::pair< bool, geode::index_t >, 4 >
-        cell_adjacent_directions{ { { false, 1 }, { true, 0 }, { true, 1 },
-            { false, 0 } } };
+        SURFACE_CELL_ADJACENT_DIRETIONS{ { { false, 1 }, { true, 0 },
+            { true, 1 }, { false, 0 } } };
 } // namespace
 
 namespace geode
 {
-    class OpenGeodeRegularGrid< 2 >::Impl : public detail::PointsImpl< 2 >,
-                                            public detail::GridImpl< 2 >
+    class OpenGeodeRegularGrid< 2 >::Impl : public internal::PointsImpl< 2 >,
+                                            public internal::GridImpl< 2 >
     {
         friend class bitsery::Access;
 
     public:
         Impl( OpenGeodeRegularGrid< 2 >& mesh )
-            : detail::PointsImpl< 2 >( mesh )
+            : internal::PointsImpl< 2 >( mesh )
         {
         }
 
@@ -77,16 +77,18 @@ namespace geode
             for( const auto d : LRange{ 2 } )
             {
                 cell_vertex[d] +=
-                    cell_vertices_translations[polygon_vertex.vertex_id][d];
+                    SURFACE_CELL_VERTICES_TRANSLATIONS[polygon_vertex.vertex_id]
+                                                      [d];
             }
             return vertex_index( grid, cell_vertex );
         }
 
-        absl::optional< index_t > cell_adjacent(
+        std::optional< index_t > cell_adjacent(
             const RegularGrid2D& grid, const PolygonEdge& edge ) const
         {
             const auto cell = cell_indices( grid, edge.polygon_id );
-            const auto& direction = cell_adjacent_directions[edge.edge_id];
+            const auto& direction =
+                SURFACE_CELL_ADJACENT_DIRETIONS[edge.edge_id];
             if( direction.first )
             {
                 if( const auto adj = grid.next_cell( cell, direction.second ) )
@@ -102,7 +104,7 @@ namespace geode
                     return grid.cell_index( adj.value() );
                 }
             }
-            return absl::nullopt;
+            return std::nullopt;
         }
 
     private:
@@ -111,36 +113,25 @@ namespace geode
         template < typename Archive >
         void serialize( Archive& archive )
         {
-            archive.ext( *this,
-                Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
-                    a.ext( impl,
-                        bitsery::ext::BaseClass< detail::PointsImpl< 2 > >{} );
-                    a.ext( impl,
-                        bitsery::ext::BaseClass< detail::GridImpl< 2 > >{} );
-                } } } );
+            archive.ext( *this, Growable< Archive, Impl >{ { []( Archive& a,
+                                                                 Impl& impl ) {
+                a.ext( impl,
+                    bitsery::ext::BaseClass< internal::PointsImpl< 2 > >{} );
+                a.ext( impl,
+                    bitsery::ext::BaseClass< internal::GridImpl< 2 > >{} );
+            } } } );
         }
     };
 
     OpenGeodeRegularGrid< 2 >::OpenGeodeRegularGrid() : impl_( *this ) {}
 
     OpenGeodeRegularGrid< 2 >::OpenGeodeRegularGrid(
-        OpenGeodeRegularGrid&& other )
-        : RegularGrid< 2 >( std::move( other ) ),
-          impl_( std::move( other.impl_ ) )
-    {
-    }
+        OpenGeodeRegularGrid&& ) noexcept = default;
 
     OpenGeodeRegularGrid< 2 >& OpenGeodeRegularGrid< 2 >::operator=(
-        OpenGeodeRegularGrid&& other )
-    {
-        RegularGrid< 2 >::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        OpenGeodeRegularGrid&& ) noexcept = default;
 
-    OpenGeodeRegularGrid< 2 >::~OpenGeodeRegularGrid() // NOLINT
-    {
-    }
+    OpenGeodeRegularGrid< 2 >::~OpenGeodeRegularGrid() = default;
 
     index_t OpenGeodeRegularGrid< 2 >::cell_index(
         const Grid2D::CellIndices& index ) const
@@ -172,7 +163,7 @@ namespace geode
         return impl_->get_polygon_vertex( *this, polygon_vertex );
     }
 
-    absl::optional< index_t > OpenGeodeRegularGrid< 2 >::get_polygon_adjacent(
+    std::optional< index_t > OpenGeodeRegularGrid< 2 >::get_polygon_adjacent(
         const PolygonEdge& edge ) const
     {
         return impl_->cell_adjacent( *this, edge );

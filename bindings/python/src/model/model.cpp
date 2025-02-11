@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include "../common.h"
+#include "../common.hpp"
 #include <pybind11/iostream.h>
 
-#include <geode/model/common.h>
+#include <geode/model/common.hpp>
 
 namespace geode
 {
@@ -39,6 +39,14 @@ namespace geode
     void define_lines( pybind11::module& );
     void define_model_boundary( pybind11::module& );
     void define_model_boundaries( pybind11::module& );
+    void define_corner_collection( pybind11::module& );
+    void define_corner_collections( pybind11::module& );
+    void define_line_collection( pybind11::module& );
+    void define_line_collections( pybind11::module& );
+    void define_surface_collection( pybind11::module& );
+    void define_surface_collections( pybind11::module& );
+    void define_block_collection( pybind11::module& );
+    void define_block_collections( pybind11::module& );
     void define_surface( pybind11::module& );
     void define_surfaces( pybind11::module& );
     void define_relationships( pybind11::module& );
@@ -49,6 +57,10 @@ namespace geode
     void define_corners_builder( pybind11::module& );
     void define_lines_builder( pybind11::module& );
     void define_model_boundaries_builder( pybind11::module& );
+    void define_corner_collections_builder( pybind11::module& );
+    void define_line_collections_builder( pybind11::module& );
+    void define_surface_collections_builder( pybind11::module& );
+    void define_block_collections_builder( pybind11::module& );
     void define_surfaces_builder( pybind11::module& );
     void define_relationships_builder( pybind11::module& );
     void define_vertex_identifier_builder( pybind11::module& );
@@ -72,6 +84,7 @@ namespace geode
     void define_model_component_filter( pybind11::module& );
     void define_model_concatener( pybind11::module& );
     void define_model_coordinate_reference_system( pybind11::module& );
+    void define_model_ray_tracing( pybind11::module& );
 } // namespace geode
 
 PYBIND11_MODULE( opengeode_py_model, module )
@@ -101,6 +114,14 @@ PYBIND11_MODULE( opengeode_py_model, module )
     geode::define_lines( module );
     geode::define_model_boundary( module );
     geode::define_model_boundaries( module );
+    geode::define_corner_collection( module );
+    geode::define_corner_collections( module );
+    geode::define_line_collection( module );
+    geode::define_line_collections( module );
+    geode::define_surface_collection( module );
+    geode::define_surface_collections( module );
+    geode::define_block_collection( module );
+    geode::define_block_collections( module );
     geode::define_surface( module );
     geode::define_surfaces( module );
     geode::define_relationships( module );
@@ -111,6 +132,10 @@ PYBIND11_MODULE( opengeode_py_model, module )
     geode::define_corners_builder( module );
     geode::define_lines_builder( module );
     geode::define_model_boundaries_builder( module );
+    geode::define_corner_collections_builder( module );
+    geode::define_line_collections_builder( module );
+    geode::define_surface_collections_builder( module );
+    geode::define_block_collections_builder( module );
     geode::define_surfaces_builder( module );
     geode::define_relationships_builder( module );
     geode::define_vertex_identifier_builder( module );

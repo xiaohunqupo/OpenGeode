@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,14 @@
 
 #include <bitsery/ext/inheritance.h>
 
-#include <geode/mesh/core/point_set.h>
+#include <geode/mesh/core/point_set.hpp>
 
-#include <geode/basic/bitsery_archive.h>
+#include <geode/basic/bitsery_archive.hpp>
 
-#include <geode/geometry/bounding_box.h>
+#include <geode/geometry/bounding_box.hpp>
 
-#include <geode/mesh/builder/point_set_builder.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/mesh/builder/point_set_builder.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
 
 namespace geode
 {
@@ -78,6 +78,7 @@ namespace geode
     {
         auto clone = create( impl_name() );
         auto builder = PointSetBuilder< dimension >::create( *clone );
+        builder->copy_identifier( *this );
         builder->copy( *this );
         return clone;
     }
@@ -93,9 +94,11 @@ namespace geode
         return box;
     }
 
+    template class opengeode_mesh_api PointSet< 1 >;
     template class opengeode_mesh_api PointSet< 2 >;
     template class opengeode_mesh_api PointSet< 3 >;
 
+    SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, PointSet< 1 > );
     SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, PointSet< 2 > );
     SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, PointSet< 3 > );
 } // namespace geode

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,19 @@
  *
  */
 
-#include <geode/mesh/io/vertex_set_input.h>
+#include <geode/mesh/io/vertex_set_input.hpp>
 
-#include <geode/basic/detail/geode_input_impl.h>
+#include <string_view>
 
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/vertex_set.h>
+#include <geode/basic/detail/geode_input_impl.hpp>
+#include <geode/basic/io.hpp>
+
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/vertex_set.hpp>
 
 namespace geode
 {
-    std::unique_ptr< VertexSet > load_vertex_set( absl::string_view filename )
+    std::unique_ptr< VertexSet > load_vertex_set( std::string_view filename )
     {
         return load_vertex_set(
             MeshFactory::default_impl( VertexSet::type_name_static() ),
@@ -38,32 +41,41 @@ namespace geode
     }
 
     std::unique_ptr< VertexSet > load_vertex_set(
-        const MeshImpl& impl, absl::string_view filename )
+        const MeshImpl& impl, std::string_view filename )
     {
+        constexpr auto TYPE = "VertexSet";
         try
         {
-            const auto type = "VertexSet";
             auto vertex_set =
                 detail::geode_object_input_impl< VertexSetInputFactory >(
-                    type, filename, impl );
+                    TYPE, filename, impl );
             Logger::info(
-                type, " has: ", vertex_set->nb_vertices(), " vertices" );
+                TYPE, " has: ", vertex_set->nb_vertices(), " vertices" );
             return vertex_set;
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< VertexSetInputFactory >( TYPE );
             throw OpenGeodeException{ "Cannot load VertexSet from file: ",
                 filename };
         }
     }
 
     typename VertexSetInput::MissingFiles check_vertex_set_missing_files(
-        absl::string_view filename )
+        std::string_view filename )
     {
         const auto input =
             detail::geode_object_input_reader< VertexSetInputFactory >(
                 filename );
         return input->check_missing_files();
+    }
+
+    bool is_vertex_set_loadable( std::string_view filename )
+    {
+        const auto input =
+            detail::geode_object_input_reader< VertexSetInputFactory >(
+                filename );
+        return input->is_loadable();
     }
 } // namespace geode

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include <geode/geometry/barycentric_coordinates.h>
+#include <geode/geometry/barycentric_coordinates.hpp>
 
-#include <geode/geometry/basic_objects/segment.h>
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/geometry/distance.h>
-#include <geode/geometry/mensuration.h>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/distance.hpp>
+#include <geode/geometry/mensuration.hpp>
 
 namespace geode
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,74 @@
  *
  */
 
-#include <geode/mesh/core/tetrahedral_solid.h>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
 
-#include <geode/basic/bitsery_archive.h>
+#include <array>
 
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/basic_objects/triangle.h>
+#include <geode/basic/bitsery_archive.hpp>
 
-#include <geode/mesh/builder/tetrahedral_solid_builder.h>
-#include <geode/mesh/core/detail/geode_elements.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+
+#include <geode/mesh/builder/tetrahedral_solid_builder.hpp>
+#include <geode/mesh/core/detail/geode_elements.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
 
 namespace
 {
+    template < geode::index_t dimension >
+    std::optional< geode::PolyhedronFacet > tetrahedron_facet_from_vertices(
+        const geode::TetrahedralSolid< dimension >& solid,
+        const geode::PolyhedronFacet& facet,
+        const geode::PolyhedronVertices& vertices_adj,
+        geode::index_t polyhedron_adj )
+    {
+        std::array< geode::index_t, 3 > facet_vertices;
+        for( const auto v : geode::LRange{ 3 } )
+        {
+            facet_vertices[v] = solid.polyhedron_facet_vertex( { facet, v } );
+        }
+        std::array< bool, 4 > candidates{ true, true, true, true };
+        for( const auto v : geode::LRange{ 4 } )
+        {
+            const auto opp_adj_vertex_id = vertices_adj[v];
+            if( absl::c_find( facet_vertices, opp_adj_vertex_id )
+                != facet_vertices.end() )
+            {
+                continue;
+            }
+            for( const auto other_v : geode::LRange{ 4 } )
+            {
+                if( other_v == v )
+                {
+                    continue;
+                }
+                candidates[other_v] = false;
+            }
+        }
+        const auto polyhedron = facet.polyhedron_id;
+        for( const auto f : geode::LRange{ 4 } )
+        {
+            if( !candidates[f] )
+            {
+                continue;
+            }
+            if( solid.polyhedron_adjacent( { polyhedron_adj, f } )
+                != polyhedron )
+            {
+                continue;
+            }
+            return std::optional< geode::PolyhedronFacet >{ std::in_place,
+                polyhedron_adj, f };
+        }
+        throw geode::OpenGeodeException{
+            "[TetrahedralSolid3D::polyhedron_adjacent_"
+            "facet] Wrong adjacency with polyhedra: ",
+            polyhedron, " and ", polyhedron_adj
+        };
+        return std::nullopt;
+    }
+
     template < geode::index_t dimension >
     std::pair< bool, bool > propagate_around_edge(
         const geode::TetrahedralSolid< dimension >& solid,
@@ -44,53 +99,51 @@ namespace
         const auto first_polyhedron = facet.polyhedron_id;
         do
         {
-            if( const auto adj = solid.polyhedron_adjacent_facet( facet ) )
-            {
-                const auto adj_facet = adj.value();
-                result.push_back( adj_facet.polyhedron_id );
-                absl::InlinedVector< geode::local_index_t, 1 > v0;
-                absl::InlinedVector< geode::local_index_t, 1 > v1;
-                const auto vertices =
-                    solid.polyhedron_vertices( adj_facet.polyhedron_id );
-                for( const auto v : geode::LRange{ 4 } )
-                {
-                    if( vertices[v] == edge_vertices[0] )
-                    {
-                        v0.push_back( v );
-                    }
-                    else if( vertices[v] == edge_vertices[1] )
-                    {
-                        v1.push_back( v );
-                    }
-                }
-                if( v0.size() != 1 || v1.size() != 1 )
-                {
-                    return std::make_pair( false, false );
-                }
-                for( const auto f : geode::LRange{ 4 } )
-                {
-                    if( f == adj_facet.facet_id )
-                    {
-                        continue;
-                    }
-                    const auto vertex_id = vertices[f];
-                    if( vertex_id == edge_vertices[0]
-                        || vertex_id == edge_vertices[1] )
-                    {
-                        continue;
-                    }
-                    facet = { adj_facet.polyhedron_id, f };
-                    break;
-                }
-                OPENGEODE_ASSERT(
-                    facet.polyhedron_id == adj_facet.polyhedron_id,
-                    "[TetrahedralSolid3D::propagate_around_edge] Next "
-                    "facet not found" );
-            }
-            else
+            const auto adj_optional = solid.polyhedron_adjacent( facet );
+            if( !adj_optional )
             {
                 return std::make_pair( true, false );
             }
+            const auto adj = adj_optional.value();
+            result.push_back( adj );
+            absl::InlinedVector< geode::local_index_t, 1 > v0;
+            absl::InlinedVector< geode::local_index_t, 1 > v1;
+            const auto vertices_adj = solid.polyhedron_vertices( adj );
+            for( const auto v : geode::LRange{ 4 } )
+            {
+                if( vertices_adj[v] == edge_vertices[0] )
+                {
+                    v0.push_back( v );
+                }
+                else if( vertices_adj[v] == edge_vertices[1] )
+                {
+                    v1.push_back( v );
+                }
+            }
+            if( v0.size() != 1 || v1.size() != 1 )
+            {
+                return std::make_pair( false, false );
+            }
+            const auto adj_facet = ::tetrahedron_facet_from_vertices(
+                solid, facet, vertices_adj, adj );
+            for( const auto f : geode::LRange{ 4 } )
+            {
+                if( f == adj_facet->facet_id )
+                {
+                    continue;
+                }
+                const auto vertex_id = vertices_adj[f];
+                if( vertex_id == edge_vertices[0]
+                    || vertex_id == edge_vertices[1] )
+                {
+                    continue;
+                }
+                facet = { adj, f };
+                break;
+            }
+            OPENGEODE_ASSERT( facet.polyhedron_id == adj,
+                "[TetrahedralSolid3D::propagate_around_edge] Next "
+                "facet not found" );
         } while( facet.polyhedron_id != first_polyhedron );
         return std::make_pair( true, true );
     }
@@ -127,6 +180,7 @@ namespace geode
     {
         auto clone = create( this->impl_name() );
         auto builder = TetrahedralSolidBuilder< dimension >::create( *clone );
+        builder->copy_identifier( *this );
         builder->copy( *this );
         return clone;
     }
@@ -157,6 +211,33 @@ namespace geode
     }
 
     template < index_t dimension >
+    std::array< index_t, 2 >
+        TetrahedralSolid< dimension >::opposite_edge_vertices(
+            index_t tetrahedron_id,
+            const std::array< index_t, 2 >& edge_vertices ) const
+    {
+        std::array< index_t, 2 > edge{};
+        bool first_found{ false };
+        for( const auto v : geode::LRange{ 4 } )
+        {
+            const auto vertex =
+                this->polyhedron_vertex( { tetrahedron_id, v } );
+            if( vertex == edge_vertices[0] || vertex == edge_vertices[1] )
+            {
+                continue;
+            }
+            if( first_found )
+            {
+                edge[1] = vertex;
+                return edge;
+            }
+            edge[0] = vertex;
+            first_found = true;
+        }
+        return edge;
+    }
+
+    template < index_t dimension >
     std::array< PolyhedronFacet, 2 >
         TetrahedralSolid< dimension >::opposite_edge_incident_facets(
             index_t tetrahedron_id,
@@ -166,11 +247,12 @@ namespace geode
         for( const auto v : LRange{ 4 } )
         {
             const PolyhedronVertex vertex{ tetrahedron_id, v };
-            if( this->polyhedron_vertex( vertex ) == edge_vertices[0] )
+            const auto vertex_id = this->polyhedron_vertex( vertex );
+            if( vertex_id == edge_vertices[0] )
             {
                 opposite_facets[0] = { vertex.polyhedron_id, vertex.vertex_id };
             }
-            else if( this->polyhedron_vertex( vertex ) == edge_vertices[1] )
+            else if( vertex_id == edge_vertices[1] )
             {
                 opposite_facets[1] = { vertex.polyhedron_id, vertex.vertex_id };
             }
@@ -200,6 +282,31 @@ namespace geode
         const auto vertices = this->polyhedron_facet_vertices( facet );
         return { this->point( vertices[0] ), this->point( vertices[1] ),
             this->point( vertices[2] ) };
+    }
+
+    template < index_t dimension >
+    typename SolidMesh< dimension >::VerticesAroundVertex
+        TetrahedralSolid< dimension >::vertices_around_vertex(
+            index_t vertex_id ) const
+    {
+        typename SolidMesh< dimension >::VerticesAroundVertex result;
+        for( const auto& poly_vertex :
+            this->polyhedra_around_vertex( vertex_id ) )
+        {
+            for( const auto l_vertex_id : LRange{ 4 } )
+            {
+                if( l_vertex_id != poly_vertex.vertex_id )
+                {
+                    const auto candidate = this->polyhedron_vertex(
+                        { poly_vertex.polyhedron_id, l_vertex_id } );
+                    if( absl::c_find( result, candidate ) == result.end() )
+                    {
+                        result.push_back( candidate );
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     template < index_t dimension >
@@ -289,7 +396,7 @@ namespace geode
             this->polyhedron_vertex( { polyhedron, 2 } ),
             this->polyhedron_vertex( { polyhedron, 3 } ) };
         PolyhedronEdgesVertices result;
-        for( const auto& edge : detail::tetrahedron_edge_vertices )
+        for( const auto& edge : detail::TETRAHEDRON_EDGE_VERTICES )
         {
             result.emplace_back( std::array< index_t, 2 >{
                 vertices[edge[0]], vertices[edge[1]] } );
@@ -298,12 +405,25 @@ namespace geode
     }
 
     template < index_t dimension >
+    std::array< PolyhedronFacetEdge, 6 >
+        TetrahedralSolid< dimension >::polyhedron_edges(
+            index_t polyhedron ) const
+    {
+        return { PolyhedronFacetEdge{ { polyhedron, 0 }, 0 },
+            PolyhedronFacetEdge{ { polyhedron, 0 }, 1 },
+            PolyhedronFacetEdge{ { polyhedron, 0 }, 2 },
+            PolyhedronFacetEdge{ { polyhedron, 1 }, 0 },
+            PolyhedronFacetEdge{ { polyhedron, 1 }, 2 },
+            PolyhedronFacetEdge{ { polyhedron, 2 }, 1 } };
+    }
+
+    template < index_t dimension >
     PolyhedronFacets TetrahedralSolid< dimension >::polyhedron_vertex_facets(
         const PolyhedronVertex& polyhedron_vertex ) const
     {
         PolyhedronFacets facets;
         for( const auto facet :
-            detail::tetrahedron_facet_vertices[polyhedron_vertex.vertex_id] )
+            detail::TETRAHEDRON_FACET_VERTICES[polyhedron_vertex.vertex_id] )
         {
             facets.emplace_back( polyhedron_vertex.polyhedron_id, facet );
         }
@@ -321,7 +441,7 @@ namespace geode
             this->polyhedron_vertex( { polyhedron, 2 } ),
             this->polyhedron_vertex( { polyhedron, 3 } ) };
         PolyhedronFacetsVertices result;
-        for( const auto& facet : detail::tetrahedron_facet_vertices )
+        for( const auto& facet : detail::TETRAHEDRON_FACET_VERTICES )
         {
             result.emplace_back( PolyhedronFacetVertices{
                 vertices[facet[0]], vertices[facet[1]], vertices[facet[2]] } );
@@ -330,7 +450,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    absl::optional< PolyhedronFacet >
+    std::optional< PolyhedronFacet >
         TetrahedralSolid< dimension >::polyhedron_adjacent_facet(
             const PolyhedronFacet& polyhedron_facet ) const
     {
@@ -338,52 +458,12 @@ namespace geode
             this->polyhedron_adjacent( polyhedron_facet );
         if( !opt_polyhedron_adj )
         {
-            return absl::nullopt;
-        }
-        std::array< index_t, 3 > vertices;
-        for( const auto v : LRange{ 3 } )
-        {
-            vertices[v] =
-                this->polyhedron_facet_vertex( { polyhedron_facet, v } );
+            return std::nullopt;
         }
         const auto polyhedron_adj = opt_polyhedron_adj.value();
         const auto adj_vertices = this->polyhedron_vertices( polyhedron_adj );
-        std::array< bool, 4 > candidates{ true, true, true, true };
-        for( const auto v : LRange{ 4 } )
-        {
-            const auto opp_adj_vertex_id = adj_vertices[v];
-            if( opp_adj_vertex_id != vertices[0]
-                && opp_adj_vertex_id != vertices[1]
-                && opp_adj_vertex_id != vertices[2] )
-            {
-                for( const auto other_v : LRange{ 4 } )
-                {
-                    if( other_v == v )
-                    {
-                        continue;
-                    }
-                    candidates[other_v] = false;
-                }
-            }
-        }
-        for( const auto f : LRange{ 4 } )
-        {
-            if( !candidates[f] )
-            {
-                continue;
-            }
-            if( this->polyhedron_adjacent( { polyhedron_adj, f } )
-                != polyhedron_facet.polyhedron_id )
-            {
-                continue;
-            }
-            return absl::optional< PolyhedronFacet >{ absl::in_place,
-                polyhedron_adj, f };
-        }
-        throw OpenGeodeException{ "[SolidMesh::polyhedron_adjacent_"
-                                  "facet] Wrong adjacency with polyhedra: ",
-            polyhedron_facet.polyhedron_id, " and ", polyhedron_adj };
-        return absl::nullopt;
+        return ::tetrahedron_facet_from_vertices(
+            *this, polyhedron_facet, adj_vertices, polyhedron_adj );
     }
 
     template < index_t dimension >

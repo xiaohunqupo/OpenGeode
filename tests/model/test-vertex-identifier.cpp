@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,25 +21,25 @@
  *
  */
 
-#include <geode/basic/assert.h>
-#include <geode/basic/logger.h>
-#include <geode/geometry/point.h>
+#include <geode/basic/assert.hpp>
+#include <geode/basic/logger.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/point_set_builder.h>
-#include <geode/mesh/builder/surface_mesh_builder.h>
-#include <geode/mesh/core/surface_mesh.h>
+#include <geode/mesh/builder/point_set_builder.hpp>
+#include <geode/mesh/builder/surface_mesh_builder.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
 
-#include <geode/model/mixin/builder/corners_builder.h>
-#include <geode/model/mixin/builder/surfaces_builder.h>
-#include <geode/model/mixin/builder/topology_builder.h>
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/corners.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/mixin/core/surfaces.h>
-#include <geode/model/mixin/core/topology.h>
-#include <geode/model/mixin/core/vertex_identifier.h>
+#include <geode/model/mixin/builder/corners_builder.hpp>
+#include <geode/model/mixin/builder/surfaces_builder.hpp>
+#include <geode/model/mixin/builder/topology_builder.hpp>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/corners.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/surfaces.hpp>
+#include <geode/model/mixin/core/topology.hpp>
+#include <geode/model/mixin/core/vertex_identifier.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 class CornerProvider : public geode::Topology, public geode::Corners2D
 {
@@ -127,21 +127,6 @@ void test_set_unique_vertices(
                              0, geode::Corner2D::component_type_static() ),
         "[Test] Unique vertex should have component mesh vertices of type "
         "Corner" );
-    const auto& uvertices0_type = vertex_identifier.component_mesh_vertices(
-        0, geode::Corner2D::component_type_static() );
-    OPENGEODE_EXCEPTION( uvertices0_type.size() == 2,
-        "[Test] Search of unique vertices by "
-        "ComponentType is not correct" );
-    OPENGEODE_EXCEPTION(
-        vertex_identifier.has_component_mesh_vertices( 0, uuids[0] ),
-        "[Test] Unique vertex should have component mesh vertices of given "
-        "Corner id" );
-    OPENGEODE_EXCEPTION(
-        vertex_identifier.component_mesh_vertices( 0, uuids[0] ).size() == 1
-            && vertex_identifier.component_mesh_vertices( 0, uuids[0] ).front()
-                   == 0,
-        "[Test] Search of unique vertices by ComponentMeshUUID is not "
-        "correct" );
 
     const auto& uvertices3 = vertex_identifier.component_mesh_vertices( 3 );
     OPENGEODE_EXCEPTION( uvertices3.size() == 0,

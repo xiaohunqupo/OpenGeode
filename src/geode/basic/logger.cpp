@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +20,37 @@
  * SOFTWARE.
  *
  */
-#include <geode/basic/logger.h>
+#include <geode/basic/logger.hpp>
 #include <iostream>
 
-#include <geode/basic/logger_manager.h>
-#include <geode/basic/pimpl_impl.h>
+#include <absl/container/flat_hash_map.h>
+
+#include <geode/basic/logger_manager.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
 namespace geode
 {
     class Logger::Impl
     {
     public:
-        Level level() const
+        LEVEL level() const
         {
             return level_;
         }
 
-        void set_level( Level level )
+        void set_level( LEVEL level )
         {
             level_ = level;
         }
 
+        void log( LEVEL level, const std::string &message )
+        {
+            leveled_log.at( level )( message );
+        }
+
         void log_trace( const std::string &message )
         {
-            if( level_ <= Level::trace )
+            if( level_ <= LEVEL::trace )
             {
                 LoggerManager::trace( message );
             }
@@ -51,7 +58,7 @@ namespace geode
 
         void log_debug( const std::string &message )
         {
-            if( level_ <= Level::debug )
+            if( level_ <= LEVEL::debug )
             {
                 LoggerManager::debug( message );
             }
@@ -59,7 +66,7 @@ namespace geode
 
         void log_info( const std::string &message )
         {
-            if( level_ <= Level::info )
+            if( level_ <= LEVEL::info )
             {
                 LoggerManager::info( message );
             }
@@ -67,7 +74,7 @@ namespace geode
 
         void log_warn( const std::string &message )
         {
-            if( level_ <= Level::warn )
+            if( level_ <= LEVEL::warn )
             {
                 LoggerManager::warn( message );
             }
@@ -75,7 +82,7 @@ namespace geode
 
         void log_error( const std::string &message )
         {
-            if( level_ <= Level::err )
+            if( level_ <= LEVEL::err )
             {
                 LoggerManager::error( message );
             }
@@ -83,19 +90,30 @@ namespace geode
 
         void log_critical( const std::string &message )
         {
-            if( level_ <= Level::critical )
+            if( level_ <= LEVEL::critical )
             {
                 LoggerManager::critical( message );
             }
         }
 
     private:
-        Level level_{ Level::trace };
+        const absl::flat_hash_map< geode::Logger::LEVEL,
+            std::function< void( const std::string & ) > >
+            leveled_log{
+                { geode::Logger::LEVEL::trace, geode::Logger::log_trace },
+                { geode::Logger::LEVEL::debug, geode::Logger::log_debug },
+                { geode::Logger::LEVEL::info, geode::Logger::log_info },
+                { geode::Logger::LEVEL::warn, geode::Logger::log_warn },
+                { geode::Logger::LEVEL::err, geode::Logger::log_error },
+                { geode::Logger::LEVEL::critical, geode::Logger::log_critical }
+            };
+
+        LEVEL level_{ LEVEL::info };
     };
 
-    Logger::Logger() {} // NOLINT
+    Logger::Logger() = default;
 
-    Logger::~Logger() {} // NOLINT
+    Logger::~Logger() = default;
 
     Logger &Logger::instance()
     {
@@ -103,14 +121,19 @@ namespace geode
         return logger;
     }
 
-    Logger::Level Logger::level()
+    Logger::LEVEL Logger::level()
     {
         return instance().impl_->level();
     }
 
-    void Logger::set_level( Level level )
+    void Logger::set_level( LEVEL level )
     {
         instance().impl_->set_level( level );
+    }
+
+    void Logger::log( LEVEL level, const std::string &message )
+    {
+        instance().impl_->log( level, message );
     }
 
     void Logger::log_trace( const std::string &message )

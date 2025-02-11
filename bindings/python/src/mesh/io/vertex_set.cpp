@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
-#include "../../common.h"
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+#include "../../common.hpp"
 
-#include <geode/mesh/core/vertex_set.h>
-#include <geode/mesh/io/vertex_set_input.h>
-#include <geode/mesh/io/vertex_set_output.h>
+#include <geode/mesh/core/vertex_set.hpp>
+#include <geode/mesh/io/vertex_set_input.hpp>
+#include <geode/mesh/io/vertex_set_output.hpp>
 
 namespace geode
 {
@@ -36,10 +36,12 @@ namespace geode
         module.def( "save_vertex_set", &save_vertex_set );
         module.def(
             "load_vertex_set", static_cast< std::unique_ptr< VertexSet > ( * )(
-                                   absl::string_view ) >( &load_vertex_set ) );
+                                   std::string_view ) >( &load_vertex_set ) );
         module.def(
             "check_vertex_set_missing_files", &check_vertex_set_missing_files );
-        PYTHON_INPUT_CLASS( std::unique_ptr< VertexSet >, "VertexSet" );
+        module.def( "is_vertex_set_loadable", &is_vertex_set_loadable );
+        module.def( "is_vertex_set_saveable", &is_vertex_set_saveable );
+        PYTHON_INPUT_MESH_CLASS( std::unique_ptr< VertexSet >, "VertexSet" );
         PYTHON_FACTORY_CLASS( VertexSetInputFactory );
         PYTHON_FACTORY_CLASS( VertexSetOutputFactory );
     }

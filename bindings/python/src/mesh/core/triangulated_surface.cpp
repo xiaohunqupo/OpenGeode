@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,20 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/mesh/core/triangulated_surface.h>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/mesh/core/triangulated_surface.hpp>
 
 #define PYTHON_TRIANGULATED_SURFACE( dimension )                               \
     const auto name##dimension =                                               \
         "TriangulatedSurface" + std::to_string( dimension ) + "D";             \
     pybind11::class_< TriangulatedSurface##dimension##D,                       \
         SurfaceMesh##dimension##D >( module, name##dimension.c_str() )         \
-        .def_static( "create",                                                 \
-            ( std::unique_ptr< TriangulatedSurface##dimension##D >( * )() )    \
-                & TriangulatedSurface##dimension##D::create )                  \
+        .def_static(                                                           \
+            "create", static_cast< std::unique_ptr<                            \
+                          TriangulatedSurface##dimension##D > ( * )() >(       \
+                          &TriangulatedSurface##dimension##D::create ) )       \
         .def( "clone", &TriangulatedSurface##dimension##D::clone )             \
         .def( "triangle", &TriangulatedSurface##dimension##D::triangle )
 

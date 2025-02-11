@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,15 @@
  *
  */
 
-#include <geode/mesh/core/coordinate_reference_system_managers.h>
+#include <geode/mesh/core/coordinate_reference_system_managers.hpp>
 
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/coordinate_reference_system_manager_builder.h>
-#include <geode/mesh/core/coordinate_reference_system.h>
-#include <geode/mesh/core/coordinate_reference_system_manager.h>
+#include <geode/mesh/builder/coordinate_reference_system_manager_builder.hpp>
+#include <geode/mesh/core/coordinate_reference_system.hpp>
+#include <geode/mesh/core/coordinate_reference_system_manager.hpp>
 
 namespace geode
 {
@@ -132,6 +132,14 @@ namespace geode
     }
 
     template <>
+    const CoordinateReferenceSystemManager< 1 >&
+        CoordinateReferenceSystemManagers<
+            1 >::Impl::main_coordinate_reference_system_manager() const
+    {
+        return coordinate_reference_system_manager1D();
+    }
+
+    template <>
     CoordinateReferenceSystemManager< 3 >& CoordinateReferenceSystemManagers<
         3 >::Impl::main_coordinate_reference_system_manager()
     {
@@ -145,34 +153,30 @@ namespace geode
         return coordinate_reference_system_manager2D();
     }
 
+    template <>
+    CoordinateReferenceSystemManager< 1 >& CoordinateReferenceSystemManagers<
+        1 >::Impl::main_coordinate_reference_system_manager()
+    {
+        return coordinate_reference_system_manager1D();
+    }
+
     template < index_t dimension >
     CoordinateReferenceSystemManagers<
-        dimension >::CoordinateReferenceSystemManagers()
-    {
-    }
+        dimension >::CoordinateReferenceSystemManagers() = default;
 
     template < index_t dimension >
     CoordinateReferenceSystemManagers< dimension >::
         CoordinateReferenceSystemManagers(
-            CoordinateReferenceSystemManagers&& other )
-        : impl_{ std::move( other.impl_ ) }
-    {
-    }
+            CoordinateReferenceSystemManagers&& ) noexcept = default;
 
     template < index_t dimension >
     CoordinateReferenceSystemManagers< dimension >&
         CoordinateReferenceSystemManagers< dimension >::operator=(
-            CoordinateReferenceSystemManagers&& other )
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+            CoordinateReferenceSystemManagers&& ) noexcept = default;
 
     template < index_t dimension >
     CoordinateReferenceSystemManagers<
-        dimension >::~CoordinateReferenceSystemManagers()
-    {
-    }
+        dimension >::~CoordinateReferenceSystemManagers() = default;
 
     template < index_t dimension >
     const CoordinateReferenceSystemManager1D& CoordinateReferenceSystemManagers<
@@ -260,9 +264,12 @@ namespace geode
                        } } } );
     }
 
+    template class opengeode_mesh_api CoordinateReferenceSystemManagers< 1 >;
     template class opengeode_mesh_api CoordinateReferenceSystemManagers< 2 >;
     template class opengeode_mesh_api CoordinateReferenceSystemManagers< 3 >;
 
+    SERIALIZE_BITSERY_ARCHIVE(
+        opengeode_mesh_api, CoordinateReferenceSystemManagers< 1 > );
     SERIALIZE_BITSERY_ARCHIVE(
         opengeode_mesh_api, CoordinateReferenceSystemManagers< 2 > );
     SERIALIZE_BITSERY_ARCHIVE(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,54 @@
  *
  */
 
-#include <geode/basic/filename.h>
+#include <geode/basic/filename.hpp>
 
-#include <ghc/filesystem.hpp>
+#include <filesystem>
+#include <string_view>
 
 namespace geode
 {
-    std::string filename_with_extension( absl::string_view path )
+    std::filesystem::path filename_with_extension(
+        const std::filesystem::path& path )
     {
-        const ghc::filesystem::path filepath{ to_string( path ) };
-        return filepath.filename().string();
+        return path.filename();
     }
 
-    std::string filename_without_extension( absl::string_view path )
+    std::filesystem::path filename_without_extension(
+        const std::filesystem::path& path )
     {
-        const ghc::filesystem::path filepath{ to_string( path ) };
-        return filepath.filename().replace_extension( "" ).string();
+        return path.filename().replace_extension( "" ).string();
     }
 
-    std::string filepath_without_extension( absl::string_view path )
+    std::filesystem::path filepath_without_extension(
+        const std::filesystem::path& path )
     {
-        ghc::filesystem::path filepath{ to_string( path ) };
-        return filepath.replace_extension( "" ).string();
+        auto filepath = path;
+        return filepath.replace_extension( "" );
     }
 
-    std::string filepath_without_filename( absl::string_view path )
+    std::filesystem::path filepath_without_filename(
+        const std::filesystem::path& path )
     {
-        ghc::filesystem::path filepath{ to_string( path ) };
-        return filepath.replace_filename( "" ).string();
+        auto filepath = path;
+        return filepath.remove_filename();
     }
 
-    absl::string_view extension_from_filename( absl::string_view filename )
+    std::string_view extension_from_filename( std::string_view filename )
     {
         return filename.substr( filename.find_last_of( '.' ) + 1 );
+    }
+
+    std::string expand_predefined_folders( std::string_view path )
+    {
+        if( path.empty() )
+        {
+            return to_string( path );
+        }
+        if( path[0] == '~' )
+        {
+            return absl::StrCat( std::getenv( "HOME" ), path.substr( 1 ) );
+        }
+        return to_string( path );
     }
 } // namespace geode

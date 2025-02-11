@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,16 @@
  *
  */
 
-#include "../../common.h"
+#include <string>
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
+#include "../../common.hpp"
 
-#include <geode/image/core/raster_image.h>
-#include <geode/image/io/raster_image_input.h>
-#include <geode/image/io/raster_image_output.h>
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+
+#include <geode/image/core/raster_image.hpp>
+#include <geode/image/io/raster_image_input.hpp>
+#include <geode/image/io/raster_image_output.hpp>
 
 #define PYTHON_RASTER_IMAGE_IO( dimension )                                    \
     const auto save##dimension =                                               \
@@ -41,8 +43,16 @@
                                   + std::to_string( dimension ) + "D";         \
     module.def( check##dimension.c_str(),                                      \
         &check_raster_image_missing_files< dimension > );                      \
+    const auto loadable##dimension =                                           \
+        "is_raster_image_loadable" + std::to_string( dimension ) + "D";        \
+    module.def(                                                                \
+        loadable##dimension.c_str(), &is_raster_image_loadable< dimension > ); \
     PYTHON_INPUT_CLASS( RasterImage##dimension##D,                             \
         "RasterImage" + std::to_string( dimension ) + "D" );                   \
+    const auto saveable##dimension =                                           \
+        "is_raster_image_saveable" + std::to_string( dimension ) + "D";        \
+    module.def(                                                                \
+        saveable##dimension.c_str(), &is_raster_image_saveable< dimension > ); \
     PYTHON_FACTORY_CLASS( RasterImageInputFactory##dimension##D );             \
     PYTHON_FACTORY_CLASS( RasterImageOutputFactory##dimension##D )
 

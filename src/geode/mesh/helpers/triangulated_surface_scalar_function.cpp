@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,16 @@
  *
  */
 
-#include <geode/mesh/helpers/triangulated_surface_scalar_function.h>
+#include <geode/mesh/helpers/triangulated_surface_scalar_function.hpp>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/barycentric_coordinates.h>
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/barycentric_coordinates.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/core/triangulated_surface.h>
+#include <geode/mesh/core/triangulated_surface.hpp>
 
 namespace geode
 {
@@ -39,7 +39,7 @@ namespace geode
     {
     public:
         Impl( const TriangulatedSurface< dimension >& surface,
-            absl::string_view function_name,
+            std::string_view function_name,
             double value )
             : surface_( surface )
         {
@@ -56,7 +56,7 @@ namespace geode
         }
 
         Impl( const TriangulatedSurface< dimension >& surface,
-            absl::string_view function_name )
+            std::string_view function_name )
             : surface_( surface )
         {
             OPENGEODE_EXCEPTION(
@@ -107,16 +107,14 @@ namespace geode
     template < index_t dimension >
     TriangulatedSurfaceScalarFunction< dimension >::
         TriangulatedSurfaceScalarFunction(
-            TriangulatedSurfaceScalarFunction< dimension >&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+            TriangulatedSurfaceScalarFunction< dimension >&& ) noexcept =
+            default;
 
     template < index_t dimension >
     TriangulatedSurfaceScalarFunction< dimension >::
         TriangulatedSurfaceScalarFunction(
             const TriangulatedSurface< dimension >& surface,
-            absl::string_view function_name,
+            std::string_view function_name,
             double value )
         : impl_{ surface, function_name, value }
     {
@@ -126,22 +124,20 @@ namespace geode
     TriangulatedSurfaceScalarFunction< dimension >::
         TriangulatedSurfaceScalarFunction(
             const TriangulatedSurface< dimension >& surface,
-            absl::string_view function_name )
+            std::string_view function_name )
         : impl_{ surface, function_name }
     {
     }
 
     template < index_t dimension >
     TriangulatedSurfaceScalarFunction<
-        dimension >::~TriangulatedSurfaceScalarFunction()
-    {
-    }
+        dimension >::~TriangulatedSurfaceScalarFunction() = default;
 
     template < index_t dimension >
     TriangulatedSurfaceScalarFunction< dimension >
         TriangulatedSurfaceScalarFunction< dimension >::create(
             const TriangulatedSurface< dimension >& surface,
-            absl::string_view function_name,
+            std::string_view function_name,
             double value )
     {
         return { surface, function_name, value };
@@ -151,7 +147,7 @@ namespace geode
     TriangulatedSurfaceScalarFunction< dimension >
         TriangulatedSurfaceScalarFunction< dimension >::find(
             const TriangulatedSurface< dimension >& surface,
-            absl::string_view function_name )
+            std::string_view function_name )
     {
         return { surface, function_name };
     }

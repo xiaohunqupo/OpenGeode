@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,30 @@
  *
  */
 
-#include <geode/model/representation/io/section_input.h>
+#include <geode/model/representation/io/section_input.hpp>
 
-#include <geode/basic/detail/geode_input_impl.h>
+#include <string_view>
 
-#include <geode/model/representation/builder/section_builder.h>
-#include <geode/model/representation/core/section.h>
+#include <absl/strings/str_cat.h>
+
+#include <geode/basic/detail/geode_input_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/model/representation/builder/section_builder.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
-    Section load_section( absl::string_view filename )
+    Section load_section( std::string_view filename )
     {
+        constexpr auto TYPE = "Section";
         try
         {
-            const auto type = "Section";
             auto section =
                 detail::geode_object_input_impl< SectionInputFactory >(
-                    type, filename );
-            auto message = absl::StrCat( type, " has: " );
+                    TYPE, filename );
+            auto message = absl::StrCat( TYPE, " has: " );
             detail::add_to_message(
                 message, section.nb_surfaces(), " Surfaces, " );
             detail::add_to_message( message, section.nb_lines(), " Lines, " );
@@ -52,17 +58,26 @@ namespace geode
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< SectionInputFactory >( TYPE );
             throw OpenGeodeException{ "Cannot load Section from file: ",
                 filename };
         }
     }
 
     typename SectionInput::MissingFiles check_section_missing_files(
-        absl::string_view filename )
+        std::string_view filename )
     {
         const auto input =
             detail::geode_object_input_reader< SectionInputFactory >(
                 filename );
         return input->check_missing_files();
+    }
+
+    bool is_section_loadable( std::string_view filename )
+    {
+        const auto input =
+            detail::geode_object_input_reader< SectionInputFactory >(
+                filename );
+        return input->is_loadable();
     }
 } // namespace geode

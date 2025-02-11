@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,25 +21,25 @@
  *
  */
 
-#include <geode/model/mixin/core/relationships.h>
+#include <geode/model/mixin/core/relationships.hpp>
 
 #include <fstream>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/uuid.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/uuid.hpp>
 
-#include <geode/geometry/bitsery_archive.h>
+#include <geode/geometry/bitsery_archive.hpp>
 
-#include <geode/mesh/core/bitsery_archive.h>
-#include <geode/mesh/core/geode/geode_graph.h>
-#include <geode/mesh/io/graph_input.h>
-#include <geode/mesh/io/graph_output.h>
+#include <geode/mesh/core/bitsery_archive.hpp>
+#include <geode/mesh/core/geode/geode_graph.hpp>
+#include <geode/mesh/io/graph_input.hpp>
+#include <geode/mesh/io/graph_output.hpp>
 
-#include <geode/model/mixin/core/bitsery_archive.h>
-#include <geode/model/mixin/core/detail/count_relationships.h>
-#include <geode/model/mixin/core/detail/relationships_impl.h>
+#include <geode/model/mixin/core/bitsery_archive.hpp>
+#include <geode/model/mixin/core/detail/count_relationships.hpp>
+#include <geode/model/mixin/core/detail/relationships_impl.hpp>
 
 namespace geode
 {
@@ -83,7 +83,7 @@ namespace geode
             return relation_type_->value( edge_id ) == ITEM_RELATION;
         }
 
-        absl::optional< index_t > check_relation_exists(
+        std::optional< index_t > check_relation_exists(
             const uuid& from, const uuid& to, const RelationType type ) const
         {
             if( const auto edge_id = relation_edge_index( from, to ) )
@@ -93,7 +93,7 @@ namespace geode
                     return edge_id;
                 }
             }
-            return absl::nullopt;
+            return std::nullopt;
         }
 
         bool is_boundary( const uuid& from, const uuid& to ) const
@@ -162,7 +162,7 @@ namespace geode
             initialize_relation_attribute();
         }
 
-        void save( absl::string_view directory ) const
+        void save( std::string_view directory ) const
         {
             const auto filename = absl::StrCat( directory, "/relationships" );
             std::ofstream file{ filename, std::ofstream::binary };
@@ -176,7 +176,7 @@ namespace geode
                 "[Relationships::save] Error while writing file: ", filename );
         }
 
-        void load( absl::string_view directory )
+        void load( std::string_view directory )
         {
             const auto filename = absl::StrCat( directory, "/relationships" );
             std::ifstream file{ filename, std::ifstream::binary };
@@ -260,18 +260,11 @@ namespace geode
         std::shared_ptr< VariableAttribute< RelationType > > relation_type_;
     };
 
-    Relationships::Relationships() {} // NOLINT
-    Relationships::Relationships( Relationships&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
-    Relationships& Relationships::operator=( Relationships&& other )
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
-
-    Relationships::~Relationships() {} // NOLINT
+    Relationships::Relationships() = default;
+    Relationships::Relationships( Relationships&& ) noexcept = default;
+    Relationships& Relationships::operator=(
+        Relationships&& ) noexcept = default;
+    Relationships::~Relationships() = default;
 
     void Relationships::remove_component(
         const uuid& component_id, RelationshipsBuilderKey /*unused*/ )
@@ -416,7 +409,7 @@ namespace geode
         return impl_->is_item( item, collection );
     }
 
-    void Relationships::save_relationships( absl::string_view directory ) const
+    void Relationships::save_relationships( std::string_view directory ) const
     {
         impl_->save( directory );
     }
@@ -429,7 +422,7 @@ namespace geode
     }
 
     void Relationships::load_relationships(
-        absl::string_view directory, RelationshipsBuilderKey )
+        std::string_view directory, RelationshipsBuilderKey )
     {
         return impl_->load( directory );
     }
@@ -439,7 +432,7 @@ namespace geode
         return impl_->relation_attribute_manager();
     }
 
-    absl::optional< index_t > Relationships::relation_index(
+    std::optional< index_t > Relationships::relation_index(
         const uuid& component_id1, const uuid& component_id2 ) const
     {
         return impl_->relation_edge_index( component_id1, component_id2 );
@@ -483,16 +476,13 @@ namespace geode
     Relationships::RelationRangeIterator::RelationRangeIterator(
         const Relationships& relationships, const uuid& component_id )
         : impl_( *relationships.impl_,
-            relationships.impl_->begin_edge( component_id ),
-            relationships.impl_->end_edge( component_id ) )
+              relationships.impl_->begin_edge( component_id ),
+              relationships.impl_->end_edge( component_id ) )
     {
     }
 
     Relationships::RelationRangeIterator::RelationRangeIterator(
-        RelationRangeIterator&& other ) noexcept
-        : impl_( *other.impl_ )
-    {
-    }
+        RelationRangeIterator&& ) noexcept = default;
 
     Relationships::RelationRangeIterator::RelationRangeIterator(
         const RelationRangeIterator& other )
@@ -500,7 +490,7 @@ namespace geode
     {
     }
 
-    Relationships::RelationRangeIterator::~RelationRangeIterator() {} // NOLINT
+    Relationships::RelationRangeIterator::~RelationRangeIterator() = default;
 
     bool Relationships::RelationRangeIterator::operator!=(
         const RelationRangeIterator& /*unused*/ ) const
@@ -570,16 +560,13 @@ namespace geode
     Relationships::BoundaryRangeIterator::BoundaryRangeIterator(
         const Relationships& relationships, const uuid& component_id )
         : impl_( *relationships.impl_,
-            relationships.impl_->begin_edge( component_id ),
-            relationships.impl_->end_edge( component_id ) )
+              relationships.impl_->begin_edge( component_id ),
+              relationships.impl_->end_edge( component_id ) )
     {
     }
 
     Relationships::BoundaryRangeIterator::BoundaryRangeIterator(
-        BoundaryRangeIterator&& other ) noexcept
-        : impl_( *other.impl_ )
-    {
-    }
+        BoundaryRangeIterator&& ) noexcept = default;
 
     Relationships::BoundaryRangeIterator::BoundaryRangeIterator(
         const BoundaryRangeIterator& other )
@@ -587,7 +574,7 @@ namespace geode
     {
     }
 
-    Relationships::BoundaryRangeIterator::~BoundaryRangeIterator() {} // NOLINT
+    Relationships::BoundaryRangeIterator::~BoundaryRangeIterator() = default;
 
     bool Relationships::BoundaryRangeIterator::operator!=(
         const BoundaryRangeIterator& /*unused*/ ) const
@@ -657,16 +644,13 @@ namespace geode
     Relationships::IncidenceRangeIterator::IncidenceRangeIterator(
         const Relationships& relationships, const uuid& component_id )
         : impl_( *relationships.impl_,
-            relationships.impl_->begin_edge( component_id ),
-            relationships.impl_->end_edge( component_id ) )
+              relationships.impl_->begin_edge( component_id ),
+              relationships.impl_->end_edge( component_id ) )
     {
     }
 
     Relationships::IncidenceRangeIterator::IncidenceRangeIterator(
-        IncidenceRangeIterator&& other ) noexcept
-        : impl_( *other.impl_ )
-    {
-    }
+        IncidenceRangeIterator&& ) noexcept = default;
 
     Relationships::IncidenceRangeIterator::IncidenceRangeIterator(
         const IncidenceRangeIterator& other )
@@ -674,8 +658,7 @@ namespace geode
     {
     }
 
-    Relationships::IncidenceRangeIterator::~IncidenceRangeIterator() {
-    } // NOLINT
+    Relationships::IncidenceRangeIterator::~IncidenceRangeIterator() = default;
 
     bool Relationships::IncidenceRangeIterator::operator!=(
         const IncidenceRangeIterator& /*unused*/ ) const
@@ -745,16 +728,13 @@ namespace geode
     Relationships::InternalRangeIterator::InternalRangeIterator(
         const Relationships& relationships, const uuid& component_id )
         : impl_( *relationships.impl_,
-            relationships.impl_->begin_edge( component_id ),
-            relationships.impl_->end_edge( component_id ) )
+              relationships.impl_->begin_edge( component_id ),
+              relationships.impl_->end_edge( component_id ) )
     {
     }
 
     Relationships::InternalRangeIterator::InternalRangeIterator(
-        InternalRangeIterator&& other ) noexcept
-        : impl_( *other.impl_ )
-    {
-    }
+        InternalRangeIterator&& ) noexcept = default;
 
     Relationships::InternalRangeIterator::InternalRangeIterator(
         const InternalRangeIterator& other )
@@ -762,7 +742,7 @@ namespace geode
     {
     }
 
-    Relationships::InternalRangeIterator::~InternalRangeIterator() {} // NOLINT
+    Relationships::InternalRangeIterator::~InternalRangeIterator() = default;
 
     bool Relationships::InternalRangeIterator::operator!=(
         const InternalRangeIterator& /*unused*/ ) const
@@ -832,16 +812,13 @@ namespace geode
     Relationships::EmbeddingRangeIterator::EmbeddingRangeIterator(
         const Relationships& relationships, const uuid& component_id )
         : impl_( *relationships.impl_,
-            relationships.impl_->begin_edge( component_id ),
-            relationships.impl_->end_edge( component_id ) )
+              relationships.impl_->begin_edge( component_id ),
+              relationships.impl_->end_edge( component_id ) )
     {
     }
 
     Relationships::EmbeddingRangeIterator::EmbeddingRangeIterator(
-        EmbeddingRangeIterator&& other ) noexcept
-        : impl_( *other.impl_ )
-    {
-    }
+        EmbeddingRangeIterator&& ) noexcept = default;
 
     Relationships::EmbeddingRangeIterator::EmbeddingRangeIterator(
         const EmbeddingRangeIterator& other )
@@ -849,8 +826,7 @@ namespace geode
     {
     }
 
-    Relationships::EmbeddingRangeIterator::~EmbeddingRangeIterator() {
-    } // NOLINT
+    Relationships::EmbeddingRangeIterator::~EmbeddingRangeIterator() = default;
 
     bool Relationships::EmbeddingRangeIterator::operator!=(
         const EmbeddingRangeIterator& /*unused*/ ) const
@@ -920,16 +896,13 @@ namespace geode
     Relationships::ItemRangeIterator::ItemRangeIterator(
         const Relationships& relationships, const uuid& component_id )
         : impl_( *relationships.impl_,
-            relationships.impl_->begin_edge( component_id ),
-            relationships.impl_->end_edge( component_id ) )
+              relationships.impl_->begin_edge( component_id ),
+              relationships.impl_->end_edge( component_id ) )
     {
     }
 
     Relationships::ItemRangeIterator::ItemRangeIterator(
-        ItemRangeIterator&& other ) noexcept
-        : impl_( *other.impl_ )
-    {
-    }
+        ItemRangeIterator&& ) noexcept = default;
 
     Relationships::ItemRangeIterator::ItemRangeIterator(
         const ItemRangeIterator& other )
@@ -937,7 +910,7 @@ namespace geode
     {
     }
 
-    Relationships::ItemRangeIterator::~ItemRangeIterator() {} // NOLINT
+    Relationships::ItemRangeIterator::~ItemRangeIterator() = default;
 
     bool Relationships::ItemRangeIterator::operator!=(
         const ItemRangeIterator& /*unused*/ ) const
@@ -1007,16 +980,13 @@ namespace geode
     Relationships::CollectionRangeIterator::CollectionRangeIterator(
         const Relationships& relationships, const uuid& component_id )
         : impl_( *relationships.impl_,
-            relationships.impl_->begin_edge( component_id ),
-            relationships.impl_->end_edge( component_id ) )
+              relationships.impl_->begin_edge( component_id ),
+              relationships.impl_->end_edge( component_id ) )
     {
     }
 
     Relationships::CollectionRangeIterator::CollectionRangeIterator(
-        CollectionRangeIterator&& other ) noexcept
-        : impl_( *other.impl_ )
-    {
-    }
+        CollectionRangeIterator&& ) noexcept = default;
 
     Relationships::CollectionRangeIterator::CollectionRangeIterator(
         const CollectionRangeIterator& other )
@@ -1024,8 +994,8 @@ namespace geode
     {
     }
 
-    Relationships::CollectionRangeIterator::~CollectionRangeIterator() {
-    } // NOLINT
+    Relationships::CollectionRangeIterator::
+        ~CollectionRangeIterator() noexcept = default;
 
     bool Relationships::CollectionRangeIterator::operator!=(
         const CollectionRangeIterator& /*unused*/ ) const

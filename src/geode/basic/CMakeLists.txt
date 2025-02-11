@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,60 +47,66 @@ add_geode_library(
         "uuid.cpp"
         "zip_file.cpp"
     PUBLIC_HEADERS
-        "algorithm.h"
-        "assert.h"
-        "attribute_manager.h"
-        "attribute_utils.h"
-        "attribute.h"
-        "bitsery_archive.h"
-        "cell_array.h"
-        "common.h"
-        "console_logger_client.h"
-        "console_progress_logger_client.h"
-        "factory.h"
-        "file.h"
-        "filename.h"
-        "identifier.h"
-        "input.h"
-        "io.h"
-        "identifier_builder.h"
-        "library.h"
-        "logger.h"
-        "logger_client.h"
-        "logger_manager.h"
-        "mapping.h"
-        "named_type.h"
-        "output.h"
-        "passkey.h"
-        "permutation.h"
-        "pimpl.h"
-        "pimpl_impl.h"
-        "progress_logger.h"
-        "progress_logger_client.h"
-        "progress_logger_manager.h"
-        "range.h"
-        "singleton.h"
-        "string.h"
-        "timer.h"
-        "types.h"
-        "uuid.h"
-        "zip_file.h"
+        "algorithm.hpp"
+        "assert.hpp"
+        "attribute_manager.hpp"
+        "attribute_utils.hpp"
+        "attribute.hpp"
+        "bitsery_archive.hpp"
+        "cell_array.hpp"
+        "common.hpp"
+        "console_logger_client.hpp"
+        "console_progress_logger_client.hpp"
+        "factory.hpp"
+        "file.hpp"
+        "filename.hpp"
+        "identifier.hpp"
+        "input.hpp"
+        "io.hpp"
+        "identifier_builder.hpp"
+        "library.hpp"
+        "logger.hpp"
+        "logger_client.hpp"
+        "logger_manager.hpp"
+        "mapping.hpp"
+        "named_type.hpp"
+        "output.hpp"
+        "passkey.hpp"
+        "permutation.hpp"
+        "pimpl.hpp"
+        "pimpl_impl.hpp"
+        "progress_logger.hpp"
+        "progress_logger_client.hpp"
+        "progress_logger_manager.hpp"
+        "range.hpp"
+        "singleton.hpp"
+        "string.hpp"
+        "timer.hpp"
+        "types.hpp"
+        "uuid.hpp"
+        "zip_file.hpp"
     ADVANCED_HEADERS
-        "detail/bitsery_archive.h"
-        "detail/geode_input_impl.h"
-        "detail/geode_output_impl.h"
-        "detail/mapping_after_deletion.h"
-    PRIVATE_HEADERS
-        "private/array_impl.h"
+        "detail/bitsery_archive.hpp"
+        "detail/disable_debug_logger.hpp"
+        "detail/enable_debug_logger.hpp"
+        "detail/geode_input_impl.hpp"
+        "detail/geode_output_impl.hpp"
+        "detail/mapping_after_deletion.hpp"
+    INTERNAL_HEADERS
+        "internal/array_impl.hpp"
     PUBLIC_DEPENDENCIES
         absl::flat_hash_map
         absl::strings
-        ghcFilesystem::ghc_filesystem
+        absl::stacktrace
+        absl::symbolize
         Bitsery::bitsery
-    PRIVATE_DEPENDENCIES
         Async++
+    PRIVATE_DEPENDENCIES
         absl::random_random
         absl::time
         spdlog::spdlog_header_only
         MINIZIP::minizip-ng
 )
+if(WIN32)
+    target_link_libraries(basic PUBLIC absl::abseil_dll)
+endif()

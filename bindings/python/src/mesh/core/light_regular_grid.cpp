@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,28 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/basic/attribute_manager.h>
+#include <geode/basic/attribute_manager.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/core/light_regular_grid.h>
+#include <geode/mesh/core/light_regular_grid.hpp>
 
 #define PYTHON_LIGHT_REGULAR_GRID( dimension )                                 \
     const auto name##dimension =                                               \
         "LightRegularGrid" + std::to_string( dimension ) + "D";                \
-    pybind11::class_< LightRegularGrid##dimension##D, Grid##dimension##D >(    \
-        module, name##dimension.c_str() )                                      \
+    pybind11::class_< LightRegularGrid##dimension##D, Grid##dimension##D,      \
+        Identifier >( module, name##dimension.c_str() )                        \
         .def( pybind11::init< Point< dimension >,                              \
             std::array< index_t, dimension >,                                  \
-            std::array< double, dimension > >() )
+            std::array< double, dimension > >() )                              \
+        .def( pybind11::init< Point< dimension >,                              \
+            std::array< index_t, dimension >,                                  \
+            std::array< Vector< dimension >, dimension > >() )                 \
+        .def( "native_extension",                                              \
+            &LightRegularGrid##dimension##D::native_extension )
 
 namespace geode
 {

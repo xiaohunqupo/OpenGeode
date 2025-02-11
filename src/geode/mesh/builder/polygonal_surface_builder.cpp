@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,15 @@
  *
  */
 
-#include <geode/mesh/builder/polygonal_surface_builder.h>
+#include <geode/mesh/builder/polygonal_surface_builder.hpp>
 
 #include <numeric>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/detail/mapping_after_deletion.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/detail/mapping_after_deletion.hpp>
 
-#include <geode/mesh/builder/mesh_builder_factory.h>
-#include <geode/mesh/core/polygonal_surface.h>
+#include <geode/mesh/builder/mesh_builder_factory.hpp>
+#include <geode/mesh/core/polygonal_surface.hpp>
 
 namespace geode
 {

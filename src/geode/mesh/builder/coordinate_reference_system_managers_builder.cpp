@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include <geode/mesh/builder/coordinate_reference_system_managers_builder.h>
+#include <geode/mesh/builder/coordinate_reference_system_managers_builder.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/coordinate_reference_system_manager_builder.h>
-#include <geode/mesh/core/coordinate_reference_system_managers.h>
+#include <geode/mesh/builder/coordinate_reference_system_manager_builder.hpp>
+#include <geode/mesh/core/coordinate_reference_system_managers.hpp>
 
 namespace geode
 {
@@ -35,7 +35,9 @@ namespace geode
         CoordinateReferenceSystemManagersBuilder<
             dimension >::coordinate_reference_system_manager_builder1D()
     {
-        return { crs_managers_.coordinate_reference_system_manager1D( {} ) };
+        return CoordinateReferenceSystemManagerBuilder1D{
+            crs_managers_.coordinate_reference_system_manager1D( {} )
+        };
     }
 
     template < index_t dimension >
@@ -43,7 +45,9 @@ namespace geode
         CoordinateReferenceSystemManagersBuilder<
             dimension >::coordinate_reference_system_manager_builder2D()
     {
-        return { crs_managers_.coordinate_reference_system_manager2D( {} ) };
+        return CoordinateReferenceSystemManagerBuilder2D{
+            crs_managers_.coordinate_reference_system_manager2D( {} )
+        };
     }
 
     template < index_t dimension >
@@ -51,7 +55,9 @@ namespace geode
         CoordinateReferenceSystemManagersBuilder<
             dimension >::coordinate_reference_system_manager_builder3D()
     {
-        return { crs_managers_.coordinate_reference_system_manager3D( {} ) };
+        return CoordinateReferenceSystemManagerBuilder3D{
+            crs_managers_.coordinate_reference_system_manager3D( {} )
+        };
     }
 
     template < index_t dimension >
@@ -59,7 +65,9 @@ namespace geode
         CoordinateReferenceSystemManagersBuilder<
             dimension >::main_coordinate_reference_system_manager_builder()
     {
-        return { crs_managers_.main_coordinate_reference_system_manager( {} ) };
+        return CoordinateReferenceSystemManagerBuilder< dimension >{
+            crs_managers_.main_coordinate_reference_system_manager( {} )
+        };
     }
 
     template < index_t dimension >
@@ -69,6 +77,8 @@ namespace geode
         crs_managers_.set_point( vertex, std::move( point ), {} );
     }
 
+    template class opengeode_mesh_api
+        CoordinateReferenceSystemManagersBuilder< 1 >;
     template class opengeode_mesh_api
         CoordinateReferenceSystemManagersBuilder< 2 >;
     template class opengeode_mesh_api

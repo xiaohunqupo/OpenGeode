@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,34 +21,60 @@
  *
  */
 
-#include <geode/mesh/io/polyhedral_solid_output.h>
+#include <geode/mesh/io/polyhedral_solid_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/mesh/core/polyhedral_solid.h>
+#include <absl/strings/str_cat.h>
+
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/mesh/core/polyhedral_solid.hpp>
+#include <geode/mesh/io/vertex_set_output.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    void save_polyhedral_solid(
+    std::vector< std::string > save_polyhedral_solid(
         const PolyhedralSolid< dimension >& polyhedral_solid,
-        absl::string_view filename )
+        std::string_view filename )
     {
+        const auto type = absl::StrCat( "PolyhedralSolid", dimension, "D" );
         try
         {
-            detail::geode_object_output_impl<
+            return detail::geode_object_output_impl<
                 PolyhedralSolidOutputFactory< dimension > >(
-                absl::StrCat( "PolyhedralSolid", dimension, "D" ),
-                polyhedral_solid, filename );
+                type, polyhedral_solid, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions<
+                PolyhedralSolidOutputFactory< dimension > >( type );
+            Logger::info( "Other extensions are available in parent classes." );
+            print_available_extensions< VertexSetOutputFactory >( "VertexSet" );
             throw OpenGeodeException{ "Cannot save PolyhedralSolid in file: ",
                 filename };
         }
     }
 
-    template void opengeode_mesh_api save_polyhedral_solid(
-        const PolyhedralSolid< 3 >&, absl::string_view );
+    template < index_t dimension >
+    bool is_polyhedral_solid_saveable(
+        const PolyhedralSolid< dimension >& polyhedral_solid,
+        std::string_view filename )
+    {
+        const auto output = detail::geode_object_output_writer<
+            PolyhedralSolidOutputFactory< dimension > >( filename );
+        return output->is_saveable( polyhedral_solid );
+    }
+
+    template std::vector< std::string > opengeode_mesh_api
+        save_polyhedral_solid( const PolyhedralSolid< 3 >&, std::string_view );
+
+    template bool opengeode_mesh_api is_polyhedral_solid_saveable(
+        const PolyhedralSolid< 3 >&, std::string_view );
 } // namespace geode

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,33 +21,33 @@
  *
  */
 
-#include <geode/mesh/core/geode/geode_tetrahedral_solid.h>
+#include <geode/mesh/core/geode/geode_tetrahedral_solid.hpp>
 
 #include <array>
 #include <fstream>
 
 #include <bitsery/brief_syntax/array.h>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/core/detail/geode_elements.h>
-#include <geode/mesh/core/private/points_impl.h>
+#include <geode/mesh/core/detail/geode_elements.hpp>
+#include <geode/mesh/core/internal/points_impl.hpp>
 
 namespace geode
 {
     template < index_t dimension >
     class OpenGeodeTetrahedralSolid< dimension >::Impl
-        : public detail::PointsImpl< dimension >
+        : public internal::PointsImpl< dimension >
     {
         friend class bitsery::Access;
 
     public:
         explicit Impl( OpenGeodeTetrahedralSolid< dimension >& mesh )
-            : detail::PointsImpl< dimension >( mesh ),
+            : internal::PointsImpl< dimension >( mesh ),
               tetrahedron_vertices_(
                   mesh.polyhedron_attribute_manager()
                       .template find_or_create_attribute< VariableAttribute,
@@ -75,21 +75,21 @@ namespace geode
         PolyhedronVertex get_polyhedron_facet_vertex_id(
             const PolyhedronFacetVertex& polyhedron_facet_vertex ) const
         {
-            const auto vertex_id = detail::tetrahedron_facet_vertices
+            const auto vertex_id = detail::TETRAHEDRON_FACET_VERTICES
                 [polyhedron_facet_vertex.polyhedron_facet.facet_id]
                 [polyhedron_facet_vertex.vertex_id];
             return { polyhedron_facet_vertex.polyhedron_facet.polyhedron_id,
                 vertex_id };
         }
 
-        absl::optional< index_t > get_polyhedron_adjacent(
+        std::optional< index_t > get_polyhedron_adjacent(
             const PolyhedronFacet& polyhedron_facet ) const
         {
             const auto adj = tetrahedron_adjacents_->value(
                 polyhedron_facet.polyhedron_id )[polyhedron_facet.facet_id];
             if( adj == NO_ID )
             {
-                return absl::nullopt;
+                return std::nullopt;
             }
             return adj;
         }
@@ -132,7 +132,7 @@ namespace geode
             archive.ext( *this,
                 Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
                     a.ext( impl, bitsery::ext::BaseClass<
-                                     detail::PointsImpl< dimension > >{} );
+                                     internal::PointsImpl< dimension > >{} );
                     a.ext( impl.tetrahedron_vertices_,
                         bitsery::ext::StdSmartPtr{} );
                     a.ext( impl.tetrahedron_adjacents_,
@@ -155,27 +155,16 @@ namespace geode
 
     template < index_t dimension >
     OpenGeodeTetrahedralSolid< dimension >::OpenGeodeTetrahedralSolid(
-        OpenGeodeTetrahedralSolid&& other )
-        : TetrahedralSolid< dimension >( std::move( other ) ),
-          impl_( std::move( other.impl_ ) )
-    {
-    }
+        OpenGeodeTetrahedralSolid&& ) noexcept = default;
 
     template < index_t dimension >
     OpenGeodeTetrahedralSolid< dimension >&
         OpenGeodeTetrahedralSolid< dimension >::operator=(
-            OpenGeodeTetrahedralSolid&& other )
-    {
-        TetrahedralSolid< dimension >::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+            OpenGeodeTetrahedralSolid&& ) noexcept = default;
 
     template < index_t dimension >
-    OpenGeodeTetrahedralSolid<
-        dimension >::~OpenGeodeTetrahedralSolid() // NOLINT
-    {
-    }
+    OpenGeodeTetrahedralSolid< dimension >::~OpenGeodeTetrahedralSolid() =
+        default;
 
     template < index_t dimension >
     void OpenGeodeTetrahedralSolid< dimension >::set_vertex(
@@ -200,7 +189,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    absl::optional< index_t >
+    std::optional< index_t >
         OpenGeodeTetrahedralSolid< dimension >::get_polyhedron_adjacent(
             const PolyhedronFacet& polyhedron_facet ) const
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,15 @@
  *
  */
 
-#include <geode/model/common.h>
+#include <geode/model/common.hpp>
 
-#include <geode/mesh/common.h>
+#include <geode/mesh/common.hpp>
 
-#include <geode/model/mixin/core/bitsery_archive.h>
-#include <geode/model/representation/io/geode/geode_brep_input.h>
-#include <geode/model/representation/io/geode/geode_brep_output.h>
-#include <geode/model/representation/io/geode/geode_section_input.h>
-#include <geode/model/representation/io/geode/geode_section_output.h>
+#include <geode/model/mixin/core/bitsery_archive.hpp>
+#include <geode/model/representation/io/geode/geode_brep_input.hpp>
+#include <geode/model/representation/io/geode/geode_brep_output.hpp>
+#include <geode/model/representation/io/geode/geode_section_input.hpp>
+#include <geode/model/representation/io/geode/geode_section_output.hpp>
 
 namespace
 {

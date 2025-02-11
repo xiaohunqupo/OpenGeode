@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,24 @@
  *
  */
 
-#include <geode/model/mixin/core/surfaces.h>
+#include <geode/model/mixin/core/surfaces.hpp>
 
 #include <async++.h>
 
-#include <geode/basic/identifier_builder.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/range.h>
+#include <geode/basic/identifier_builder.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/range.hpp>
 
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/polygonal_surface.h>
-#include <geode/mesh/core/triangulated_surface.h>
-#include <geode/mesh/io/polygonal_surface_input.h>
-#include <geode/mesh/io/polygonal_surface_output.h>
-#include <geode/mesh/io/triangulated_surface_input.h>
-#include <geode/mesh/io/triangulated_surface_output.h>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/polygonal_surface.hpp>
+#include <geode/mesh/core/triangulated_surface.hpp>
+#include <geode/mesh/io/polygonal_surface_input.hpp>
+#include <geode/mesh/io/polygonal_surface_output.hpp>
+#include <geode/mesh/io/triangulated_surface_input.hpp>
+#include <geode/mesh/io/triangulated_surface_output.hpp>
 
-#include <geode/model/mixin/core/detail/components_storage.h>
-#include <geode/model/mixin/core/surface.h>
+#include <geode/model/mixin/core/detail/components_storage.hpp>
+#include <geode/model/mixin/core/surface.hpp>
 
 namespace geode
 {
@@ -48,32 +48,20 @@ namespace geode
     {
     public:
         Impl() = default;
-        Impl( Impl&& other ) = default;
     };
 
     template < index_t dimension >
-    Surfaces< dimension >::Surfaces() // NOLINT
-    {
-    }
+    Surfaces< dimension >::Surfaces() = default;
 
     template < index_t dimension >
-    Surfaces< dimension >::Surfaces( Surfaces&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+    Surfaces< dimension >::Surfaces( Surfaces&& ) noexcept = default;
 
     template < index_t dimension >
-    Surfaces< dimension >::~Surfaces() // NOLINT
-    {
-    }
+    Surfaces< dimension >::~Surfaces() = default;
 
     template < index_t dimension >
     Surfaces< dimension >& Surfaces< dimension >::operator=(
-        Surfaces< dimension >&& other )
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        Surfaces< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     index_t Surfaces< dimension >::nb_surfaces() const
@@ -96,20 +84,20 @@ namespace geode
 
     template < index_t dimension >
     Surface< dimension >& Surfaces< dimension >::modifiable_surface(
-        const uuid& id )
+        const uuid& id, SurfacesBuilderKey )
     {
         return impl_->component( id );
     }
 
     template < index_t dimension >
     void Surfaces< dimension >::save_surfaces(
-        absl::string_view directory ) const
+        std::string_view directory ) const
     {
         impl_->save_components( absl::StrCat( directory, "/surfaces" ) );
         const auto prefix = absl::StrCat( directory, "/",
             Surface< dimension >::component_type_static().get() );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_surfaces() );
         index_t count{ 0 };
         for( const auto& surface : surfaces() )
@@ -147,15 +135,16 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Surfaces< dimension >::load_surfaces( absl::string_view directory )
+    void Surfaces< dimension >::load_surfaces(
+        std::string_view directory, SurfacesBuilderKey )
     {
         impl_->load_components( absl::StrCat( directory, "/surfaces" ) );
         const auto mapping = impl_->file_mapping( directory );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_surfaces() );
         index_t count{ 0 };
-        for( auto& surface : modifiable_surfaces() )
+        for( auto& surface : modifiable_surfaces( {} ) )
         {
             tasks[count++] = async::spawn( [&surface, &mapping] {
                 const auto file = mapping.at( surface.id().string() );
@@ -192,13 +181,13 @@ namespace geode
 
     template < index_t dimension >
     typename Surfaces< dimension >::ModifiableSurfaceRange
-        Surfaces< dimension >::modifiable_surfaces()
+        Surfaces< dimension >::modifiable_surfaces( SurfacesBuilderKey )
     {
         return { *this };
     }
 
     template < index_t dimension >
-    const uuid& Surfaces< dimension >::create_surface()
+    const uuid& Surfaces< dimension >::create_surface( SurfacesBuilderKey )
     {
         typename Surfaces< dimension >::Impl::ComponentPtr surface{
             new Surface< dimension >{
@@ -210,7 +199,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    const uuid& Surfaces< dimension >::create_surface( const MeshImpl& impl )
+    const uuid& Surfaces< dimension >::create_surface(
+        const MeshImpl& impl, SurfacesBuilderKey )
     {
         typename Surfaces< dimension >::Impl::ComponentPtr surface{
             new Surface< dimension >{
@@ -222,7 +212,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Surfaces< dimension >::create_surface( uuid surface_id )
+    void Surfaces< dimension >::create_surface(
+        uuid surface_id, SurfacesBuilderKey )
     {
         typename Surfaces< dimension >::Impl::ComponentPtr surface{
             new Surface< dimension >{
@@ -234,7 +225,7 @@ namespace geode
 
     template < index_t dimension >
     void Surfaces< dimension >::create_surface(
-        uuid surface_id, const MeshImpl& impl )
+        uuid surface_id, const MeshImpl& impl, SurfacesBuilderKey )
     {
         typename Surfaces< dimension >::Impl::ComponentPtr surface{
             new Surface< dimension >{ impl, {} }
@@ -245,7 +236,7 @@ namespace geode
 
     template < index_t dimension >
     void Surfaces< dimension >::delete_surface(
-        const Surface< dimension >& surface )
+        const Surface< dimension >& surface, SurfacesBuilderKey )
     {
         impl_->delete_component( surface.id() );
     }
@@ -277,10 +268,7 @@ namespace geode
 
     template < index_t dimension >
     Surfaces< dimension >::SurfaceRangeBase::SurfaceRangeBase(
-        SurfaceRangeBase&& other ) noexcept
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+        SurfaceRangeBase&& ) noexcept = default;
 
     template < index_t dimension >
     Surfaces< dimension >::SurfaceRangeBase::SurfaceRangeBase(
@@ -290,9 +278,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Surfaces< dimension >::SurfaceRangeBase::~SurfaceRangeBase() // NOLINT
-    {
-    }
+    Surfaces< dimension >::SurfaceRangeBase::~SurfaceRangeBase() = default;
 
     template < index_t dimension >
     bool Surfaces< dimension >::SurfaceRangeBase::operator!=(
@@ -322,9 +308,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Surfaces< dimension >::SurfaceRange::~SurfaceRange() // NOLINT
-    {
-    }
+    Surfaces< dimension >::SurfaceRange::~SurfaceRange() = default;
 
     template < index_t dimension >
     auto Surfaces< dimension >::SurfaceRange::begin() const

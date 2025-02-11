@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,16 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/geometry/coordinate_system.h>
+#include <geode/geometry/coordinate_system.hpp>
 
-#include <geode/model/helpers/create_coordinate_system.h>
-#include <geode/model/helpers/model_coordinate_reference_system.h>
-#include <geode/model/representation/builder/brep_builder.h>
-#include <geode/model/representation/builder/section_builder.h>
-#include <geode/model/representation/core/brep.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/model/helpers/create_coordinate_system.hpp>
+#include <geode/model/helpers/model_coordinate_reference_system.hpp>
+#include <geode/model/representation/builder/brep_builder.hpp>
+#include <geode/model/representation/builder/section_builder.hpp>
+#include <geode/model/representation/core/brep.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
@@ -41,9 +41,17 @@ namespace geode
                 &brep_coordinate_reference_systems )
             .def( "section_coordinate_reference_systems",
                 &section_coordinate_reference_systems )
+            .def( "brep_active_coordinate_reference_systems",
+                &brep_active_coordinate_reference_systems )
+            .def( "section_active_coordinate_reference_systems",
+                &section_active_coordinate_reference_systems )
             .def( "create_brep_coordinate_system",
                 &create_brep_coordinate_system )
             .def( "create_section_coordinate_system",
-                &create_section_coordinate_system );
+                &create_section_coordinate_system )
+            .def( "set_brep_active_coordinate_system",
+                &set_brep_active_coordinate_system )
+            .def( "set_section_active_coordinate_system",
+                &set_section_active_coordinate_system );
     }
 } // namespace geode

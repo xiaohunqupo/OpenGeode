@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,27 +21,27 @@
  *
  */
 
-#include <geode/model/mixin/core/blocks.h>
+#include <geode/model/mixin/core/blocks.hpp>
 
 #include <async++.h>
 
-#include <geode/basic/identifier_builder.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/range.h>
+#include <geode/basic/identifier_builder.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/range.hpp>
 
-#include <geode/mesh/core/hybrid_solid.h>
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/polyhedral_solid.h>
-#include <geode/mesh/core/tetrahedral_solid.h>
-#include <geode/mesh/io/hybrid_solid_input.h>
-#include <geode/mesh/io/hybrid_solid_output.h>
-#include <geode/mesh/io/polyhedral_solid_input.h>
-#include <geode/mesh/io/polyhedral_solid_output.h>
-#include <geode/mesh/io/tetrahedral_solid_input.h>
-#include <geode/mesh/io/tetrahedral_solid_output.h>
+#include <geode/mesh/core/hybrid_solid.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/polyhedral_solid.hpp>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
+#include <geode/mesh/io/hybrid_solid_input.hpp>
+#include <geode/mesh/io/hybrid_solid_output.hpp>
+#include <geode/mesh/io/polyhedral_solid_input.hpp>
+#include <geode/mesh/io/polyhedral_solid_output.hpp>
+#include <geode/mesh/io/tetrahedral_solid_input.hpp>
+#include <geode/mesh/io/tetrahedral_solid_output.hpp>
 
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/mixin/core/detail/components_storage.h>
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/mixin/core/detail/components_storage.hpp>
 
 namespace geode
 {
@@ -52,27 +52,17 @@ namespace geode
     };
 
     template < index_t dimension >
-    Blocks< dimension >::Blocks() // NOLINT
-    {
-    }
+    Blocks< dimension >::Blocks() = default;
 
     template < index_t dimension >
-    Blocks< dimension >::Blocks( Blocks&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+    Blocks< dimension >::Blocks( Blocks&& ) noexcept = default;
 
     template < index_t dimension >
-    Blocks< dimension >::~Blocks() // NOLINT
-    {
-    }
+    Blocks< dimension >::~Blocks() = default;
 
     template < index_t dimension >
-    auto Blocks< dimension >::operator=( Blocks&& other ) -> Blocks&
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+    auto Blocks< dimension >::operator=(
+        Blocks&& ) noexcept -> Blocks& = default;
 
     template < index_t dimension >
     index_t Blocks< dimension >::nb_blocks() const
@@ -93,19 +83,20 @@ namespace geode
     }
 
     template < index_t dimension >
-    Block< dimension >& Blocks< dimension >::modifiable_block( const uuid& id )
+    Block< dimension >& Blocks< dimension >::modifiable_block(
+        const uuid& id, BlocksBuilderKey /*unused*/ )
     {
         return impl_->component( id );
     }
 
     template < index_t dimension >
-    void Blocks< dimension >::save_blocks( absl::string_view directory ) const
+    void Blocks< dimension >::save_blocks( std::string_view directory ) const
     {
         impl_->save_components( absl::StrCat( directory, "/blocks" ) );
         const auto prefix = absl::StrCat(
             directory, "/", Block< dimension >::component_type_static().get() );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_blocks() );
         index_t count{ 0 };
         for( const auto& block : blocks() )
@@ -150,15 +141,16 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Blocks< dimension >::load_blocks( absl::string_view directory )
+    void Blocks< dimension >::load_blocks(
+        std::string_view directory, BlocksBuilderKey /*unused*/ )
     {
         impl_->load_components( absl::StrCat( directory, "/blocks" ) );
         const auto mapping = impl_->file_mapping( directory );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_blocks() );
         index_t count{ 0 };
-        for( auto& block : modifiable_blocks() )
+        for( auto& block : modifiable_blocks( {} ) )
         {
             tasks[count++] = async::spawn( [&block, &mapping] {
                 const auto file = mapping.at( block.id().string() );
@@ -194,7 +186,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    const uuid& Blocks< dimension >::create_block()
+    const uuid& Blocks< dimension >::create_block( BlocksBuilderKey /*unused*/ )
     {
         typename Blocks< dimension >::Impl::ComponentPtr block{
             new Block< dimension >{ typename Block< dimension >::BlocksKey() }
@@ -205,7 +197,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    const uuid& Blocks< dimension >::create_block( const MeshImpl& impl )
+    const uuid& Blocks< dimension >::create_block(
+        const MeshImpl& impl, BlocksBuilderKey /*unused*/ )
     {
         typename Blocks< dimension >::Impl::ComponentPtr block{
             new Block< dimension >{ impl, {} }
@@ -216,7 +209,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Blocks< dimension >::create_block( uuid block_id )
+    void Blocks< dimension >::create_block(
+        uuid block_id, BlocksBuilderKey /*unused*/ )
     {
         typename Blocks< dimension >::Impl::ComponentPtr block{
             new Block< dimension >{ typename Block< dimension >::BlocksKey{} }
@@ -227,7 +221,7 @@ namespace geode
 
     template < index_t dimension >
     void Blocks< dimension >::create_block(
-        uuid block_id, const MeshImpl& impl )
+        uuid block_id, const MeshImpl& impl, BlocksBuilderKey /*unused*/ )
     {
         typename Blocks< dimension >::Impl::ComponentPtr block{
             new Block< dimension >{ impl, {} }
@@ -237,7 +231,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Blocks< dimension >::delete_block( const Block< dimension >& block )
+    void Blocks< dimension >::delete_block(
+        const Block< dimension >& block, BlocksBuilderKey /*unused*/ )
     {
         impl_->delete_component( block.id() );
     }
@@ -274,10 +269,7 @@ namespace geode
 
     template < index_t dimension >
     Blocks< dimension >::BlockRangeBase::BlockRangeBase(
-        BlockRangeBase&& other ) noexcept
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+        BlockRangeBase&& ) noexcept = default;
 
     template < index_t dimension >
     Blocks< dimension >::BlockRangeBase::BlockRangeBase(
@@ -287,9 +279,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Blocks< dimension >::BlockRangeBase::~BlockRangeBase() // NOLINT
-    {
-    }
+    Blocks< dimension >::BlockRangeBase::~BlockRangeBase() = default;
 
     template < index_t dimension >
     bool Blocks< dimension >::BlockRangeBase::operator!=(
@@ -317,9 +307,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Blocks< dimension >::BlockRange::~BlockRange() // NOLINT
-    {
-    }
+    Blocks< dimension >::BlockRange::~BlockRange() = default;
 
     template < index_t dimension >
     auto Blocks< dimension >::BlockRange::begin() const -> const BlockRange&
@@ -341,7 +329,7 @@ namespace geode
 
     template < index_t dimension >
     typename Blocks< dimension >::ModifiableBlockRange
-        Blocks< dimension >::modifiable_blocks()
+        Blocks< dimension >::modifiable_blocks( BlocksBuilderKey /*unused*/ )
     {
         return { *this };
     }

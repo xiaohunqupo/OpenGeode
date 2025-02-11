@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,39 @@
  *
  */
 
-#include "../common.h"
+#include "../common.hpp"
 
-#include <geode/basic/mapping.h>
-#include <geode/basic/uuid.h>
+#include <geode/basic/mapping.hpp>
+#include <geode/basic/uuid.hpp>
 
 #define PYTHON_MAPPING( type )                                                 \
-    const auto name##type = absl::StrCat( "BijectiveMapping", #type );         \
-    pybind11::class_< BijectiveMapping< type > >( module, name##type.c_str() ) \
+    const auto bijective##type = absl::StrCat( "BijectiveMapping", #type );    \
+    pybind11::class_< BijectiveMapping< type > >(                              \
+        module, bijective##type.c_str() )                                      \
         .def( pybind11::init<>() )                                             \
-        .def( "map", &BijectiveMapping< type >::map )                          \
-        .def( "reserve", &BijectiveMapping< type >::reserve )                  \
+        .def( pybind11::init( []( BijectiveMapping< type >& mapping ) {        \
+            return BijectiveMapping< type >{ std::move( mapping ) };           \
+        } ) )                                                                  \
         .def( "has_mapping_input",                                             \
             &BijectiveMapping< type >::has_mapping_input )                     \
         .def( "has_mapping_output",                                            \
             &BijectiveMapping< type >::has_mapping_output )                    \
         .def( "in2out", &BijectiveMapping< type >::in2out )                    \
-        .def( "out2in", &BijectiveMapping< type >::out2in )
+        .def( "out2in", &BijectiveMapping< type >::out2in );                   \
+                                                                               \
+    const auto generic##type = absl::StrCat( "GenericMapping", #type );        \
+    pybind11::class_< GenericMapping< type > >(                                \
+        module, generic##type.c_str() )                                        \
+        .def( pybind11::init<>() )                                             \
+        .def( pybind11::init( []( GenericMapping< type >& mapping ) {          \
+            return GenericMapping< type >{ std::move( mapping ) };             \
+        } ) )                                                                  \
+        .def(                                                                  \
+            "has_mapping_input", &GenericMapping< type >::has_mapping_input )  \
+        .def( "has_mapping_output",                                            \
+            &GenericMapping< type >::has_mapping_output )                      \
+        .def( "in2out", &GenericMapping< type >::in2out )                      \
+        .def( "out2in", &GenericMapping< type >::out2in )
 
 namespace geode
 {

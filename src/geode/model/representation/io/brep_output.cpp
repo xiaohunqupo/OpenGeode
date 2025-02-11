@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,25 +21,41 @@
  *
  */
 
-#include <geode/model/representation/io/brep_output.h>
+#include <geode/model/representation/io/brep_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/model/representation/core/brep.h>
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/model/representation/core/brep.hpp>
 
 namespace geode
 {
-    void save_brep( const BRep& brep, absl::string_view filename )
+    std::vector< std::string > save_brep(
+        const BRep& brep, std::string_view filename )
     {
+        constexpr auto TYPE = "BRep";
         try
         {
-            detail::geode_object_output_impl< BRepOutputFactory >(
-                "BRep", brep, filename );
+            return detail::geode_object_output_impl< BRepOutputFactory >(
+                TYPE, brep, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< BRepOutputFactory >( TYPE );
             throw OpenGeodeException{ "Cannot save BRep in file: ", filename };
         }
+    }
+
+    bool is_brep_saveable( const BRep& brep, std::string_view filename )
+    {
+        const auto output =
+            detail::geode_object_output_writer< BRepOutputFactory >( filename );
+        return output->is_saveable( brep );
     }
 } // namespace geode

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,15 @@
  *
  */
 
-#include <geode/model/helpers/detail/build_model_boundaries.h>
+#include <geode/model/helpers/detail/build_model_boundaries.hpp>
 
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/model_boundary.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/builder/brep_builder.h>
-#include <geode/model/representation/builder/section_builder.h>
-#include <geode/model/representation/core/brep.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/representation/builder/brep_builder.hpp>
+#include <geode/model/representation/builder/section_builder.hpp>
+#include <geode/model/representation/core/brep.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace
 {
@@ -52,7 +52,7 @@ namespace
     const geode::ModelBoundary< Model::dim >& find_or_create_boundary(
         const Model& model,
         typename Model::Builder& builder,
-        absl::string_view name )
+        std::string_view name )
     {
         for( const auto& boundary : model.model_boundaries() )
         {

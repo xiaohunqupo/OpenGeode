@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -68,10 +68,13 @@ add_geode_python_binding(
         "helpers/crs_helper.cpp"
         "helpers/euclidean_distance_transform.cpp"
         "helpers/geometrical_operations_on_mesh.cpp"
+        "helpers/gradient_computation.cpp"
         "helpers/repair_polygon_orientations.cpp"
+        "helpers/rasterize.cpp"
         "io/edged_curve.cpp"
         "io/graph.cpp"
         "io/hybrid_solid.cpp"
+        "io/light_regular_grid.cpp"
         "io/point_set.cpp"
         "io/polygonal_surface.cpp"
         "io/polyhedral_solid.cpp"

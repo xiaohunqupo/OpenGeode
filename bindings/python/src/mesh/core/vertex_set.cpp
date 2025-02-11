@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,20 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/basic/attribute_manager.h>
+#include <geode/basic/attribute_manager.hpp>
 
-#include <geode/mesh/core/vertex_set.h>
+#include <geode/mesh/core/vertex_set.hpp>
 
 namespace geode
 {
     void define_vertex_set( pybind11::module& module )
     {
         pybind11::class_< VertexSet, Identifier >( module, "VertexSet" )
-            .def_static( "create",
-                ( std::unique_ptr< VertexSet >( * )() ) & VertexSet::create )
+            .def_static(
+                "create", static_cast< std::unique_ptr< VertexSet > ( * )() >(
+                              &VertexSet::create ) )
             .def( "clone", &VertexSet::clone )
             .def( "native_extension", &VertexSet::native_extension )
             .def( "nb_vertices", &VertexSet::nb_vertices )

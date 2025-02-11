@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/surface_edges_builder.h>
-#include <geode/mesh/builder/surface_mesh_builder.h>
-#include <geode/mesh/core/surface_mesh.h>
+#include <geode/mesh/builder/surface_edges_builder.hpp>
+#include <geode/mesh/builder/surface_mesh_builder.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
 
 #define PYTHON_SURFACE_MESH_BUILDER( dimension )                               \
     const auto name##dimension =                                               \
@@ -35,10 +35,7 @@
     pybind11::class_< SurfaceMeshBuilder##dimension##D, VertexSetBuilder,      \
         CoordinateReferenceSystemManagersBuilder##dimension##D >(              \
         module, name##dimension.c_str() )                                      \
-        .def_static( "create",                                                 \
-            ( std::unique_ptr< SurfaceMeshBuilder##dimension##D >( * )(        \
-                SurfaceMesh< dimension >& ) )                                  \
-                & SurfaceMeshBuilder##dimension##D::create )                   \
+        .def_static( "create", &SurfaceMeshBuilder##dimension##D::create )     \
         .def(                                                                  \
             "create_point", &SurfaceMeshBuilder##dimension##D::create_point )  \
         .def( "create_polygon",                                                \
@@ -48,9 +45,9 @@
         .def( "set_polygon_adjacent",                                          \
             &SurfaceMeshBuilder##dimension##D::set_polygon_adjacent )          \
         .def( "compute_polygon_adjacencies",                                   \
-            ( void( SurfaceMeshBuilder##dimension##D::* )() )                  \
-                & SurfaceMeshBuilder##dimension##D::                           \
-                    compute_polygon_adjacencies )                              \
+            static_cast< void ( SurfaceMeshBuilder##dimension##D::* )() >(     \
+                &SurfaceMeshBuilder##dimension##D::                            \
+                    compute_polygon_adjacencies ) )                            \
         .def( "delete_polygons",                                               \
             &SurfaceMeshBuilder##dimension##D::delete_polygons )               \
         .def( "permute_polygons",                                              \

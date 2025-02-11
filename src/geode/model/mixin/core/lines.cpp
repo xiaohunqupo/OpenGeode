@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,20 @@
  *
  */
 
-#include <geode/model/mixin/core/lines.h>
+#include <geode/model/mixin/core/lines.hpp>
 
 #include <async++.h>
 
-#include <geode/basic/identifier_builder.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/range.h>
+#include <geode/basic/identifier_builder.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/range.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/io/edged_curve_input.h>
-#include <geode/mesh/io/edged_curve_output.h>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/io/edged_curve_input.hpp>
+#include <geode/mesh/io/edged_curve_output.hpp>
 
-#include <geode/model/mixin/core/detail/components_storage.h>
-#include <geode/model/mixin/core/line.h>
+#include <geode/model/mixin/core/detail/components_storage.hpp>
+#include <geode/model/mixin/core/line.hpp>
 
 namespace geode
 {
@@ -45,28 +45,17 @@ namespace geode
     };
 
     template < index_t dimension >
-    Lines< dimension >::Lines() // NOLINT
-    {
-    }
+    Lines< dimension >::Lines() = default;
 
     template < index_t dimension >
-    Lines< dimension >::Lines( Lines&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+    Lines< dimension >::Lines( Lines&& ) noexcept = default;
 
     template < index_t dimension >
-    Lines< dimension >::~Lines() // NOLINT
-    {
-    }
+    Lines< dimension >::~Lines() = default;
 
     template < index_t dimension >
     Lines< dimension >& Lines< dimension >::operator=(
-        Lines< dimension >&& other )
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        Lines< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     index_t Lines< dimension >::nb_lines() const
@@ -87,19 +76,20 @@ namespace geode
     }
 
     template < index_t dimension >
-    Line< dimension >& Lines< dimension >::modifiable_line( const uuid& id )
+    Line< dimension >& Lines< dimension >::modifiable_line(
+        const uuid& id, LinesBuilderKey )
     {
         return impl_->component( id );
     }
 
     template < index_t dimension >
-    void Lines< dimension >::save_lines( absl::string_view directory ) const
+    void Lines< dimension >::save_lines( std::string_view directory ) const
     {
         impl_->save_components( absl::StrCat( directory, "/lines" ) );
         const auto prefix = absl::StrCat(
             directory, "/", Line< dimension >::component_type_static().get() );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_lines() );
         index_t count{ 0 };
         for( const auto& line : lines() )
@@ -121,15 +111,16 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Lines< dimension >::load_lines( absl::string_view directory )
+    void Lines< dimension >::load_lines(
+        std::string_view directory, LinesBuilderKey )
     {
         impl_->load_components( absl::StrCat( directory, "/lines" ) );
         const auto mapping = impl_->file_mapping( directory );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_lines() );
         index_t count{ 0 };
-        for( auto& line : modifiable_lines() )
+        for( auto& line : modifiable_lines( {} ) )
         {
             tasks[count++] = async::spawn( [&line, &mapping] {
                 const auto file = mapping.at( line.id().string() );
@@ -155,13 +146,13 @@ namespace geode
 
     template < index_t dimension >
     typename Lines< dimension >::ModifiableLineRange
-        Lines< dimension >::modifiable_lines()
+        Lines< dimension >::modifiable_lines( LinesBuilderKey )
     {
         return { *this };
     }
 
     template < index_t dimension >
-    const uuid& Lines< dimension >::create_line()
+    const uuid& Lines< dimension >::create_line( LinesBuilderKey )
     {
         typename Lines< dimension >::Impl::ComponentPtr line{
             new Line< dimension >{ typename Line< dimension >::LinesKey{} }
@@ -172,7 +163,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    const uuid& Lines< dimension >::create_line( const MeshImpl& impl )
+    const uuid& Lines< dimension >::create_line(
+        const MeshImpl& impl, LinesBuilderKey )
     {
         typename Lines< dimension >::Impl::ComponentPtr line{
             new Line< dimension >{
@@ -184,7 +176,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Lines< dimension >::create_line( uuid line_id )
+    void Lines< dimension >::create_line( uuid line_id, LinesBuilderKey )
     {
         typename Lines< dimension >::Impl::ComponentPtr line{
             new Line< dimension >{ typename Line< dimension >::LinesKey{} }
@@ -194,7 +186,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Lines< dimension >::create_line( uuid line_id, const MeshImpl& impl )
+    void Lines< dimension >::create_line(
+        uuid line_id, const MeshImpl& impl, LinesBuilderKey )
     {
         typename Lines< dimension >::Impl::ComponentPtr line{
             new Line< dimension >{ impl, {} }
@@ -204,7 +197,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Lines< dimension >::delete_line( const Line< dimension >& line )
+    void Lines< dimension >::delete_line(
+        const Line< dimension >& line, LinesBuilderKey )
     {
         impl_->delete_component( line.id() );
     }
@@ -235,10 +229,7 @@ namespace geode
 
     template < index_t dimension >
     Lines< dimension >::LineRangeBase::LineRangeBase(
-        LineRangeBase&& other ) noexcept
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+        LineRangeBase&& ) noexcept = default;
 
     template < index_t dimension >
     Lines< dimension >::LineRangeBase::LineRangeBase(
@@ -248,9 +239,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Lines< dimension >::LineRangeBase::~LineRangeBase() // NOLINT
-    {
-    }
+    Lines< dimension >::LineRangeBase::~LineRangeBase() = default;
 
     template < index_t dimension >
     bool Lines< dimension >::LineRangeBase::operator!=(
@@ -278,9 +267,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Lines< dimension >::LineRange::~LineRange() // NOLINT
-    {
-    }
+    Lines< dimension >::LineRange::~LineRange() = default;
 
     template < index_t dimension >
     auto Lines< dimension >::LineRange::begin() const -> const LineRange&

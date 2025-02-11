@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,14 @@
  *
  */
 
-#include <geode/basic/logger.h>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/aabb.h>
-#include <geode/geometry/distance.h>
-#include <geode/geometry/point.h>
-#include <geode/geometry/vector.h>
+#include <geode/geometry/aabb.hpp>
+#include <geode/geometry/distance.hpp>
+#include <geode/geometry/point.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 #include <absl/container/flat_hash_map.h>
 #include <absl/container/flat_hash_set.h>
@@ -101,16 +101,14 @@ public:
     }
     ~BoxAABBEvalDistance() = default;
 
-    std::tuple< double, geode::Point< dimension > > operator()(
-        const geode::Point< dimension >& query,
+    double operator()( const geode::Point< dimension >& query,
         geode::index_t current_element_box ) const
     {
         const auto box_center =
             ( bounding_boxes_[current_element_box].min()
                 + bounding_boxes_[current_element_box].max() )
             / 2.;
-        return std::make_tuple(
-            geode::point_point_distance( box_center, query ), box_center );
+        return geode::point_point_distance( box_center, query );
     }
 
 private:
@@ -143,16 +141,12 @@ void test_nearest_neighbor_search()
             query.set_value( 0, i + box_size / 2. );
             query.set_value( 1, j + box_size / 2. );
             geode::index_t box_id;
-            geode::Point< dimension > nearest_point;
             double distance;
-            std::tie( box_id, nearest_point, distance ) =
+            std::tie( box_id, distance ) =
                 aabb.closest_element_box( query, disteval );
 
             OPENGEODE_EXCEPTION( box_id == global_box_index( i, j, nb_boxes ),
                 "[Test]  Nearest box to point AABB - Wrong nearest box index" );
-            OPENGEODE_EXCEPTION( nearest_point == box_center,
-                "[Test]  Nearest box to point AABB - Wrong nearest box "
-                "center " );
             OPENGEODE_EXCEPTION(
                 distance == geode::point_point_distance( box_center, query ),
                 "[Test]  Nearest box to point AABB - Wrong distance to nearest "
@@ -180,6 +174,7 @@ public:
 
     bool operator()( geode::index_t cur_box )
     {
+        std::lock_guard< std::mutex > lock( mutex_ );
         box_intersections_.emplace( cur_box );
         return false;
     }
@@ -187,24 +182,26 @@ public:
     // test box strict inclusion
     bool box_contains_box( geode::index_t box1, geode::index_t box2 )
     {
-        return (
-            bounding_boxes_[box1].contains( bounding_boxes_[box2].min() )
-            && bounding_boxes_[box1].contains( bounding_boxes_[box2].max() ) );
+        return bounding_boxes_[box1].contains( bounding_boxes_[box2].min() )
+               && bounding_boxes_[box1].contains( bounding_boxes_[box2].max() );
     }
     bool operator()( geode::index_t box1, geode::index_t box2 )
     {
         if( box_contains_box( box1, box2 ) )
         {
+            std::lock_guard< std::mutex > lock( mutex_ );
             included_box_.emplace_back( box1, box2 );
         }
         else if( box_contains_box( box2, box1 ) )
         {
+            std::lock_guard< std::mutex > lock( mutex_ );
             included_box_.emplace_back( box2, box1 );
         }
         return false;
     }
 
 public:
+    std::mutex mutex_;
     absl::flat_hash_set< geode::index_t > box_intersections_;
     std::vector< std::pair< geode::index_t, geode::index_t > > included_box_;
 
@@ -286,11 +283,13 @@ public:
 
     bool operator()( geode::index_t cur_box )
     {
+        std::lock_guard< std::mutex > lock( mutex_ );
         box_intersections_.emplace( cur_box );
         return false;
     }
 
 public:
+    std::mutex mutex_;
     absl::flat_hash_set< geode::index_t > box_intersections_;
 
 private:
@@ -436,12 +435,14 @@ class OtherAABBIntersection
 public:
     bool operator()( geode::index_t box1, geode::index_t box2 )
     {
+        std::lock_guard< std::mutex > lock( mutex_ );
         included_box_.push_back( { box1, box2 } );
         return false;
     }
 
 public:
     std::vector< std::pair< geode::index_t, geode::index_t > > included_box_;
+    std::mutex mutex_;
 };
 
 template < geode::index_t dimension >

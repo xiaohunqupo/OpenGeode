@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,11 @@
 
 #include <async++.h>
 
-#include <geode/basic/assert.h>
-#include <geode/basic/logger.h>
-#include <geode/basic/range.h>
+#include <geode/basic/assert.hpp>
+#include <geode/basic/logger.hpp>
+#include <geode/basic/range.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 void test_when_all()
 {

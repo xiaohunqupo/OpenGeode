@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,16 @@
  *
  */
 
-#include <geode/mesh/helpers/detail/curve_merger.h>
+#include <geode/mesh/helpers/detail/curve_merger.hpp>
 
 #include <absl/container/flat_hash_map.h>
 #include <absl/container/flat_hash_set.h>
 
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/mesh/builder/edged_curve_builder.h>
-#include <geode/mesh/core/detail/vertex_cycle.h>
-#include <geode/mesh/core/edged_curve.h>
+#include <geode/mesh/builder/edged_curve_builder.hpp>
+#include <geode/mesh/core/detail/vertex_cycle.hpp>
+#include <geode/mesh/core/edged_curve.hpp>
 
 namespace geode
 {
@@ -107,9 +107,10 @@ namespace geode
                 {
                     const auto old2new =
                         merger.builder().delete_edges( to_delete );
+                    const auto& meshes = merger.meshes();
                     for( const auto curve_id : Indices{ merger.meshes() } )
                     {
-                        const auto& curve = merger.meshes()[curve_id].get();
+                        const auto& curve = meshes[curve_id].get();
                         for( const auto e : Range{ curve.nb_edges() } )
                         {
                             const auto old = new_id_[curve_id][e];
@@ -122,9 +123,10 @@ namespace geode
             void create_edges( EdgedCurveMerger< dimension >& merger )
             {
                 absl::flat_hash_map< TypedVertexCycle, index_t > edges;
+                const auto& meshes = merger.meshes();
                 for( const auto s : Indices{ merger.meshes() } )
                 {
-                    const auto& curve = merger.meshes()[s].get();
+                    const auto& curve = meshes[s].get();
                     for( const auto e : Range{ curve.nb_edges() } )
                     {
                         Edge vertices;
@@ -133,8 +135,13 @@ namespace geode
                             vertices[v] = merger.vertex_in_merged(
                                 s, curve.edge_vertex( { e, v } ) );
                         }
-                        const auto it = edges.try_emplace(
-                            vertices, merger.mesh().nb_edges() );
+                        if( vertices[0] == vertices[1] )
+                        {
+                            continue;
+                        }
+                        const auto it =
+                            edges.try_emplace( TypedVertexCycle{ vertices },
+                                merger.mesh().nb_edges() );
                         if( it.second )
                         {
                             const auto edge_id = merger.builder().create_edge(
@@ -185,9 +192,11 @@ namespace geode
         }
 
         template < index_t dimension >
-        EdgedCurveMerger< dimension >::~EdgedCurveMerger()
-        {
-        }
+        EdgedCurveMerger< dimension >::EdgedCurveMerger(
+            EdgedCurveMerger&& ) noexcept = default;
+
+        template < index_t dimension >
+        EdgedCurveMerger< dimension >::~EdgedCurveMerger() = default;
 
         template < index_t dimension >
         std::unique_ptr< EdgedCurve< dimension > >
@@ -204,8 +213,8 @@ namespace geode
         }
 
         template < index_t dimension >
-        auto EdgedCurveMerger< dimension >::edge_origins( index_t edge ) const
-            -> const EdgeOrigins&
+        auto EdgedCurveMerger< dimension >::edge_origins(
+            index_t edge ) const -> const EdgeOrigins&
         {
             return impl_->edge_origins( edge );
         }

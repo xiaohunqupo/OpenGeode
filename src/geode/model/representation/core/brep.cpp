@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,62 +21,29 @@
  *
  */
 
-#include <geode/model/representation/core/brep.h>
+#include <geode/model/representation/core/brep.hpp>
 
-#include <geode/geometry/bounding_box.h>
-#include <geode/geometry/vector.h>
+#include <geode/geometry/bounding_box.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/point_set.h>
-#include <geode/mesh/core/polygonal_surface.h>
-#include <geode/mesh/core/polyhedral_solid.h>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/point_set.hpp>
+#include <geode/mesh/core/polygonal_surface.hpp>
+#include <geode/mesh/core/polyhedral_solid.hpp>
 
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/detail/count_relationships.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/model_boundary.h>
-#include <geode/model/mixin/core/surface.h>
-
-namespace
-{
-    template < typename Filter, typename Iterator >
-    void next_filtered_internal_iterator( Iterator& iterator )
-    {
-        while(
-            iterator.operator!=( iterator )
-            && iterator.geode::Relationships::InternalRangeIterator::operator*()
-                       .type()
-                   != Filter::component_type_static() )
-        {
-            iterator.geode::Relationships::InternalRangeIterator::operator++();
-        }
-    }
-
-    template < typename Filter, typename Iterator >
-    void next_filtered_embedding_iterator( Iterator& iterator )
-    {
-        while( iterator.operator!=( iterator )
-               && iterator.geode::Relationships::EmbeddingRangeIterator::
-                          operator*()
-                              .type()
-                      != Filter::component_type_static() )
-        {
-            iterator.geode::Relationships::EmbeddingRangeIterator::operator++();
-        }
-    }
-
-    template < typename MeshComponentRange >
-    geode::BoundingBox3D meshes_bounding_box( MeshComponentRange range )
-    {
-        geode::BoundingBox3D box;
-        for( const auto& component : range )
-        {
-            box.add_box( component.mesh().bounding_box() );
-        }
-        return box;
-    }
-} // namespace
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/mixin/core/block_collection.hpp>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/corner_collection.hpp>
+#include <geode/model/mixin/core/detail/count_relationships.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/line_collection.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/surface_collection.hpp>
+#include <geode/model/representation/builder/brep_builder.hpp>
+#include <geode/model/representation/core/detail/clone.hpp>
+#include <geode/model/representation/core/internal/helpers.hpp>
 
 namespace geode
 {
@@ -97,7 +64,7 @@ namespace geode
     {
     }
 
-    BRep::BoundaryCornerRange::~BoundaryCornerRange() {} // NOLINT
+    BRep::BoundaryCornerRange::~BoundaryCornerRange() = default;
 
     auto BRep::BoundaryCornerRange::begin() const -> const BoundaryCornerRange&
     {
@@ -132,7 +99,7 @@ namespace geode
     {
     }
 
-    BRep::BoundaryLineRange::~BoundaryLineRange() {} // NOLINT
+    BRep::BoundaryLineRange::~BoundaryLineRange() = default;
 
     auto BRep::BoundaryLineRange::begin() const -> const BoundaryLineRange&
     {
@@ -168,10 +135,10 @@ namespace geode
     {
     }
 
-    BRep::BoundarySurfaceRange::~BoundarySurfaceRange() {} // NOLINT
+    BRep::BoundarySurfaceRange::~BoundarySurfaceRange() = default;
 
-    auto BRep::BoundarySurfaceRange::begin() const
-        -> const BoundarySurfaceRange&
+    auto
+        BRep::BoundarySurfaceRange::begin() const -> const BoundarySurfaceRange&
     {
         return *this;
     }
@@ -204,7 +171,7 @@ namespace geode
     {
     }
 
-    BRep::IncidentLineRange::~IncidentLineRange() {} // NOLINT
+    BRep::IncidentLineRange::~IncidentLineRange() = default;
 
     auto BRep::IncidentLineRange::begin() const -> const IncidentLineRange&
     {
@@ -240,10 +207,10 @@ namespace geode
     {
     }
 
-    BRep::IncidentSurfaceRange::~IncidentSurfaceRange() {} // NOLINT
+    BRep::IncidentSurfaceRange::~IncidentSurfaceRange() = default;
 
-    auto BRep::IncidentSurfaceRange::begin() const
-        -> const IncidentSurfaceRange&
+    auto
+        BRep::IncidentSurfaceRange::begin() const -> const IncidentSurfaceRange&
     {
         return *this;
     }
@@ -277,7 +244,7 @@ namespace geode
     {
     }
 
-    BRep::IncidentBlockRange::~IncidentBlockRange() {} // NOLINT
+    BRep::IncidentBlockRange::~IncidentBlockRange() = default;
 
     auto BRep::IncidentBlockRange::begin() const -> const IncidentBlockRange&
     {
@@ -306,7 +273,7 @@ namespace geode
         : Relationships::InternalRangeIterator( brep, surface.id() ),
           brep_( brep )
     {
-        next_filtered_internal_iterator< Line3D >( *this );
+        internal::next_filtered_internal_iterator< Line3D >( *this );
     }
 
     BRep::InternalLineRange::InternalLineRange( const InternalLineRange& range )
@@ -319,7 +286,7 @@ namespace geode
         return { *this, block };
     }
 
-    BRep::InternalLineRange::~InternalLineRange() {} // NOLINT
+    BRep::InternalLineRange::~InternalLineRange() = default;
 
     auto BRep::InternalLineRange::begin() const -> const InternalLineRange&
     {
@@ -336,13 +303,13 @@ namespace geode
         : Relationships::InternalRangeIterator( brep, block.id() ),
           brep_( brep )
     {
-        next_filtered_internal_iterator< Line3D >( *this );
+        internal::next_filtered_internal_iterator< Line3D >( *this );
     }
 
     void BRep::InternalLineRange::operator++()
     {
         Relationships::InternalRangeIterator::operator++();
-        next_filtered_internal_iterator< Line3D >( *this );
+        internal::next_filtered_internal_iterator< Line3D >( *this );
     }
 
     const Line3D& BRep::InternalLineRange::operator*() const
@@ -362,7 +329,7 @@ namespace geode
         : Relationships::InternalRangeIterator( brep, surface.id() ),
           brep_( brep )
     {
-        next_filtered_internal_iterator< Corner3D >( *this );
+        internal::next_filtered_internal_iterator< Corner3D >( *this );
     }
 
     BRep::InternalCornerRange::InternalCornerRange(
@@ -371,7 +338,7 @@ namespace geode
     {
     }
 
-    BRep::InternalCornerRange::~InternalCornerRange() {} // NOLINT
+    BRep::InternalCornerRange::~InternalCornerRange() = default;
 
     auto BRep::InternalCornerRange::begin() const -> const InternalCornerRange&
     {
@@ -394,13 +361,13 @@ namespace geode
         : Relationships::InternalRangeIterator( brep, block.id() ),
           brep_( brep )
     {
-        next_filtered_internal_iterator< Corner3D >( *this );
+        internal::next_filtered_internal_iterator< Corner3D >( *this );
     }
 
     void BRep::InternalCornerRange::operator++()
     {
         Relationships::InternalRangeIterator::operator++();
-        next_filtered_internal_iterator< Corner3D >( *this );
+        internal::next_filtered_internal_iterator< Corner3D >( *this );
     }
 
     const Corner3D& BRep::InternalCornerRange::operator*() const
@@ -420,7 +387,7 @@ namespace geode
         : Relationships::InternalRangeIterator( brep, block.id() ),
           brep_( brep )
     {
-        next_filtered_internal_iterator< Surface3D >( *this );
+        internal::next_filtered_internal_iterator< Surface3D >( *this );
     }
 
     BRep::InternalSurfaceRange::InternalSurfaceRange(
@@ -429,10 +396,10 @@ namespace geode
     {
     }
 
-    BRep::InternalSurfaceRange::~InternalSurfaceRange() {} // NOLINT
+    BRep::InternalSurfaceRange::~InternalSurfaceRange() = default;
 
-    auto BRep::InternalSurfaceRange::begin() const
-        -> const InternalSurfaceRange&
+    auto
+        BRep::InternalSurfaceRange::begin() const -> const InternalSurfaceRange&
     {
         return *this;
     }
@@ -445,7 +412,7 @@ namespace geode
     void BRep::InternalSurfaceRange::operator++()
     {
         Relationships::InternalRangeIterator::operator++();
-        next_filtered_internal_iterator< Surface3D >( *this );
+        internal::next_filtered_internal_iterator< Surface3D >( *this );
     }
 
     const Surface3D& BRep::InternalSurfaceRange::operator*() const
@@ -465,7 +432,7 @@ namespace geode
         : Relationships::EmbeddingRangeIterator( brep, corner.id() ),
           brep_( brep )
     {
-        next_filtered_embedding_iterator< Surface3D >( *this );
+        internal::next_filtered_embedding_iterator< Surface3D >( *this );
     }
 
     BRep::EmbeddingSurfaceRange::EmbeddingSurfaceRange(
@@ -474,7 +441,7 @@ namespace geode
     {
     }
 
-    BRep::EmbeddingSurfaceRange::~EmbeddingSurfaceRange() {} // NOLINT
+    BRep::EmbeddingSurfaceRange::~EmbeddingSurfaceRange() = default;
 
     auto BRep::EmbeddingSurfaceRange::begin() const
         -> const EmbeddingSurfaceRange&
@@ -482,8 +449,8 @@ namespace geode
         return *this;
     }
 
-    auto BRep::EmbeddingSurfaceRange::end() const
-        -> const EmbeddingSurfaceRange&
+    auto
+        BRep::EmbeddingSurfaceRange::end() const -> const EmbeddingSurfaceRange&
     {
         return *this;
     }
@@ -499,13 +466,13 @@ namespace geode
         : Relationships::EmbeddingRangeIterator( brep, line.id() ),
           brep_( brep )
     {
-        next_filtered_embedding_iterator< Surface3D >( *this );
+        internal::next_filtered_embedding_iterator< Surface3D >( *this );
     }
 
     void BRep::EmbeddingSurfaceRange::operator++()
     {
         Relationships::EmbeddingRangeIterator::operator++();
-        next_filtered_embedding_iterator< Surface3D >( *this );
+        internal::next_filtered_embedding_iterator< Surface3D >( *this );
     }
 
     const Surface3D& BRep::EmbeddingSurfaceRange::operator*() const
@@ -525,7 +492,7 @@ namespace geode
         : Relationships::EmbeddingRangeIterator( brep, corner.id() ),
           brep_( brep )
     {
-        next_filtered_embedding_iterator< Block3D >( *this );
+        internal::next_filtered_embedding_iterator< Block3D >( *this );
     }
 
     BRep::EmbeddingBlockRange BRep::embedding_blocks( const Line3D& line ) const
@@ -538,7 +505,7 @@ namespace geode
         : Relationships::EmbeddingRangeIterator( brep, line.id() ),
           brep_( brep )
     {
-        next_filtered_embedding_iterator< Block3D >( *this );
+        internal::next_filtered_embedding_iterator< Block3D >( *this );
     }
 
     BRep::EmbeddingBlockRange::EmbeddingBlockRange(
@@ -547,7 +514,7 @@ namespace geode
     {
     }
 
-    BRep::EmbeddingBlockRange::~EmbeddingBlockRange() {} // NOLINT
+    BRep::EmbeddingBlockRange::~EmbeddingBlockRange() = default;
 
     auto BRep::EmbeddingBlockRange::begin() const -> const EmbeddingBlockRange&
     {
@@ -570,13 +537,13 @@ namespace geode
         : Relationships::EmbeddingRangeIterator( brep, surface.id() ),
           brep_( brep )
     {
-        next_filtered_embedding_iterator< Block3D >( *this );
+        internal::next_filtered_embedding_iterator< Block3D >( *this );
     }
 
     void BRep::EmbeddingBlockRange::operator++()
     {
         Relationships::EmbeddingRangeIterator::operator++();
-        next_filtered_embedding_iterator< Block3D >( *this );
+        internal::next_filtered_embedding_iterator< Block3D >( *this );
     }
 
     const Block3D& BRep::EmbeddingBlockRange::operator*() const
@@ -585,9 +552,75 @@ namespace geode
             Relationships::EmbeddingRangeIterator::operator*().id() );
     }
 
+    BRep::ItemCornerRange::ItemCornerRange(
+        const BRep& brep, const CornerCollection3D& collection )
+        : Relationships::ItemRangeIterator( brep, collection.id() ),
+          brep_( brep )
+    {
+    }
+
+    BRep::ItemCornerRange::ItemCornerRange( const ItemCornerRange& range )
+        : Relationships::ItemRangeIterator{ range }, brep_( range.brep_ )
+    {
+    }
+
+    BRep::ItemCornerRange::~ItemCornerRange() = default;
+
+    auto BRep::ItemCornerRange::begin() const -> const ItemCornerRange&
+    {
+        return *this;
+    }
+
+    auto BRep::ItemCornerRange::end() const -> const ItemCornerRange&
+    {
+        return *this;
+    }
+
+    const Corner3D& BRep::ItemCornerRange::operator*() const
+    {
+        return brep_.corner(
+            Relationships::ItemRangeIterator::operator*().id() );
+    }
+
+    BRep::ItemLineRange::ItemLineRange(
+        const BRep& brep, const LineCollection3D& collection )
+        : Relationships::ItemRangeIterator( brep, collection.id() ),
+          brep_( brep )
+    {
+    }
+
+    BRep::ItemLineRange::ItemLineRange( const ItemLineRange& range )
+        : Relationships::ItemRangeIterator{ range }, brep_( range.brep_ )
+    {
+    }
+
+    BRep::ItemLineRange::~ItemLineRange() = default;
+
+    auto BRep::ItemLineRange::begin() const -> const ItemLineRange&
+    {
+        return *this;
+    }
+
+    auto BRep::ItemLineRange::end() const -> const ItemLineRange&
+    {
+        return *this;
+    }
+
+    const Line3D& BRep::ItemLineRange::operator*() const
+    {
+        return brep_.line( Relationships::ItemRangeIterator::operator*().id() );
+    }
+
     BRep::ItemSurfaceRange::ItemSurfaceRange(
         const BRep& brep, const ModelBoundary3D& boundary )
         : Relationships::ItemRangeIterator( brep, boundary.id() ), brep_( brep )
+    {
+    }
+
+    BRep::ItemSurfaceRange::ItemSurfaceRange(
+        const BRep& brep, const SurfaceCollection3D& collection )
+        : Relationships::ItemRangeIterator( brep, collection.id() ),
+          brep_( brep )
     {
     }
 
@@ -596,7 +629,7 @@ namespace geode
     {
     }
 
-    BRep::ItemSurfaceRange::~ItemSurfaceRange() {} // NOLINT
+    BRep::ItemSurfaceRange::~ItemSurfaceRange() = default;
 
     auto BRep::ItemSurfaceRange::begin() const -> const ItemSurfaceRange&
     {
@@ -614,7 +647,37 @@ namespace geode
             Relationships::ItemRangeIterator::operator*().id() );
     }
 
-    BRep::BRep() {} // NOLINT
+    BRep::ItemBlockRange::ItemBlockRange(
+        const BRep& brep, const BlockCollection3D& collection )
+        : Relationships::ItemRangeIterator( brep, collection.id() ),
+          brep_( brep )
+    {
+    }
+
+    BRep::ItemBlockRange::ItemBlockRange( const ItemBlockRange& range )
+        : Relationships::ItemRangeIterator{ range }, brep_( range.brep_ )
+    {
+    }
+
+    BRep::ItemBlockRange::~ItemBlockRange() = default;
+
+    auto BRep::ItemBlockRange::begin() const -> const ItemBlockRange&
+    {
+        return *this;
+    }
+
+    auto BRep::ItemBlockRange::end() const -> const ItemBlockRange&
+    {
+        return *this;
+    }
+
+    const Block3D& BRep::ItemBlockRange::operator*() const
+    {
+        return brep_.block(
+            Relationships::ItemRangeIterator::operator*().id() );
+    }
+
+    BRep::BRep() = default;
 
     BRep::BRep( BRep&& brep ) noexcept
         : Topology{ std::move( brep ) },
@@ -623,6 +686,10 @@ namespace geode
           Surfaces3D{ std::move( brep ) },
           Blocks3D{ std::move( brep ) },
           ModelBoundaries3D{ std::move( brep ) },
+          CornerCollections3D{ std::move( brep ) },
+          LineCollections3D{ std::move( brep ) },
+          SurfaceCollections3D{ std::move( brep ) },
+          BlockCollections3D{ std::move( brep ) },
           Identifier{ std::move( brep ) }
     {
     }
@@ -635,16 +702,56 @@ namespace geode
         Surfaces3D::operator=( std::move( brep ) );
         Blocks3D::operator=( std::move( brep ) );
         ModelBoundaries3D::operator=( std::move( brep ) );
+        CornerCollections3D::operator=( std::move( brep ) );
+        LineCollections3D::operator=( std::move( brep ) );
+        SurfaceCollections3D::operator=( std::move( brep ) );
+        BlockCollections3D::operator=( std::move( brep ) );
         Identifier::operator=( std::move( brep ) );
         return *this;
     }
 
-    BRep::~BRep() {} // NOLINT
+    BRep::~BRep() = default;
+
+    BRep BRep::clone() const
+    {
+        BRep model_clone;
+        BRepBuilder clone_builder{ model_clone };
+        clone_builder.copy_identifier( *this );
+        auto mappings = detail::brep_clone_mapping( *this );
+        clone_builder.copy_components( mappings, *this );
+        clone_builder.copy_relationships( mappings, *this );
+        clone_builder.copy_component_geometry( mappings, *this );
+        return model_clone;
+    }
 
     BRep::ItemSurfaceRange BRep::model_boundary_items(
         const ModelBoundary3D& boundary ) const
     {
         return { *this, boundary };
+    }
+
+    BRep::ItemCornerRange BRep::corner_collection_items(
+        const CornerCollection3D& collection ) const
+    {
+        return { *this, collection };
+    }
+
+    BRep::ItemLineRange BRep::line_collection_items(
+        const LineCollection3D& collection ) const
+    {
+        return { *this, collection };
+    }
+
+    BRep::ItemSurfaceRange BRep::surface_collection_items(
+        const SurfaceCollection3D& collection ) const
+    {
+        return { *this, collection };
+    }
+
+    BRep::ItemBlockRange BRep::block_collection_items(
+        const BlockCollection3D& collection ) const
+    {
+        return { *this, collection };
     }
 
     index_t BRep::nb_internal_corners( const Surface3D& surface ) const
@@ -756,20 +863,44 @@ namespace geode
         return Relationships::is_item( surface.id(), boundary.id() );
     }
 
+    bool BRep::is_corner_collection_item(
+        const Corner3D& corner, const CornerCollection3D& collection ) const
+    {
+        return Relationships::is_item( corner.id(), collection.id() );
+    }
+
+    bool BRep::is_line_collection_item(
+        const Line3D& line, const LineCollection3D& collection ) const
+    {
+        return Relationships::is_item( line.id(), collection.id() );
+    }
+
+    bool BRep::is_surface_collection_item(
+        const Surface3D& surface, const SurfaceCollection3D& collection ) const
+    {
+        return Relationships::is_item( surface.id(), collection.id() );
+    }
+
+    bool BRep::is_block_collection_item(
+        const Block3D& block, const BlockCollection3D& collection ) const
+    {
+        return Relationships::is_item( block.id(), collection.id() );
+    }
+
     BoundingBox3D BRep::bounding_box() const
     {
         if( nb_surfaces() > 0 )
         {
-            return meshes_bounding_box( surfaces() );
+            return internal::meshes_bounding_box< 3 >( surfaces() );
         }
         if( nb_blocks() > 0 )
         {
-            return meshes_bounding_box( blocks() );
+            return internal::meshes_bounding_box< 3 >( blocks() );
         }
         if( nb_lines() > 0 )
         {
-            return meshes_bounding_box( lines() );
+            return internal::meshes_bounding_box< 3 >( lines() );
         }
-        return meshes_bounding_box( corners() );
+        return internal::meshes_bounding_box< 3 >( corners() );
     }
 } // namespace geode

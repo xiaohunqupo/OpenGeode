@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ include(cmake/PythonTargets.cmake)
 find_package(absl REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${ABSEIL_INSTALL_PREFIX})
 find_package(Async++ REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${ASYNCPLUSPLUS_INSTALL_PREFIX})
 find_package(Bitsery REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${BITSERY_INSTALL_PREFIX})
-find_package(ghc_filesystem REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${FILESYSTEM_INSTALL_PREFIX})
+find_package(earcut_hpp REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${EARCUT_INSTALL_PREFIX})
 find_package(minizip-ng REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${MINIZIP_INSTALL_PREFIX})
 find_package(nanoflann REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${NANOFLANN_INSTALL_PREFIX})
 find_package(spdlog REQUIRED CONFIG NO_DEFAULT_PATH PATHS ${SPDLOG_INSTALL_PREFIX})
@@ -43,7 +43,6 @@ install(
         ${ABSEIL_INSTALL_PREFIX}/
         ${ASYNCPLUSPLUS_INSTALL_PREFIX}/
         ${BITSERY_INSTALL_PREFIX}/
-        ${FILESYSTEM_INSTALL_PREFIX}/
         ${GDAL_INSTALL_PREFIX}/
         ${PROJ_INSTALL_PREFIX}/
     DESTINATION
@@ -54,6 +53,7 @@ install(
 if(NOT BUILD_SHARED_LIBS)
     install(
         DIRECTORY
+            ${EARCUT_INSTALL_PREFIX}/
             ${MINIZIP_INSTALL_PREFIX}/
             ${NANOFLANN_INSTALL_PREFIX}/
             ${SPDLOG_INSTALL_PREFIX}/
@@ -79,7 +79,8 @@ endif()
 
 install(
     FILES 
-        "cmake/OpenGeodeModule-setup.py.in"
+        "cmake/setup.py.in"
+        "cmake/pyproject.toml.in"
         "cmake/GlobalOptions.cmake"
         "cmake/CompilerWarnings.cmake"
         "cmake/Sanitizers.cmake"

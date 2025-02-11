@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ ExternalProject_Add(spdlog
     BINARY_DIR ${SPDLOG_PATH}/build
     STAMP_DIR ${SPDLOG_PATH}/stamp
     GIT_REPOSITORY https://github.com/gabime/spdlog
-    GIT_TAG 2f2d04b3e840428a18942ca2d3d65203ec564647
+    GIT_TAG v1.14.1
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -39,3 +40,5 @@ ExternalProject_Add(spdlog
         -DSPDLOG_BUILD_TESTS:BOOL=OFF
         -DCMAKE_INSTALL_PREFIX:PATH=${SPDLOG_INSTALL_PREFIX}
 )
+
+ExternalProject_Add_StepTargets(spdlog download)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,29 @@
  *
  */
 
-#include <geode/mesh/io/tetrahedral_solid_input.h>
+#include <geode/mesh/io/tetrahedral_solid_input.hpp>
 
-#include <geode/basic/detail/geode_input_impl.h>
+#include <string_view>
 
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/tetrahedral_solid.h>
+#include <absl/strings/str_cat.h>
+
+#include <geode/basic/detail/geode_input_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
+#include <geode/mesh/io/vertex_set_input.hpp>
 
 namespace geode
 {
     template < index_t dimension >
     std::unique_ptr< TetrahedralSolid< dimension > > load_tetrahedral_solid(
-        const MeshImpl& impl, absl::string_view filename )
+        const MeshImpl& impl, std::string_view filename )
     {
+        const auto type = absl::StrCat( "TetrahedralSolid", dimension, "D" );
         try
         {
-            const auto type =
-                absl::StrCat( "TetrahedralSolid", dimension, "D" );
             auto tetrahedral_solid = detail::geode_object_input_impl<
                 TetrahedralSolidInputFactory< dimension > >(
                 type, filename, impl );
@@ -49,6 +55,10 @@ namespace geode
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions<
+                TetrahedralSolidInputFactory< dimension > >( type );
+            Logger::info( "Other extensions are available in parent classes." );
+            print_available_extensions< VertexSetInputFactory >( "VertexSet" );
             throw OpenGeodeException{
                 "Cannot load TetrahedralSolid from file: ", filename
             };
@@ -57,7 +67,7 @@ namespace geode
 
     template < index_t dimension >
     std::unique_ptr< TetrahedralSolid< dimension > > load_tetrahedral_solid(
-        absl::string_view filename )
+        std::string_view filename )
     {
         return load_tetrahedral_solid< dimension >(
             MeshFactory::default_impl(
@@ -67,19 +77,30 @@ namespace geode
 
     template < index_t dimension >
     typename TetrahedralSolidInput< dimension >::MissingFiles
-        check_tetrahedral_solid_missing_files( absl::string_view filename )
+        check_tetrahedral_solid_missing_files( std::string_view filename )
     {
         const auto input = detail::geode_object_input_reader<
             TetrahedralSolidInputFactory< dimension > >( filename );
         return input->check_missing_files();
     }
 
+    template < index_t dimension >
+    bool is_tetrahedral_solid_loadable( std::string_view filename )
+    {
+        const auto input = detail::geode_object_input_reader<
+            TetrahedralSolidInputFactory< dimension > >( filename );
+        return input->is_loadable();
+    }
+
     template std::unique_ptr< TetrahedralSolid< 3 > > opengeode_mesh_api
-        load_tetrahedral_solid( const MeshImpl&, absl::string_view );
+        load_tetrahedral_solid( const MeshImpl&, std::string_view );
 
     template std::unique_ptr< TetrahedralSolid< 3 > >
-        opengeode_mesh_api load_tetrahedral_solid( absl::string_view );
+        opengeode_mesh_api load_tetrahedral_solid( std::string_view );
 
     template TetrahedralSolidInput< 3 >::MissingFiles opengeode_mesh_api
-        check_tetrahedral_solid_missing_files< 3 >( absl::string_view );
+        check_tetrahedral_solid_missing_files< 3 >( std::string_view );
+
+    template bool opengeode_mesh_api is_tetrahedral_solid_loadable< 3 >(
+        std::string_view );
 } // namespace geode

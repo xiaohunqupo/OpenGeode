@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  *
  */
 
-#include <geode/geometry/rotation.h>
+#include <geode/geometry/rotation.hpp>
 
 namespace
 {
@@ -88,7 +88,7 @@ namespace geode
     Point3D opengeode_geometry_api rotate(
         const Point3D& point, const Vector3D& axis, double angle )
     {
-        OPENGEODE_EXCEPTION( axis.length2() > geode::global_epsilon,
+        OPENGEODE_EXCEPTION( axis.length2() > geode::GLOBAL_EPSILON,
             "[rotate] Given axis is almost null" );
         while( angle < 0 )
         {
@@ -112,10 +112,10 @@ namespace geode
             result.set_value( i, matrix[i].dot( quat_point ) );
         }
 
-        OPENGEODE_ASSERT( std::fabs( result.value( 3 ) ) > global_epsilon,
+        OPENGEODE_ASSERT( std::fabs( result.value( 3 ) ) > GLOBAL_EPSILON,
             "[rotate] Error in computation" );
         const auto inverse = 1.0 / result.value( 3 );
-        return { { result.value( 0 ) * inverse, result.value( 1 ) * inverse,
-            result.value( 2 ) * inverse } };
+        return Point3D{ { result.value( 0 ) * inverse,
+            result.value( 1 ) * inverse, result.value( 2 ) * inverse } };
     }
 } // namespace geode

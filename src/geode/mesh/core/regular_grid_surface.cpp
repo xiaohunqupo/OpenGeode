@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include <geode/mesh/core/regular_grid_surface.h>
+#include <geode/mesh/core/regular_grid_surface.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/regular_grid_surface_builder.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/mesh/builder/regular_grid_surface_builder.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
 
 namespace geode
 {
@@ -51,6 +51,7 @@ namespace geode
     {
         auto clone = create( this->impl_name() );
         auto builder = RegularGridBuilder< 2 >::create( *clone );
+        builder->copy_identifier( *this );
         builder->copy( *this );
         return clone;
     }
@@ -63,6 +64,25 @@ namespace geode
     AttributeManager& RegularGrid< 2 >::grid_vertex_attribute_manager() const
     {
         return vertex_attribute_manager();
+    }
+
+    SurfaceMesh< 2 >::VerticesAroundVertex
+        RegularGrid< 2 >::vertices_around_vertex( index_t vertex_id ) const
+    {
+        VerticesAroundVertex result;
+        const auto indices = this->vertex_indices( vertex_id );
+        for( const auto d : LRange{ 2 } )
+        {
+            if( const auto next = this->next_vertex( indices, d ) )
+            {
+                result.push_back( this->vertex_index( next.value() ) );
+            }
+            if( const auto previous = this->previous_vertex( indices, d ) )
+            {
+                result.push_back( this->vertex_index( previous.value() ) );
+            }
+        }
+        return result;
     }
 
     template < typename Archive >

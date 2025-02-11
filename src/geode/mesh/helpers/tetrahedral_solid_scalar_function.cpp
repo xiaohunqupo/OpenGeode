@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,16 @@
  *
  */
 
-#include <geode/mesh/helpers/tetrahedral_solid_scalar_function.h>
+#include <geode/mesh/helpers/tetrahedral_solid_scalar_function.hpp>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/barycentric_coordinates.h>
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/barycentric_coordinates.hpp>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/core/tetrahedral_solid.h>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
 
 namespace geode
 {
@@ -39,7 +39,7 @@ namespace geode
     {
     public:
         Impl( const TetrahedralSolid< dimension >& solid,
-            absl::string_view function_name,
+            std::string_view function_name,
             double value )
             : solid_( solid )
         {
@@ -56,7 +56,7 @@ namespace geode
         }
 
         Impl( const TetrahedralSolid< dimension >& solid,
-            absl::string_view function_name )
+            std::string_view function_name )
             : solid_( solid )
         {
             OPENGEODE_EXCEPTION(
@@ -106,15 +106,12 @@ namespace geode
 
     template < index_t dimension >
     TetrahedralSolidScalarFunction< dimension >::TetrahedralSolidScalarFunction(
-        TetrahedralSolidScalarFunction< dimension >&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+        TetrahedralSolidScalarFunction< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     TetrahedralSolidScalarFunction< dimension >::TetrahedralSolidScalarFunction(
         const TetrahedralSolid< dimension >& solid,
-        absl::string_view function_name,
+        std::string_view function_name,
         double value )
         : impl_{ solid, function_name, value }
     {
@@ -123,22 +120,20 @@ namespace geode
     template < index_t dimension >
     TetrahedralSolidScalarFunction< dimension >::TetrahedralSolidScalarFunction(
         const TetrahedralSolid< dimension >& solid,
-        absl::string_view function_name )
+        std::string_view function_name )
         : impl_{ solid, function_name }
     {
     }
 
     template < index_t dimension >
     TetrahedralSolidScalarFunction<
-        dimension >::~TetrahedralSolidScalarFunction()
-    {
-    }
+        dimension >::~TetrahedralSolidScalarFunction() = default;
 
     template < index_t dimension >
     TetrahedralSolidScalarFunction< dimension >
         TetrahedralSolidScalarFunction< dimension >::create(
             const TetrahedralSolid< dimension >& solid,
-            absl::string_view function_name,
+            std::string_view function_name,
             double value )
     {
         return { solid, function_name, value };
@@ -148,7 +143,7 @@ namespace geode
     TetrahedralSolidScalarFunction< dimension >
         TetrahedralSolidScalarFunction< dimension >::find(
             const TetrahedralSolid< dimension >& solid,
-            absl::string_view function_name )
+            std::string_view function_name )
     {
         return { solid, function_name };
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,17 @@
  *
  */
 
-#include <geode/model/mixin/builder/model_boundaries_builder.h>
+#include <geode/model/mixin/builder/model_boundaries_builder.hpp>
 
-#include <geode/model/mixin/core/model_boundaries.h>
-#include <geode/model/mixin/core/model_boundary.h>
+#include <geode/model/mixin/core/model_boundaries.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
 
 namespace geode
 {
     template < index_t dimension >
     const uuid& ModelBoundariesBuilder< dimension >::create_model_boundary()
     {
-        return model_boundaries_.create_model_boundary();
+        return model_boundaries_.create_model_boundary( {} );
     }
 
     template < index_t dimension >
@@ -39,28 +39,28 @@ namespace geode
         uuid model_boundary_id )
     {
         model_boundaries_.create_model_boundary(
-            std::move( model_boundary_id ) );
+            std::move( model_boundary_id ), {} );
     }
 
     template < index_t dimension >
     void ModelBoundariesBuilder< dimension >::delete_model_boundary(
         const ModelBoundary< dimension >& boundary )
     {
-        model_boundaries_.delete_model_boundary( boundary );
+        model_boundaries_.delete_model_boundary( boundary, {} );
     }
 
     template < index_t dimension >
     void ModelBoundariesBuilder< dimension >::load_model_boundaries(
-        absl::string_view directory )
+        std::string_view directory )
     {
-        return model_boundaries_.load_model_boundaries( directory );
+        return model_boundaries_.load_model_boundaries( directory, {} );
     }
 
     template < index_t dimension >
     void ModelBoundariesBuilder< dimension >::set_model_boundary_name(
-        const uuid& id, absl::string_view name )
+        const uuid& id, std::string_view name )
     {
-        model_boundaries_.modifiable_model_boundary( id )
+        model_boundaries_.modifiable_model_boundary( id, {} )
             .set_model_boundary_name( name, {} );
     }
 

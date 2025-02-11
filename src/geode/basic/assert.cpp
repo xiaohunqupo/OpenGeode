@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,17 @@
  *
  */
 
-#include <geode/basic/assert.h>
+#include <geode/basic/assert.hpp>
 
 #include <cassert>
 
-#include <geode/basic/logger.h>
+#include <geode/basic/logger.hpp>
 
 namespace geode
 {
-    void geode_assertion_failed( absl::string_view condition,
-        absl::string_view message,
-        absl::string_view file,
+    void geode_assertion_failed( std::string_view condition,
+        std::string_view message,
+        std::string_view file,
         int line )
     {
         Logger::error( "File: ", file );
@@ -48,7 +48,8 @@ namespace geode
         }
         catch( const OpenGeodeException& e )
         {
-            Logger::critical( "OpenGeodeException: ", e.what() );
+            Logger::critical(
+                "OpenGeodeException: ", e.what(), "\n", e.stack_trace() );
         }
         catch( const std::exception& e )
         {
@@ -59,5 +60,25 @@ namespace geode
             Logger::critical( "Unknown exception" );
         }
         return 1;
+    }
+
+    void throw_lippincott()
+    {
+        try
+        {
+            throw;
+        }
+        catch( const OpenGeodeException& /*unused*/ )
+        {
+            throw;
+        }
+        catch( const std::exception& exception )
+        {
+            throw OpenGeodeException{ "std::exception, ", exception.what() };
+        }
+        catch( ... )
+        {
+            throw OpenGeodeException{ "Unknown exception" };
+        }
     }
 } // namespace geode

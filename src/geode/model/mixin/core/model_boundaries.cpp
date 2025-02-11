@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,14 @@
  *
  */
 
-#include <geode/model/mixin/core/model_boundaries.h>
+#include <geode/model/mixin/core/model_boundaries.hpp>
 
-#include <geode/basic/identifier_builder.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/range.h>
+#include <geode/basic/identifier_builder.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/range.hpp>
 
-#include <geode/model/mixin/core/detail/components_storage.h>
-#include <geode/model/mixin/core/model_boundary.h>
+#include <geode/model/mixin/core/detail/components_storage.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
 
 namespace geode
 {
@@ -39,28 +39,18 @@ namespace geode
     };
 
     template < index_t dimension >
-    ModelBoundaries< dimension >::ModelBoundaries() // NOLINT
-    {
-    }
+    ModelBoundaries< dimension >::ModelBoundaries() = default;
 
     template < index_t dimension >
-    ModelBoundaries< dimension >::ModelBoundaries( ModelBoundaries&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+    ModelBoundaries< dimension >::ModelBoundaries(
+        ModelBoundaries&& ) noexcept = default;
 
     template < index_t dimension >
     ModelBoundaries< dimension >& ModelBoundaries< dimension >::operator=(
-        ModelBoundaries&& other )
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        ModelBoundaries&& ) noexcept = default;
 
     template < index_t dimension >
-    ModelBoundaries< dimension >::~ModelBoundaries() // NOLINT
-    {
-    }
+    ModelBoundaries< dimension >::~ModelBoundaries() = default;
 
     template < index_t dimension >
     index_t ModelBoundaries< dimension >::nb_model_boundaries() const
@@ -78,14 +68,14 @@ namespace geode
     template < index_t dimension >
     ModelBoundary< dimension >&
         ModelBoundaries< dimension >::modifiable_model_boundary(
-            const uuid& id )
+            const uuid& id, ModelBoundariesBuilderKey )
     {
         return impl_->component( id );
     }
 
     template < index_t dimension >
     void ModelBoundaries< dimension >::save_model_boundaries(
-        absl::string_view directory ) const
+        std::string_view directory ) const
     {
         impl_->save_components(
             absl::StrCat( directory, "/model_boundaries" ) );
@@ -93,7 +83,7 @@ namespace geode
 
     template < index_t dimension >
     void ModelBoundaries< dimension >::load_model_boundaries(
-        absl::string_view directory )
+        std::string_view directory, ModelBoundariesBuilderKey )
     {
         impl_->load_components(
             absl::StrCat( directory, "/model_boundaries" ) );
@@ -108,13 +98,15 @@ namespace geode
 
     template < index_t dimension >
     typename ModelBoundaries< dimension >::ModifiableModelBoundaryRange
-        ModelBoundaries< dimension >::modifiable_model_boundaries()
+        ModelBoundaries< dimension >::modifiable_model_boundaries(
+            ModelBoundariesBuilderKey )
     {
         return { *this };
     }
 
     template < index_t dimension >
-    const uuid& ModelBoundaries< dimension >::create_model_boundary()
+    const uuid& ModelBoundaries< dimension >::create_model_boundary(
+        ModelBoundariesBuilderKey )
     {
         typename ModelBoundaries< dimension >::Impl::ComponentPtr boundary{
             new ModelBoundary< dimension >{
@@ -127,7 +119,7 @@ namespace geode
 
     template < index_t dimension >
     void ModelBoundaries< dimension >::create_model_boundary(
-        uuid model_boundary_id )
+        uuid model_boundary_id, ModelBoundariesBuilderKey )
     {
         typename ModelBoundaries< dimension >::Impl::ComponentPtr
             model_boundary{ new ModelBoundary< dimension >{
@@ -139,7 +131,7 @@ namespace geode
 
     template < index_t dimension >
     void ModelBoundaries< dimension >::delete_model_boundary(
-        const ModelBoundary< dimension >& boundary )
+        const ModelBoundary< dimension >& boundary, ModelBoundariesBuilderKey )
     {
         impl_->delete_component( boundary.id() );
     }
@@ -172,10 +164,7 @@ namespace geode
 
     template < index_t dimension >
     ModelBoundaries< dimension >::ModelBoundaryRangeBase::
-        ModelBoundaryRangeBase( ModelBoundaryRangeBase&& other ) noexcept
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+        ModelBoundaryRangeBase( ModelBoundaryRangeBase&& ) noexcept = default;
 
     template < index_t dimension >
     ModelBoundaries< dimension >::ModelBoundaryRangeBase::
@@ -186,9 +175,8 @@ namespace geode
 
     template < index_t dimension >
     ModelBoundaries<
-        dimension >::ModelBoundaryRangeBase::~ModelBoundaryRangeBase() // NOLINT
-    {
-    }
+        dimension >::ModelBoundaryRangeBase::~ModelBoundaryRangeBase() =
+        default;
 
     template < index_t dimension >
     bool ModelBoundaries< dimension >::ModelBoundaryRangeBase::operator!=(
@@ -218,10 +206,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    ModelBoundaries<
-        dimension >::ModelBoundaryRange::~ModelBoundaryRange() // NOLINT
-    {
-    }
+    ModelBoundaries< dimension >::ModelBoundaryRange::~ModelBoundaryRange() =
+        default;
 
     template < index_t dimension >
     auto ModelBoundaries< dimension >::ModelBoundaryRange::begin() const

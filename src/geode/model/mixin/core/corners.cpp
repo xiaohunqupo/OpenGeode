@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,20 @@
  *
  */
 
-#include <geode/model/mixin/core/corners.h>
+#include <geode/model/mixin/core/corners.hpp>
 
 #include <async++.h>
 
-#include <geode/basic/identifier_builder.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/range.h>
+#include <geode/basic/identifier_builder.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/range.hpp>
 
-#include <geode/mesh/core/point_set.h>
-#include <geode/mesh/io/point_set_input.h>
-#include <geode/mesh/io/point_set_output.h>
+#include <geode/mesh/core/point_set.hpp>
+#include <geode/mesh/io/point_set_input.hpp>
+#include <geode/mesh/io/point_set_output.hpp>
 
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/detail/components_storage.h>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/detail/components_storage.hpp>
 
 namespace geode
 {
@@ -45,28 +45,17 @@ namespace geode
     };
 
     template < index_t dimension >
-    Corners< dimension >::Corners() // NOLINT
-    {
-    }
+    Corners< dimension >::Corners() = default;
 
     template < index_t dimension >
-    Corners< dimension >::Corners( Corners&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+    Corners< dimension >::Corners( Corners&& ) noexcept = default;
 
     template < index_t dimension >
-    Corners< dimension >::~Corners() // NOLINT
-    {
-    }
+    Corners< dimension >::~Corners() = default;
 
     template < index_t dimension >
     Corners< dimension >& Corners< dimension >::operator=(
-        Corners< dimension >&& other )
-    {
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+        Corners< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     bool Corners< dimension >::has_corner( const uuid& id ) const
@@ -89,19 +78,19 @@ namespace geode
 
     template < index_t dimension >
     Corner< dimension >& Corners< dimension >::modifiable_corner(
-        const uuid& id )
+        const uuid& id, CornersBuilderKey )
     {
         return impl_->component( id );
     }
 
     template < index_t dimension >
-    void Corners< dimension >::save_corners( absl::string_view directory ) const
+    void Corners< dimension >::save_corners( std::string_view directory ) const
     {
         impl_->save_components( absl::StrCat( directory, "/corners" ) );
         const auto prefix = absl::StrCat( directory, "/",
             Corner< dimension >::component_type_static().get() );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_corners() );
         index_t count{ 0 };
         for( const auto& corner : corners() )
@@ -123,15 +112,16 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Corners< dimension >::load_corners( absl::string_view directory )
+    void Corners< dimension >::load_corners(
+        std::string_view directory, CornersBuilderKey )
     {
         impl_->load_components( absl::StrCat( directory, "/corners" ) );
         const auto mapping = impl_->file_mapping( directory );
         const auto level = Logger::level();
-        Logger::set_level( Logger::Level::warn );
+        Logger::set_level( Logger::LEVEL::warn );
         absl::FixedArray< async::task< void > > tasks( nb_corners() );
         index_t count{ 0 };
-        for( auto& corner : modifiable_corners() )
+        for( auto& corner : modifiable_corners( {} ) )
         {
             tasks[count++] = async::spawn( [&corner, &mapping] {
                 const auto file = mapping.at( corner.id().string() );
@@ -158,13 +148,13 @@ namespace geode
 
     template < index_t dimension >
     typename Corners< dimension >::ModifiableCornerRange
-        Corners< dimension >::modifiable_corners()
+        Corners< dimension >::modifiable_corners( CornersBuilderKey )
     {
         return { *this };
     }
 
     template < index_t dimension >
-    const uuid& Corners< dimension >::create_corner()
+    const uuid& Corners< dimension >::create_corner( CornersBuilderKey )
     {
         typename Corners< dimension >::Impl::ComponentPtr corner{
             new Corner< dimension >{
@@ -176,7 +166,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    const uuid& Corners< dimension >::create_corner( const MeshImpl& impl )
+    const uuid& Corners< dimension >::create_corner(
+        const MeshImpl& impl, CornersBuilderKey )
     {
         typename Corners< dimension >::Impl::ComponentPtr corner{
             new Corner< dimension >{
@@ -188,7 +179,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    void Corners< dimension >::create_corner( uuid corner_id )
+    void Corners< dimension >::create_corner(
+        uuid corner_id, CornersBuilderKey )
     {
         typename Corners< dimension >::Impl::ComponentPtr corner{
             new Corner< dimension >{
@@ -200,7 +192,7 @@ namespace geode
 
     template < index_t dimension >
     void Corners< dimension >::create_corner(
-        uuid corner_id, const MeshImpl& impl )
+        uuid corner_id, const MeshImpl& impl, CornersBuilderKey )
     {
         typename Corners< dimension >::Impl::ComponentPtr corner{
             new Corner< dimension >{ impl, {} }
@@ -211,7 +203,7 @@ namespace geode
 
     template < index_t dimension >
     void Corners< dimension >::delete_corner(
-        const Corner< dimension >& corner )
+        const Corner< dimension >& corner, CornersBuilderKey )
     {
         impl_->delete_component( corner.id() );
     }
@@ -243,10 +235,7 @@ namespace geode
 
     template < index_t dimension >
     Corners< dimension >::CornerRangeBase::CornerRangeBase(
-        CornerRangeBase&& other ) noexcept
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+        CornerRangeBase&& ) noexcept = default;
 
     template < index_t dimension >
     Corners< dimension >::CornerRangeBase::CornerRangeBase(
@@ -256,9 +245,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Corners< dimension >::CornerRangeBase::~CornerRangeBase() // NOLINT
-    {
-    }
+    Corners< dimension >::CornerRangeBase::~CornerRangeBase() = default;
 
     template < index_t dimension >
     bool Corners< dimension >::CornerRangeBase::operator!=(
@@ -286,9 +273,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    Corners< dimension >::CornerRange::~CornerRange() // NOLINT
-    {
-    }
+    Corners< dimension >::CornerRange::~CornerRange() = default;
 
     template < index_t dimension >
     auto Corners< dimension >::CornerRange::begin() const -> const CornerRange&

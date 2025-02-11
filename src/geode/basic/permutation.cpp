@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
  * Copyright (c) 2012-2014, Bruno Levy
  */
 
-#include <geode/basic/permutation.h>
+#include <geode/basic/permutation.hpp>
 
 #include <async++.h>
 

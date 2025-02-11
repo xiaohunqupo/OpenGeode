@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,15 @@
  *
  */
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
-#include "../../common.h"
+#include <string>
 
-#include <geode/mesh/core/point_set.h>
-#include <geode/mesh/io/point_set_input.h>
-#include <geode/mesh/io/point_set_output.h>
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+#include "../../common.hpp"
+
+#include <geode/mesh/core/point_set.hpp>
+#include <geode/mesh/io/point_set_input.hpp>
+#include <geode/mesh/io/point_set_output.hpp>
 
 #define PYTHON_POINT_SET_IO( dimension )                                       \
     const auto save##dimension =                                               \
@@ -37,13 +39,21 @@
         "load_point_set" + std::to_string( dimension ) + "D";                  \
     module.def( load##dimension.c_str(),                                       \
         static_cast< std::unique_ptr< PointSet< dimension > > ( * )(           \
-            absl::string_view ) >( &load_point_set< dimension > ) );           \
+            std::string_view ) >( &load_point_set< dimension > ) );            \
     const auto check##dimension =                                              \
         "check_point_set_missing_files" + std::to_string( dimension ) + "D";   \
     module.def( check##dimension.c_str(),                                      \
         &check_point_set_missing_files< dimension > );                         \
-    PYTHON_INPUT_CLASS( std::unique_ptr< PointSet< dimension > >,              \
+    const auto loadable##dimension =                                           \
+        "is_point_set_loadable" + std::to_string( dimension ) + "D";           \
+    module.def(                                                                \
+        loadable##dimension.c_str(), &is_point_set_loadable< dimension > );    \
+    PYTHON_INPUT_MESH_CLASS( std::unique_ptr< PointSet< dimension > >,         \
         "PointSet" + std::to_string( dimension ) + "D" );                      \
+    const auto saveable##dimension =                                           \
+        "is_point_set_saveable" + std::to_string( dimension ) + "D";           \
+    module.def(                                                                \
+        saveable##dimension.c_str(), &is_point_set_saveable< dimension > );    \
     PYTHON_FACTORY_CLASS( PointSetInputFactory##dimension##D );                \
     PYTHON_FACTORY_CLASS( PointSetOutputFactory##dimension##D )
 

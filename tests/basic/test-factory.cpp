@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,9 @@
 
 #include <memory>
 
-#include <geode/basic/factory.h>
+#include <geode/basic/factory.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 class A
 {
@@ -66,7 +66,7 @@ public:
     Derived( A &a, B &b ) : Base( a, b ) {}
 };
 
-void verdict( bool is_instantiated, absl::string_view name )
+void verdict( bool is_instantiated, std::string_view name )
 {
     if( !is_instantiated )
     {

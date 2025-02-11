@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,9 @@ ExternalProject_Add(asyncplusplus
     SOURCE_DIR ${ASYNCPLUSPLUS_PATH}/src
     BINARY_DIR ${ASYNCPLUSPLUS_PATH}/build
     STAMP_DIR ${ASYNCPLUSPLUS_PATH}/stamp
-    GIT_REPOSITORY https://github.com/Amanieu/asyncplusplus
-    GIT_TAG 756893feb9e69c098225d5a454a668a2c139e4be
+    GIT_REPOSITORY https://github.com/Geode-solutions/asyncplusplus
+    GIT_TAG 20240711
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -42,3 +43,5 @@ ExternalProject_Add(asyncplusplus
     CMAKE_CACHE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=${ASYNCPLUSPLUS_INSTALL_PREFIX}
 )
+
+ExternalProject_Add_StepTargets(asyncplusplus download)

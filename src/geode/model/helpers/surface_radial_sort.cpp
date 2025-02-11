@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,24 @@
  *
  */
 
-#include <geode/model/helpers/surface_radial_sort.h>
+#include <geode/model/helpers/surface_radial_sort.hpp>
 
-#include <geode/basic/algorithm.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/algorithm.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/basic_objects/infinite_line.h>
-#include <geode/geometry/basic_objects/segment.h>
-#include <geode/geometry/distance.h>
-#include <geode/geometry/radial_sort.h>
+#include <geode/geometry/basic_objects/infinite_line.hpp>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/distance.hpp>
+#include <geode/geometry/radial_sort.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/surface_mesh.h>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
 
-#include <geode/model/helpers/component_mesh_vertices.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/mixin/core/vertex_identifier.h>
-#include <geode/model/representation/core/brep.h>
+#include <geode/model/helpers/component_mesh_vertices.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/vertex_identifier.hpp>
+#include <geode/model/representation/core/brep.hpp>
 
 namespace
 {
@@ -46,7 +46,8 @@ namespace
         const geode::Surface3D& surface, const geode::PolygonEdge& edge )
     {
         const auto& mesh = surface.mesh();
-        auto vertex = mesh.polygon_vertex( mesh.previous_polygon_edge( edge ) );
+        auto vertex = mesh.polygon_vertex(
+            mesh.previous_polygon_vertex( geode::PolygonVertex{ edge } ) );
         return mesh.point( vertex );
     }
 
@@ -88,17 +89,6 @@ namespace
         geode::Point3D opposite_point;
     };
 
-    bool is_polygon_degenerate( const geode::SurfaceMesh3D& mesh,
-        const geode::PolygonEdge& edge,
-        const geode::Point3D& opposite_point )
-    {
-        const auto edge_vertices = mesh.polygon_edge_vertices( edge );
-        return geode::point_line_distance( opposite_point,
-                   { geode::Segment3D{ mesh.point( edge_vertices[0] ),
-                       mesh.point( edge_vertices[1] ) } } )
-               <= geode::global_epsilon;
-    }
-
     std::pair< bool, std::vector< BorderPolygon > > border_polygons(
         const geode::BRep& brep,
         const geode::Line3D& line,
@@ -107,14 +97,13 @@ namespace
     {
         const auto line_v0 = brep.unique_vertex( { line.component_id(), e0 } );
         const auto line_v1 = brep.unique_vertex( { line.component_id(), e1 } );
-        const auto surface_vertices0 = brep.component_mesh_vertices(
-            line_v0, geode::Surface3D::component_type_static() );
-        const auto surface_vertices1 = brep.component_mesh_vertices(
-            line_v1, geode::Surface3D::component_type_static() );
+        const auto& vertices0 = brep.component_mesh_vertices( line_v0 );
+        const auto& vertices1 = brep.component_mesh_vertices( line_v1 );
         std::vector< BorderPolygon > polygons;
         bool degenerate_polygon{ false };
-        for( const auto& vertex_pairs : geode::component_mesh_vertex_pairs(
-                 surface_vertices0, surface_vertices1 ) )
+        for( const auto& vertex_pairs :
+            geode::component_mesh_vertex_pairs( vertices0, vertices1,
+                geode::Surface3D::component_type_static() ) )
         {
             const auto& surface_id = vertex_pairs.first.id();
             const auto& surface = brep.surface( surface_id );
@@ -126,20 +115,18 @@ namespace
                 {
                     polygons.emplace_back(
                         surface, true, std::move( edge0.value() ) );
-                    degenerate_polygon =
-                        degenerate_polygon
-                        || is_polygon_degenerate( surface_mesh, edge0.value(),
-                            polygons.back().opposite_point );
+                    degenerate_polygon = degenerate_polygon
+                                         || surface_mesh.is_polygon_degenerated(
+                                             edge0->polygon_id );
                 }
                 if( auto edge1 = surface_mesh.polygon_edge_from_vertices(
                         pair[1], pair[0] ) )
                 {
                     polygons.emplace_back(
                         surface, false, std::move( edge1.value() ) );
-                    degenerate_polygon =
-                        degenerate_polygon
-                        || is_polygon_degenerate( surface_mesh, edge1.value(),
-                            polygons.back().opposite_point );
+                    degenerate_polygon = degenerate_polygon
+                                         || surface_mesh.is_polygon_degenerated(
+                                             edge1->polygon_id );
                 }
             }
         }
@@ -241,6 +228,6 @@ namespace geode
         }
         OPENGEODE_ASSERT_NOT_REACHED(
             "[surface_radial_sort] Cannot find sorted surfaces on a Line" );
-        return { 0 };
+        return SortedSurfaces{ 0 };
     }
 } // namespace geode

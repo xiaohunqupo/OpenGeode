@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/core/light_regular_grid.h>
-#include <geode/mesh/core/regular_grid_solid.h>
-#include <geode/mesh/core/tetrahedral_solid.h>
-#include <geode/mesh/helpers/convert_solid_mesh.h>
+#include <geode/mesh/core/light_regular_grid.hpp>
+#include <geode/mesh/core/regular_grid_solid.hpp>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
+#include <geode/mesh/helpers/convert_solid_mesh.hpp>
 
 namespace geode
 {

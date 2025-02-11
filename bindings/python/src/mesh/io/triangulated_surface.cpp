@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,15 @@
  *
  */
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
-#include "../../common.h"
+#include <string>
 
-#include <geode/mesh/core/triangulated_surface.h>
-#include <geode/mesh/io/triangulated_surface_input.h>
-#include <geode/mesh/io/triangulated_surface_output.h>
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+#include "../../common.hpp"
+
+#include <geode/mesh/core/triangulated_surface.hpp>
+#include <geode/mesh/io/triangulated_surface_input.hpp>
+#include <geode/mesh/io/triangulated_surface_output.hpp>
 
 #define PYTHON_TRIANGULATED_SURFACE_IO( dimension )                            \
     const auto save##dimension =                                               \
@@ -38,14 +40,23 @@
         "load_triangulated_surface" + std::to_string( dimension ) + "D";       \
     module.def( load##dimension.c_str(),                                       \
         static_cast< std::unique_ptr<                                          \
-            TriangulatedSurface< dimension > > ( * )( absl::string_view ) >(   \
+            TriangulatedSurface< dimension > > ( * )( std::string_view ) >(    \
             &load_triangulated_surface< dimension > ) );                       \
     const auto check##dimension = "check_triangulated_surface_missing_files"   \
                                   + std::to_string( dimension ) + "D";         \
     module.def( check##dimension.c_str(),                                      \
         &check_triangulated_surface_missing_files< dimension > );              \
-    PYTHON_INPUT_CLASS( std::unique_ptr< TriangulatedSurface< dimension > >,   \
+    const auto loadable##dimension = "is_triangulated_surface_loadable"        \
+                                     + std::to_string( dimension ) + "D";      \
+    module.def( loadable##dimension.c_str(),                                   \
+        &is_triangulated_surface_loadable< dimension > );                      \
+    PYTHON_INPUT_MESH_CLASS(                                                   \
+        std::unique_ptr< TriangulatedSurface< dimension > >,                   \
         "TriangulatedSurface" + std::to_string( dimension ) + "D" );           \
+    const auto saveable##dimension = "is_triangulated_surface_saveable"        \
+                                     + std::to_string( dimension ) + "D";      \
+    module.def( saveable##dimension.c_str(),                                   \
+        &is_triangulated_surface_saveable< dimension > );                      \
     PYTHON_FACTORY_CLASS( TriangulatedSurfaceInputFactory##dimension##D );     \
     PYTHON_FACTORY_CLASS( TriangulatedSurfaceOutputFactory##dimension##D )
 

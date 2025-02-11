@@ -1,0 +1,225 @@
+/*
+ * Copyright (c) 2019 - 2025 Geode-solutions
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
+#pragma once
+
+#include <geode/basic/range.hpp>
+
+#include <geode/geometry/common.hpp>
+#include <geode/geometry/point.hpp>
+
+namespace geode
+{
+    /*!
+     * Description of a vector in the given dimension with double coordinates
+     */
+    template < index_t dimension >
+    class Vector : public Point< dimension >
+    {
+    public:
+        Vector() = default;
+
+        explicit Vector( const Point< dimension > &vector )
+            : Point< dimension >( vector )
+        {
+        }
+
+        explicit Vector( std::array< double, dimension > values )
+            : Point< dimension >( std::move( values ) )
+        {
+        }
+
+        Vector( const Point< dimension > &from, const Point< dimension > &to )
+            : Point< dimension >( to - from )
+        {
+        }
+
+        [[nodiscard]] double length2() const
+        {
+            return dot( *this );
+        }
+
+        [[nodiscard]] double length() const
+        {
+            return std::sqrt( length2() );
+        }
+
+        [[nodiscard]] Vector operator*( double multiplier ) const
+        {
+            return detail::coords_multiply( *this, multiplier );
+        }
+
+        [[nodiscard]] Vector operator/( double divider ) const
+        {
+            return detail::coords_divide( *this, divider );
+        }
+
+        [[nodiscard]] Vector operator+( const Vector &other ) const
+        {
+            return detail::coords_add( *this, other );
+        }
+
+        [[nodiscard]] Vector operator-( const Vector &other ) const
+        {
+            return detail::coords_substract( *this, other );
+        }
+
+        void operator*=( double multiplier )
+        {
+            detail::coords_multiply_equal( *this, multiplier );
+        }
+
+        void operator/=( double divider )
+        {
+            detail::coords_divide_equal( *this, divider );
+        }
+
+        void operator+=( const Vector &other )
+        {
+            detail::coords_add_equal( *this, other );
+        }
+
+        void operator-=( const Vector &other )
+        {
+            detail::coords_substract_equal( *this, other );
+        }
+
+        [[nodiscard]] Vector normalize() const
+        {
+            return *this / length();
+        }
+
+        [[nodiscard]] double dot( const Vector &other ) const
+        {
+            double result{ 0 };
+            for( const auto i : LRange{ dimension } )
+            {
+                result += this->value( i ) * other.value( i );
+            }
+            return result;
+        }
+
+        [[nodiscard]] Vector cross( const Vector &other ) const
+        {
+            static_assert(
+                dimension == 3, "Cross product only possible in 3D" );
+            return Vector{ { this->value( 1 ) * other.value( 2 )
+                                 - this->value( 2 ) * other.value( 1 ),
+                this->value( 2 ) * other.value( 0 )
+                    - this->value( 0 ) * other.value( 2 ),
+                this->value( 0 ) * other.value( 1 )
+                    - this->value( 1 ) * other.value( 0 ) } };
+        }
+
+        [[nodiscard]] geode::local_index_t most_meaningful_axis() const
+        {
+            geode::local_index_t axis{ 0 };
+            double max{ 0 };
+            for( const auto i : LRange{ dimension } )
+            {
+                const auto val = std::fabs( this->value( i ) );
+                if( val > max )
+                {
+                    max = val;
+                    axis = i;
+                }
+            }
+            return axis;
+        }
+
+        [[nodiscard]] geode::local_index_t least_meaningful_axis() const
+        {
+            geode::local_index_t axis{ 0 };
+            auto min = std::numeric_limits< double >::max();
+            for( const auto i : LRange{ dimension } )
+            {
+                const auto val = std::fabs( this->value( i ) );
+                if( val < min )
+                {
+                    min = val;
+                    axis = i;
+                }
+            }
+            return axis;
+        }
+    };
+    ALIAS_1D_AND_2D_AND_3D( Vector );
+
+    template < index_t dimension >
+    struct AttributeLinearInterpolationImpl< Vector< dimension > >
+    {
+        template < template < typename > class Attribute >
+        static Vector< dimension > compute(
+            const AttributeLinearInterpolation &interpolator,
+            const Attribute< Vector< dimension > > &attribute )
+        {
+            Vector< dimension > result;
+            bool is_same{ true };
+            const auto &first_value =
+                attribute.value( interpolator.indices_[0] );
+            for( const auto i : Indices{ interpolator.indices_ } )
+            {
+                const auto &i_value =
+                    attribute.value( interpolator.indices_[i] );
+                if( is_same )
+                {
+                    is_same = i_value == first_value;
+                }
+                result = result + i_value * interpolator.lambdas_[i];
+            }
+            if( is_same )
+            {
+                return first_value;
+            }
+            return result;
+        }
+    };
+
+    template < index_t dimension >
+    struct GenericAttributeConversion< Vector< dimension > >
+    {
+        static float converted_value( const Vector< dimension > &vector )
+        {
+            return converted_item_value( vector, 0 );
+        }
+
+        static float converted_item_value(
+            const Vector< dimension > &vector, local_index_t item )
+        {
+            OPENGEODE_ASSERT( item < nb_items(),
+                "[GenericAttributeConversion] Accessing "
+                "incorrect item value" );
+            return static_cast< float >( vector.value( item ) );
+        }
+
+        static bool is_genericable()
+        {
+            return true;
+        }
+
+        static local_index_t nb_items()
+        {
+            return dimension;
+        }
+    };
+} // namespace geode

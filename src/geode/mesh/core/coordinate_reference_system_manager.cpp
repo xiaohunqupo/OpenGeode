@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,15 @@
  *
  */
 
-#include <geode/mesh/core/coordinate_reference_system_manager.h>
+#include <geode/mesh/core/coordinate_reference_system_manager.hpp>
 
 #include <bitsery/ext/std_map.h>
 
 #include <absl/container/flat_hash_map.h>
 
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/mesh/core/coordinate_reference_system.h>
+#include <geode/mesh/core/coordinate_reference_system.hpp>
 
 namespace geode
 {
@@ -45,7 +45,7 @@ namespace geode
         }
 
         const CoordinateReferenceSystem< dimension >&
-            find_coordinate_reference_system( absl::string_view name ) const
+            find_coordinate_reference_system( std::string_view name ) const
         {
             const auto it = crss_.find( name );
             OPENGEODE_EXCEPTION( it != crss_.end(),
@@ -58,21 +58,21 @@ namespace geode
         const CoordinateReferenceSystem< dimension >&
             active_coordinate_reference_system() const
         {
-            OPENGEODE_EXCEPTION( active_crs_.use_count() > 1,
+            OPENGEODE_ASSERT( active_crs_.use_count() > 1,
                 "[CoordinateReferenceSystemManager::active_coordinate_"
                 "reference_system] Active CRS not defined" );
             return *active_crs_;
         }
 
-        absl::string_view active_coordinate_reference_system_name() const
+        std::string_view active_coordinate_reference_system_name() const
         {
             return active_crs_name_;
         }
 
-        absl::FixedArray< absl::string_view >
+        absl::FixedArray< std::string_view >
             coordinate_reference_system_names() const
         {
-            absl::FixedArray< absl::string_view > names( crss_.size() );
+            absl::FixedArray< std::string_view > names( crss_.size() );
             index_t count{ 0 };
             for( const auto& it : crss_ )
             {
@@ -81,12 +81,12 @@ namespace geode
             return names;
         }
 
-        bool coordinate_reference_system_exists( absl::string_view name ) const
+        bool coordinate_reference_system_exists( std::string_view name ) const
         {
             return crss_.find( name ) != crss_.end();
         }
 
-        void register_coordinate_reference_system( absl::string_view name,
+        void register_coordinate_reference_system( std::string_view name,
             std::shared_ptr< CoordinateReferenceSystem< dimension > >&& crs )
         {
             const auto status =
@@ -97,7 +97,7 @@ namespace geode
                 name, " already exists" );
         }
 
-        void delete_coordinate_reference_system( absl::string_view name )
+        void delete_coordinate_reference_system( std::string_view name )
         {
             const auto it = crss_.find( name );
             if( it != crss_.end() )
@@ -111,7 +111,7 @@ namespace geode
             }
         }
 
-        void set_active_coordinate_reference_system( absl::string_view name )
+        void set_active_coordinate_reference_system( std::string_view name )
         {
             const auto it = crss_.find( name );
             OPENGEODE_EXCEPTION( it != crss_.end(),
@@ -132,7 +132,7 @@ namespace geode
         }
 
         CoordinateReferenceSystem< dimension >&
-            modifiable_coordinate_reference_system( absl::string_view name )
+            modifiable_coordinate_reference_system( std::string_view name )
         {
             const auto it = crss_.find( name );
             OPENGEODE_EXCEPTION( it != crss_.end(),
@@ -172,23 +172,16 @@ namespace geode
 
     template < index_t dimension >
     CoordinateReferenceSystemManager<
-        dimension >::CoordinateReferenceSystemManager()
-    {
-    }
+        dimension >::CoordinateReferenceSystemManager() = default;
 
     template < index_t dimension >
     CoordinateReferenceSystemManager< dimension >::
         CoordinateReferenceSystemManager(
-            CoordinateReferenceSystemManager&& other )
-        : impl_{ std::move( other.impl_ ) }
-    {
-    }
+            CoordinateReferenceSystemManager&& ) noexcept = default;
 
     template < index_t dimension >
     CoordinateReferenceSystemManager<
-        dimension >::~CoordinateReferenceSystemManager()
-    {
-    }
+        dimension >::~CoordinateReferenceSystemManager() = default;
 
     template < index_t dimension >
     index_t CoordinateReferenceSystemManager<
@@ -200,7 +193,7 @@ namespace geode
     template < index_t dimension >
     const CoordinateReferenceSystem< dimension >&
         CoordinateReferenceSystemManager< dimension >::
-            find_coordinate_reference_system( absl::string_view name ) const
+            find_coordinate_reference_system( std::string_view name ) const
     {
         return impl_->find_coordinate_reference_system( name );
     }
@@ -214,14 +207,14 @@ namespace geode
     }
 
     template < index_t dimension >
-    absl::string_view CoordinateReferenceSystemManager<
+    std::string_view CoordinateReferenceSystemManager<
         dimension >::active_coordinate_reference_system_name() const
     {
         return impl_->active_coordinate_reference_system_name();
     }
 
     template < index_t dimension >
-    absl::FixedArray< absl::string_view > CoordinateReferenceSystemManager<
+    absl::FixedArray< std::string_view > CoordinateReferenceSystemManager<
         dimension >::coordinate_reference_system_names() const
     {
         return impl_->coordinate_reference_system_names();
@@ -229,14 +222,14 @@ namespace geode
 
     template < index_t dimension >
     bool CoordinateReferenceSystemManager< dimension >::
-        coordinate_reference_system_exists( absl::string_view name ) const
+        coordinate_reference_system_exists( std::string_view name ) const
     {
         return impl_->coordinate_reference_system_exists( name );
     }
 
     template < index_t dimension >
     void CoordinateReferenceSystemManager< dimension >::
-        register_coordinate_reference_system( absl::string_view name,
+        register_coordinate_reference_system( std::string_view name,
             std::shared_ptr< CoordinateReferenceSystem< dimension > >&& crs,
             CRSManagerKey )
     {
@@ -245,7 +238,7 @@ namespace geode
 
     template < index_t dimension >
     void CoordinateReferenceSystemManager<
-        dimension >::delete_coordinate_reference_system( absl::string_view name,
+        dimension >::delete_coordinate_reference_system( std::string_view name,
         CRSManagerKey )
     {
         impl_->delete_coordinate_reference_system( name );
@@ -254,7 +247,7 @@ namespace geode
     template < index_t dimension >
     void CoordinateReferenceSystemManager< dimension >::
         set_active_coordinate_reference_system(
-            absl::string_view name, CRSManagerKey )
+            std::string_view name, CRSManagerKey )
     {
         impl_->set_active_coordinate_reference_system( name );
     }
@@ -271,7 +264,7 @@ namespace geode
     CoordinateReferenceSystem< dimension >&
         CoordinateReferenceSystemManager< dimension >::
             modifiable_coordinate_reference_system(
-                absl::string_view name, CRSManagerKey )
+                std::string_view name, CRSManagerKey )
     {
         return impl_->modifiable_coordinate_reference_system( name );
     }

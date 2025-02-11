@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,11 @@
 #include <functional>
 #include <numeric>
 
-#include <geode/basic/algorithm.h>
-#include <geode/basic/logger.h>
-#include <geode/basic/uuid.h>
+#include <geode/basic/algorithm.hpp>
+#include <geode/basic/logger.hpp>
+#include <geode/basic/uuid.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 std::vector< bool > create_bool_vector()
 {
@@ -82,9 +82,6 @@ void test_delete_vector_elements()
     geode::delete_vector_elements( to_delete, toto_vector );
     OPENGEODE_EXCEPTION( toto_vector.size() == 3,
         "[Test] Delete elements result (size) for double is not correct" );
-    toto_vector[0].front();
-    toto_vector[1].front();
-    toto_vector[2].front();
     OPENGEODE_EXCEPTION( ( toto_vector[0].front().second == 0 )
                              && ( toto_vector[1].front().second == 2 )
                              && ( toto_vector[2].front().second == 3 ),

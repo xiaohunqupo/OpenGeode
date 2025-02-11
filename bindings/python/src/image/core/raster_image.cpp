@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,16 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/image/core/raster_image.h>
-#include <geode/image/core/rgb_color.h>
+#include <geode/image/core/raster_image.hpp>
+#include <geode/image/core/rgb_color.hpp>
 
 #define PYTHON_RASTER_IMAGE( dimension )                                       \
     const auto name##dimension =                                               \
         "RasterImage" + std::to_string( dimension ) + "D";                     \
-    pybind11::class_< RasterImage##dimension##D, CellArray##dimension##D >(    \
-        module, name##dimension.c_str() )                                      \
+    pybind11::class_< RasterImage##dimension##D, CellArray##dimension##D,      \
+        Identifier >( module, name##dimension.c_str() )                        \
         .def( pybind11::init< std::array< index_t, dimension > >() )           \
         .def(                                                                  \
             "native_extension", &RasterImage##dimension##D::native_extension ) \

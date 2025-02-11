@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  *
  */
 
-#include <geode/geometry/basic_objects/sphere.h>
+#include <geode/geometry/basic_objects/sphere.hpp>
 
-#include <geode/geometry/bounding_box.h>
+#include <geode/geometry/bounding_box.hpp>
 
 namespace geode
 {
@@ -35,35 +35,18 @@ namespace geode
     }
     template < typename PointType, index_t dimension >
     GenericSphere< PointType, dimension >::GenericSphere(
-        const GenericSphere< PointType, dimension >& other )
-        : origin_( other.origin_ ), radius_( other.radius_ )
-    {
-    }
+        const GenericSphere< PointType, dimension >& ) = default;
     template < typename PointType, index_t dimension >
     GenericSphere< PointType, dimension >&
         GenericSphere< PointType, dimension >::operator=(
-            const GenericSphere< PointType, dimension >& other )
-    {
-        origin_ = other.origin_;
-        radius_ = other.radius_;
-        return *this;
-    }
+            const GenericSphere< PointType, dimension >& ) = default;
     template < typename PointType, index_t dimension >
     GenericSphere< PointType, dimension >::GenericSphere(
-        GenericSphere< PointType, dimension >&& other )
-        : origin_( std::move( other.origin_ ) ),
-          radius_( std::move( other.radius_ ) )
-    {
-    }
+        GenericSphere< PointType, dimension >&& ) noexcept = default;
     template < typename PointType, index_t dimension >
     GenericSphere< PointType, dimension >&
         GenericSphere< PointType, dimension >::operator=(
-            GenericSphere< PointType, dimension >&& other )
-    {
-        origin_ = std::move( other.origin_ );
-        radius_ = std::move( other.radius_ );
-        return *this;
-    }
+            GenericSphere< PointType, dimension >&& ) noexcept = default;
     template < typename PointType, index_t dimension >
     const Point< dimension >&
         GenericSphere< PointType, dimension >::origin() const
@@ -100,29 +83,16 @@ namespace geode
     }
     template < index_t dimension >
     OwnerSphere< dimension >::OwnerSphere(
-        const OwnerSphere< dimension >& other )
-        : Base( other )
-    {
-    }
+        const OwnerSphere< dimension >& ) = default;
     template < index_t dimension >
     OwnerSphere< dimension >& OwnerSphere< dimension >::operator=(
-        const OwnerSphere< dimension >& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        const OwnerSphere< dimension >& ) = default;
     template < index_t dimension >
-    OwnerSphere< dimension >::OwnerSphere( OwnerSphere< dimension >&& other )
-        : Base( other )
-    {
-    }
+    OwnerSphere< dimension >::OwnerSphere(
+        OwnerSphere< dimension >&& ) noexcept = default;
     template < index_t dimension >
     OwnerSphere< dimension >& OwnerSphere< dimension >::operator=(
-        OwnerSphere< dimension >&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        OwnerSphere< dimension >&& ) noexcept = default;
 
     template < index_t dimension >
     Sphere< dimension >::Sphere(
@@ -131,10 +101,7 @@ namespace geode
     {
     }
     template < index_t dimension >
-    Sphere< dimension >::Sphere( const Sphere< dimension >& other )
-        : Base( other )
-    {
-    }
+    Sphere< dimension >::Sphere( const Sphere< dimension >& ) = default;
     template < index_t dimension >
     Sphere< dimension >::Sphere( const OwnerSphere< dimension >& other )
         : Base( other.origin(), other.radius() )
@@ -142,22 +109,12 @@ namespace geode
     }
     template < index_t dimension >
     Sphere< dimension >& Sphere< dimension >::operator=(
-        const Sphere< dimension >& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        const Sphere< dimension >& ) = default;
     template < index_t dimension >
-    Sphere< dimension >::Sphere( Sphere< dimension >&& other ) : Base( other )
-    {
-    }
+    Sphere< dimension >::Sphere( Sphere< dimension >&& ) noexcept = default;
     template < index_t dimension >
     Sphere< dimension >& Sphere< dimension >::operator=(
-        Sphere< dimension >&& other )
-    {
-        Base::operator=( other );
-        return *this;
-    }
+        Sphere< dimension >&& ) noexcept = default;
 
     template class opengeode_geometry_api GenericSphere< Point< 2 >, 2 >;
     template class opengeode_geometry_api GenericSphere< Point< 3 >, 3 >;

@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,9 @@ ExternalProject_Add(minizip
     SOURCE_DIR ${MINIZIP_PATH}/src
     BINARY_DIR ${MINIZIP_PATH}/build
     STAMP_DIR ${MINIZIP_PATH}/stamp
-    GIT_REPOSITORY https://github.com/nmoinvaz/minizip
-    GIT_TAG f3d400e999056ca290998b3fd89cc5a74e4b8b58
+    GIT_REPOSITORY https://github.com/zlib-ng/minizip-ng
+    GIT_TAG 4.0.7
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -34,6 +35,7 @@ ExternalProject_Add(minizip
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_INSTALL_MESSAGE=LAZY
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
     CMAKE_CACHE_ARGS
         -DMZ_COMPAT:BOOL=OFF
@@ -47,3 +49,5 @@ ExternalProject_Add(minizip
         -DMZ_LIBBSD:BOOL=OFF
         -DCMAKE_INSTALL_PREFIX:PATH=${MINIZIP_INSTALL_PREFIX}
 )
+
+ExternalProject_Add_StepTargets(minizip download)

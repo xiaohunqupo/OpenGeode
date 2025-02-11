@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ ExternalProject_Add(proj
     BINARY_DIR ${PROJ_PATH}/build
     STAMP_DIR ${PROJ_PATH}/stamp
     GIT_REPOSITORY https://github.com/Geode-solutions/proj
-    GIT_TAG 00663b1c12fce68359974f9da76eed7f5f1ffbff
+    GIT_TAG 20240621
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -49,3 +50,5 @@ ExternalProject_Add(proj
     DEPENDS
         sqlite
 )
+
+ExternalProject_Add_StepTargets(proj download)

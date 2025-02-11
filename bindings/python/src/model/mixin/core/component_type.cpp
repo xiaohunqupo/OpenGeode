@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  *
  */
 
-#include "../../../common.h"
+#include "../../../common.hpp"
 
-#include <geode/model/mixin/core/component_type.h>
+#include <geode/model/mixin/core/component_type.hpp>
 
 namespace geode
 {
@@ -38,10 +38,11 @@ namespace geode
         pybind11::class_< ComponentID >( module, "ComponentID" )
             .def( pybind11::init<>() )
             .def( pybind11::init< ComponentType, uuid >() )
-            .def( "id",
-                (const uuid& (ComponentID::*) () const&) &ComponentID::id )
-            .def( "type", (const ComponentType& (ComponentID::*) ()
-                                  const&) &ComponentID::type )
+            .def( "id", static_cast< const uuid& (ComponentID::*) () const& >(
+                            &ComponentID::id ) )
+            .def( "type",
+                static_cast< const ComponentType& (ComponentID::*) () const& >(
+                    &ComponentID::type ) )
             .def( "string", &ComponentID::string )
             .def( pybind11::self == pybind11::self )
             .def( pybind11::self != pybind11::self );

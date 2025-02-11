@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,23 @@
  *
  */
 
-#include <geode/model/helpers/simplicial_section_creator.h>
+#include <geode/model/helpers/simplicial_section_creator.hpp>
 
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/model/helpers/private/simplicial_model_creator.h>
-#include <geode/model/representation/builder/section_builder.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/model/helpers/internal/simplicial_model_creator.hpp>
+#include <geode/model/representation/builder/section_builder.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
     class SimplicialSectionCreator::Impl
-        : public detail::SimplicialModelCreator< Section >
+        : public internal::SimplicialModelCreator< Section >
     {
     public:
         Impl( Section& section, std::vector< Point2D > unique_points )
-            : detail::SimplicialModelCreator< Section >(
-                section, std::move( unique_points ) )
+            : internal::SimplicialModelCreator< Section >(
+                  section, std::move( unique_points ) )
         {
         }
 

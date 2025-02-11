@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,28 +21,28 @@
  *
  */
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/geode/geode_triangulated_surface_builder.h>
-#include <geode/mesh/builder/surface_edges_builder.h>
-#include <geode/mesh/core/geode/geode_triangulated_surface.h>
-#include <geode/mesh/core/surface_edges.h>
-#include <geode/mesh/io/triangulated_surface_input.h>
-#include <geode/mesh/io/triangulated_surface_output.h>
+#include <geode/mesh/builder/geode/geode_triangulated_surface_builder.hpp>
+#include <geode/mesh/builder/surface_edges_builder.hpp>
+#include <geode/mesh/core/geode/geode_triangulated_surface.hpp>
+#include <geode/mesh/core/surface_edges.hpp>
+#include <geode/mesh/io/triangulated_surface_input.hpp>
+#include <geode/mesh/io/triangulated_surface_output.hpp>
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
 void test_create_vertices( const geode::TriangulatedSurface3D& surface,
     geode::TriangulatedSurfaceBuilder3D& builder )
 {
-    builder.create_point( { { 0.1, 0.2, 0.3 } } );
-    builder.create_point( { { 2.1, 9.4, 6.7 } } );
-    builder.create_point( { { 7.5, 5.2, 6.3 } } );
-    builder.create_point( { { 8.1, 1.4, 4.7 } } );
-    builder.create_point( { { 4.7, 2.1, 1.3 } } );
+    builder.create_point( geode::Point3D{ { 0.1, 0.2, 0.3 } } );
+    builder.create_point( geode::Point3D{ { 2.1, 9.4, 6.7 } } );
+    builder.create_point( geode::Point3D{ { 7.5, 5.2, 6.3 } } );
+    builder.create_point( geode::Point3D{ { 8.1, 1.4, 4.7 } } );
+    builder.create_point( geode::Point3D{ { 4.7, 2.1, 1.3 } } );
     OPENGEODE_EXCEPTION( surface.nb_vertices() == 5,
         "[Test] TriangulatedSurface should have 5 vertices" );
 }
@@ -82,6 +82,16 @@ void test_polygon_adjacencies( const geode::TriangulatedSurface3D& surface,
     surface.enable_edges();
     OPENGEODE_EXCEPTION( surface.edges().nb_edges() == 7,
         "[Test] TriangulatedSurface should have 7 edges" );
+
+    const auto around_1 = surface.vertices_around_vertex( 1 );
+    OPENGEODE_EXCEPTION( around_1.size() == 3,
+        "[Test] There should be 3 vertices around vertex 1, not ",
+        around_1.size() );
+    for( const auto vertex_id : around_1 )
+    {
+        OPENGEODE_EXCEPTION( vertex_id == 0 || vertex_id == 2 || vertex_id == 3,
+            "[Test] Wrong vertices around vertex 1" );
+    }
 }
 
 void test_permutation( const geode::TriangulatedSurface3D& surface,
@@ -183,16 +193,17 @@ void test_delete_polygon( const geode::TriangulatedSurface3D& surface,
 }
 
 void test_io(
-    const geode::TriangulatedSurface3D& surface, absl::string_view filename )
+    const geode::TriangulatedSurface3D& surface, std::string_view filename )
 {
     geode::save_triangulated_surface( surface, filename );
-    geode::load_triangulated_surface< 3 >( filename );
-    const auto reload = geode::load_triangulated_surface< 3 >(
+    const auto relaod = geode::load_triangulated_surface< 3 >( filename );
+    geode_unused( relaod );
+    const auto surface2 = geode::load_triangulated_surface< 3 >(
         geode::OpenGeodeTriangulatedSurface3D::impl_name_static(), filename );
     for( const auto vertex_id : geode::Range{ surface.nb_vertices() } )
     {
         OPENGEODE_EXCEPTION( surface.point( vertex_id )
-                                 .inexact_equal( reload->point( vertex_id ) ),
+                                 .inexact_equal( surface2->point( vertex_id ) ),
             "[Test] Wrong reloaded mesh point coordinates." );
     }
 }

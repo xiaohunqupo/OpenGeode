@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ ExternalProject_Add(nanoflann
     BINARY_DIR ${NANOFLANN_PATH}/build
     STAMP_DIR ${NANOFLANN_PATH}/stamp
     GIT_REPOSITORY https://github.com/jlblancoc/nanoflann
-    GIT_TAG v1.3.2
+    GIT_TAG v1.5.5
+    GIT_SHALLOW ON
     GIT_PROGRESS ON
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_GENERATOR_PLATFORM ${CMAKE_GENERATOR_PLATFORM}
@@ -42,3 +43,5 @@ ExternalProject_Add(nanoflann
         -DNANOFLANN_BUILD_EXAMPLES:BOOL=OFF
         -DNANOFLANN_BUILD_TESTS:BOOL=OFF
 )
+
+ExternalProject_Add_StepTargets(nanoflann download)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  *
  */
 
-#include <geode/geometry/nn_search.h>
+#include <geode/geometry/nn_search.hpp>
 
 #include <numeric>
 
@@ -31,8 +31,8 @@
 
 #include <nanoflann.hpp>
 
-#include <geode/basic/logger.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/logger.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
 namespace geode
 {
@@ -60,8 +60,8 @@ namespace geode
             const Point< dimension >& point,
             const double threshold_distance ) const
         {
-            std::vector< std::pair< index_t, double > > results;
-            nanoflann::SearchParams params;
+            std::vector< nanoflann::ResultItem< index_t, double > > results;
+            nanoflann::SearchParameters params;
             params.sorted = true;
             const auto nb_results = nn_tree_.radiusSearch( &copy( point )[0],
                 threshold_distance * threshold_distance, results, params );
@@ -140,15 +140,10 @@ namespace geode
     }
 
     template < index_t dimension >
-    NNSearch< dimension >::NNSearch( NNSearch&& other )
-        : impl_( std::move( other.impl_ ) )
-    {
-    }
+    NNSearch< dimension >::NNSearch( NNSearch&& ) noexcept = default;
 
     template < index_t dimension >
-    NNSearch< dimension >::~NNSearch() // NOLINT
-    {
-    }
+    NNSearch< dimension >::~NNSearch() = default;
 
     template < index_t dimension >
     const Point< dimension >& NNSearch< dimension >::point(
@@ -188,10 +183,11 @@ namespace geode
     typename NNSearch< dimension >::ColocatedInfo
         NNSearch< dimension >::colocated_index_mapping( double epsilon ) const
     {
-        OPENGEODE_EXCEPTION( epsilon >= global_epsilon,
+        OPENGEODE_EXCEPTION( epsilon >= GLOBAL_EPSILON,
             "[NNSearch::colocated_index_mapping] Given epsilon too small, "
-            "should be bigger than global_epsilon (i.e. ",
-            global_epsilon, ")" );
+            "should be bigger than GLOBAL_EPSILON (i.e. ",
+            GLOBAL_EPSILON, ")" );
+        typename NNSearch< dimension >::ColocatedInfo result;
         std::vector< index_t > mapping( nb_points() );
         absl::c_iota( mapping, 0 );
         async::parallel_for( async::irange( index_t{ 0 }, nb_points() ),
@@ -215,15 +211,16 @@ namespace geode
                 nb_unique_points++;
             }
         }
+        result.colocated_input_points = mapping;
         index_t nb_colocated{ 0 };
         index_t count{ 0 };
-        std::vector< Point< dimension > > unique_points( nb_unique_points );
+        result.unique_points.resize( nb_unique_points );
         for( const auto p : Range{ nb_points() } )
         {
             if( mapping[p] == p )
             {
                 mapping[p] -= nb_colocated;
-                unique_points[count++] = point( p );
+                result.unique_points[count++] = point( p );
             }
             else
             {
@@ -231,7 +228,8 @@ namespace geode
                 mapping[p] = mapping[mapping[p]];
             }
         }
-        return { std::move( mapping ), std::move( unique_points ) };
+        result.colocated_mapping = mapping;
+        return result;
     }
 
     template class opengeode_geometry_api NNSearch< 2 >;

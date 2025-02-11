@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,18 @@
  *
  */
 
-#include <geode/image/io/raster_image_input.h>
+#include <geode/image/io/raster_image_input.hpp>
 
-#include <geode/basic/detail/geode_input_impl.h>
+#include <string_view>
 
-#include <geode/image/core/raster_image.h>
+#include <geode/basic/detail/geode_input_impl.hpp>
+
+#include <geode/image/core/raster_image.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    RasterImage< dimension > load_raster_image( absl::string_view filename )
+    RasterImage< dimension > load_raster_image( std::string_view filename )
     {
         try
         {
@@ -50,20 +52,33 @@ namespace geode
 
     template < index_t dimension >
     typename RasterImageInput< dimension >::MissingFiles
-        check_raster_image_missing_files( absl::string_view filename )
+        check_raster_image_missing_files( std::string_view filename )
     {
         const auto input = detail::geode_object_input_reader<
             RasterImageInputFactory< dimension > >( filename );
         return input->check_missing_files();
     }
 
+    template < index_t dimension >
+    bool is_raster_image_loadable( std::string_view filename )
+    {
+        const auto input = detail::geode_object_input_reader<
+            RasterImageInputFactory< dimension > >( filename );
+        return input->is_loadable();
+    }
+
     template RasterImage< 2 > opengeode_image_api load_raster_image(
-        absl::string_view );
+        std::string_view );
     template RasterImage< 3 > opengeode_image_api load_raster_image(
-        absl::string_view );
+        std::string_view );
 
     template RasterImageInput< 2 >::MissingFiles opengeode_image_api
-        check_raster_image_missing_files< 2 >( absl::string_view );
+        check_raster_image_missing_files< 2 >( std::string_view );
     template RasterImageInput< 3 >::MissingFiles opengeode_image_api
-        check_raster_image_missing_files< 3 >( absl::string_view );
+        check_raster_image_missing_files< 3 >( std::string_view );
+
+    template bool opengeode_image_api is_raster_image_loadable< 2 >(
+        std::string_view );
+    template bool opengeode_image_api is_raster_image_loadable< 3 >(
+        std::string_view );
 } // namespace geode

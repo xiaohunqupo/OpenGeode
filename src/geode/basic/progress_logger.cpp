@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,42 +21,40 @@
  *
  */
 
-#include <geode/basic/progress_logger.h>
+#include <geode/basic/progress_logger.hpp>
 
 #include <mutex>
 
 #include <absl/time/clock.h>
 
-#include <geode/basic/logger.h>
-#include <geode/basic/pimpl_impl.h>
-#include <geode/basic/progress_logger_manager.h>
-#include <geode/basic/uuid.h>
-
-namespace
-{
-    constexpr absl::Duration SLEEP = absl::Seconds( 1 );
-} // namespace
+#include <geode/basic/logger.hpp>
+#include <geode/basic/pimpl_impl.hpp>
+#include <geode/basic/progress_logger_manager.hpp>
+#include <geode/basic/uuid.hpp>
 
 namespace geode
 {
     class ProgressLogger::Impl
     {
     public:
-        Impl( const std::string& message, index_t nb_steps )
-            : nb_steps_( nb_steps ), current_time_{ absl::Now() }
+        Impl(
+            Logger::LEVEL level, const std::string& message, index_t nb_steps )
+            : nb_steps_( nb_steps ),
+              current_time_{ absl::Now() },
+              level_( level )
         {
-            ProgressLoggerManager::start( id_, message, nb_steps_ );
+            ProgressLoggerManager::start( id_, level, message, nb_steps_ );
         }
 
         ~Impl()
         {
             if( current_ == nb_steps_ )
             {
-                ProgressLoggerManager::completed( id_ );
+                ProgressLoggerManager::completed( id_, level_ );
             }
             else
             {
-                ProgressLoggerManager::failed( id_ );
+                ProgressLoggerManager::failed( id_, level_ );
             }
         }
 
@@ -65,10 +63,11 @@ namespace geode
             const std::lock_guard< std::mutex > locking{ lock_ };
             current_ += nb_increments;
             auto now = absl::Now();
-            if( now - current_time_ > SLEEP )
+            if( now - current_time_ > refresh_interval_ )
             {
                 current_time_ = now;
-                ProgressLoggerManager::update( id_, current_, nb_steps_ );
+                ProgressLoggerManager::update(
+                    id_, level_, current_, nb_steps_ );
             }
             return current_;
         }
@@ -80,21 +79,34 @@ namespace geode
             return nb_steps_;
         }
 
+        void set_refresh_interval( absl::Duration refresh_interval )
+        {
+            refresh_interval_ = std::move( refresh_interval );
+        }
+
     private:
         uuid id_;
         index_t nb_steps_;
         index_t current_{ 0 };
         absl::Time current_time_;
         std::mutex lock_;
+        absl::Duration refresh_interval_{ absl::Seconds( 1 ) };
+        Logger::LEVEL level_;
     };
 
     ProgressLogger::ProgressLogger(
         const std::string& message, index_t nb_steps )
-        : impl_( message, nb_steps )
+        : ProgressLogger( Logger::LEVEL::info, message, nb_steps )
     {
     }
 
-    ProgressLogger::~ProgressLogger() {} // NOLINT
+    ProgressLogger::ProgressLogger(
+        Logger::LEVEL level, const std::string& message, index_t nb_steps )
+        : impl_( level, message, nb_steps )
+    {
+    }
+
+    ProgressLogger::~ProgressLogger() = default;
 
     index_t ProgressLogger::increment()
     {
@@ -114,5 +126,10 @@ namespace geode
     index_t ProgressLogger::increment_nb_steps( index_t nb_steps )
     {
         return impl_->increment_nb_steps( nb_steps );
+    }
+
+    void ProgressLogger::set_refresh_interval( absl::Duration refresh_interval )
+    {
+        impl_->set_refresh_interval( std::move( refresh_interval ) );
     }
 } // namespace geode

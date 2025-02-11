@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,26 @@
  *
  */
 
-#include <geode/mesh/core/light_regular_grid.h>
+#include <geode/mesh/core/light_regular_grid.hpp>
 
-#include <geode/basic/logger.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/logger.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/builder/grid_builder.h>
-#include <geode/mesh/core/private/grid_impl.h>
+#include <geode/mesh/builder/grid_builder.hpp>
+#include <geode/mesh/core/internal/grid_impl.hpp>
 
 namespace geode
 {
     template < index_t dimension >
     class LightRegularGrid< dimension >::Impl
-        : public detail::GridImpl< dimension >
+        : public internal::GridImpl< dimension >
     {
     public:
+        Impl() = default;
+
         AttributeManager& cell_attribute_manager() const
         {
             return cell_attribute_manager_;
@@ -62,8 +65,8 @@ namespace geode
         {
             archive.ext( *this,
                 Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
-                    a.object( impl.cell_attribute_manager );
-                    a.object( impl.vertex_attribute_manager );
+                    a.object( impl.cell_attribute_manager_ );
+                    a.object( impl.vertex_attribute_manager_ );
                 } } } );
         }
 
@@ -86,17 +89,30 @@ namespace geode
     }
 
     template < index_t dimension >
-    LightRegularGrid< dimension >::LightRegularGrid( LightRegularGrid&& other )
-        : Grid< dimension >( std::move( other ) ),
-          Identifier( std::move( other ) ),
-          impl_( std::move( other.impl_ ) )
+    LightRegularGrid< dimension >::LightRegularGrid( Point< dimension > origin,
+        std::array< index_t, dimension > cells_number,
+        std::array< Vector< dimension >, dimension > directions )
     {
+        auto builder = GridBuilder< dimension >{ *this };
+        builder.set_grid_origin( std::move( origin ) );
+        std::array< double, dimension > cells_length;
+        for( const auto d : LRange{ dimension } )
+        {
+            cells_length[d] = directions[d].length();
+        }
+        builder.set_grid_dimensions(
+            std::move( cells_number ), std::move( cells_length ) );
+        builder.set_grid_directions( std::move( directions ) );
+        impl_->initialize_attribute_managers(
+            this->nb_cells(), this->nb_grid_vertices() );
     }
 
     template < index_t dimension >
-    LightRegularGrid< dimension >::~LightRegularGrid() // NOLINT
-    {
-    }
+    LightRegularGrid< dimension >::LightRegularGrid(
+        LightRegularGrid&& ) noexcept = default;
+
+    template < index_t dimension >
+    LightRegularGrid< dimension >::~LightRegularGrid() = default;
 
     template < index_t dimension >
     index_t LightRegularGrid< dimension >::vertex_index(
@@ -106,8 +122,8 @@ namespace geode
     }
 
     template < index_t dimension >
-    auto LightRegularGrid< dimension >::vertex_indices( index_t index ) const
-        -> VertexIndices
+    auto LightRegularGrid< dimension >::vertex_indices(
+        index_t index ) const -> VertexIndices
     {
         return impl_->vertex_indices( *this, index );
     }
@@ -120,10 +136,37 @@ namespace geode
     }
 
     template < index_t dimension >
-    auto LightRegularGrid< dimension >::cell_indices( index_t index ) const
-        -> CellIndices
+    auto LightRegularGrid< dimension >::cell_indices(
+        index_t index ) const -> CellIndices
     {
         return impl_->cell_indices( *this, index );
+    }
+
+    template < index_t dimension >
+    Point< dimension > LightRegularGrid< dimension >::point(
+        index_t vertex_id ) const
+    {
+        return this->grid_point( vertex_indices( vertex_id ) );
+    }
+
+    template < index_t dimension >
+    auto LightRegularGrid< dimension >::vertices_around_vertex(
+        index_t vertex_id ) const -> VerticesAroundVertex
+    {
+        VerticesAroundVertex result;
+        const auto indices = this->vertex_indices( vertex_id );
+        for( const auto d : LRange{ 2 } )
+        {
+            if( const auto next = this->next_vertex( indices, d ) )
+            {
+                result.push_back( this->vertex_index( next.value() ) );
+            }
+            if( const auto previous = this->previous_vertex( indices, d ) )
+            {
+                result.push_back( this->vertex_index( previous.value() ) );
+            }
+        }
+        return result;
     }
 
     template < index_t dimension >
@@ -144,15 +187,19 @@ namespace geode
     template < typename Archive >
     void LightRegularGrid< dimension >::serialize( Archive& archive )
     {
-        archive.ext(
-            *this, Growable< Archive, LightRegularGrid >{
-                       { []( Archive& a, LightRegularGrid& grid ) {
-                           a.ext( grid,
-                               bitsery::ext::BaseClass< Grid< dimension > >{} );
-                           a.object( grid.impl_ );
-                       } } } );
+        archive.ext( *this,
+            Growable< Archive, LightRegularGrid >{
+                { []( Archive& a, LightRegularGrid& grid ) {
+                    a.ext(
+                        grid, bitsery::ext::BaseClass< Grid< dimension > >{} );
+                    a.ext( grid, bitsery::ext::BaseClass< Identifier >{} );
+                    a.object( grid.impl_ );
+                } } } );
     }
 
     template class opengeode_mesh_api LightRegularGrid< 2 >;
     template class opengeode_mesh_api LightRegularGrid< 3 >;
+
+    SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, LightRegularGrid< 2 > );
+    SERIALIZE_BITSERY_ARCHIVE( opengeode_mesh_api, LightRegularGrid< 3 > );
 } // namespace geode

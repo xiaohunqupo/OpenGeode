@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,16 @@
  *
  */
 
-#include <geode/mesh/helpers/aabb_solid_helpers.h>
+#include <geode/mesh/helpers/aabb_solid_helpers.hpp>
 
 #include <async++.h>
 
-#include <geode/geometry/aabb.h>
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/distance.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/aabb.hpp>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/distance.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/core/tetrahedral_solid.h>
+#include <geode/mesh/core/tetrahedral_solid.hpp>
 
 namespace geode
 {
@@ -49,16 +49,15 @@ namespace geode
                 }
                 box_vector[p] = std::move( bbox );
             } );
-        return { box_vector };
+        return AABBTree< dimension >{ box_vector };
     }
 
     template < index_t dimension >
-    std::tuple< double, Point< dimension > >
-        DistanceToTetrahedron< dimension >::operator()(
-            const Point< dimension >& query, index_t cur_box ) const
+    double DistanceToTetrahedron< dimension >::operator()(
+        const Point< dimension >& query, index_t cur_box ) const
     {
-        return point_tetrahedron_distance(
-            query, mesh_.tetrahedron( cur_box ) );
+        return std::get< 0 >(
+            point_tetrahedron_distance( query, mesh_.tetrahedron( cur_box ) ) );
     }
 
     template opengeode_mesh_api AABBTree3D create_aabb_tree< 3 >(

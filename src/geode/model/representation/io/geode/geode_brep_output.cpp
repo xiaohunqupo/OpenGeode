@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,18 @@
  *
  */
 
-#include <geode/model/representation/io/geode/geode_brep_output.h>
+#include <geode/model/representation/io/geode/geode_brep_output.hpp>
+
+#include <filesystem>
+#include <string>
+#include <vector>
 
 #include <async++.h>
 
-#include <ghc/filesystem.hpp>
+#include <geode/basic/uuid.hpp>
+#include <geode/basic/zip_file.hpp>
 
-#include <geode/basic/uuid.h>
-#include <geode/basic/zip_file.h>
+#include <geode/model/representation/core/brep.hpp>
 
 namespace geode
 {
@@ -36,14 +40,14 @@ namespace geode
         const ZipFile& zip_writer ) const
     {
         for( const auto& file :
-            ghc::filesystem::directory_iterator( zip_writer.directory() ) )
+            std::filesystem::directory_iterator( zip_writer.directory() ) )
         {
             zip_writer.archive_file( file.path().string() );
         }
     }
 
     void OpenGeodeBRepOutput::save_brep_files(
-        const BRep& brep, absl::string_view directory ) const
+        const BRep& brep, std::string_view directory ) const
     {
         async::parallel_invoke(
             [&directory, &brep] {
@@ -63,13 +67,19 @@ namespace geode
             },
             [&directory, &brep] {
                 brep.save_model_boundaries( directory );
+                brep.save_corner_collections( directory );
+                brep.save_line_collections( directory );
+                brep.save_surface_collections( directory );
+                brep.save_block_collections( directory );
             } );
     }
 
-    void OpenGeodeBRepOutput::write( const BRep& brep ) const
+    std::vector< std::string > OpenGeodeBRepOutput::write(
+        const BRep& brep ) const
     {
         const ZipFile zip_writer{ filename(), uuid{}.string() };
         save_brep_files( brep, zip_writer.directory() );
         archive_brep_files( zip_writer );
+        return { to_string( filename() ) };
     }
 } // namespace geode

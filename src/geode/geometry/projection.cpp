@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include <geode/geometry/projection.h>
+#include <geode/geometry/projection.hpp>
 
-#include <geode/geometry/basic_objects/infinite_line.h>
-#include <geode/geometry/basic_objects/plane.h>
-#include <geode/geometry/basic_objects/segment.h>
-#include <geode/geometry/distance.h>
-#include <geode/geometry/vector.h>
+#include <geode/geometry/basic_objects/infinite_line.hpp>
+#include <geode/geometry/basic_objects/plane.hpp>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/distance.hpp>
+#include <geode/geometry/vector.hpp>
 
 namespace geode
 {
@@ -37,7 +37,7 @@ namespace geode
     {
         const auto barycenter = segment.barycenter();
         const auto length = segment.length();
-        if( length <= global_epsilon )
+        if( length <= GLOBAL_EPSILON )
         {
             return barycenter;
         }

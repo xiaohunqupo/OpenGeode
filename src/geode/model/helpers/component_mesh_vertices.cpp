@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  *
  */
 
-#include <geode/model/helpers/component_mesh_vertices.h>
+#include <geode/model/helpers/component_mesh_vertices.hpp>
 
-#include <geode/basic/logger.h>
+#include <geode/basic/logger.hpp>
 
 namespace
 {

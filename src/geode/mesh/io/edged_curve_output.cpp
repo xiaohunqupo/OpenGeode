@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,35 +21,62 @@
  *
  */
 
-#include <geode/mesh/io/edged_curve_output.h>
+#include <geode/mesh/io/edged_curve_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/mesh/core/edged_curve.h>
+#include <absl/strings/str_cat.h>
+
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/io/vertex_set_output.hpp>
 
 namespace geode
 {
     template < index_t dimension >
-    void save_edged_curve(
-        const EdgedCurve< dimension >& edged_curve, absl::string_view filename )
+    std::vector< std::string > save_edged_curve(
+        const EdgedCurve< dimension >& edged_curve, std::string_view filename )
     {
+        const auto type = absl::StrCat( "EdgedCurve", dimension, "D" );
         try
         {
-            detail::geode_object_output_impl<
+            return detail::geode_object_output_impl<
                 EdgedCurveOutputFactory< dimension > >(
-                absl::StrCat( "EdgedCurve", dimension, "D" ), edged_curve,
-                filename );
+                type, edged_curve, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< EdgedCurveOutputFactory< dimension > >(
+                type );
+            Logger::info( "Other extensions are available in parent classes." );
+            print_available_extensions< VertexSetOutputFactory >( "VertexSet" );
             throw OpenGeodeException{ "Cannot save EdgedCurve in file: ",
                 filename };
         }
     }
 
-    template void opengeode_mesh_api save_edged_curve(
-        const EdgedCurve< 2 >&, absl::string_view );
-    template void opengeode_mesh_api save_edged_curve(
-        const EdgedCurve< 3 >&, absl::string_view );
+    template < index_t dimension >
+    bool is_edged_curve_saveable(
+        const EdgedCurve< dimension >& edged_curve, std::string_view filename )
+    {
+        const auto output = detail::geode_object_output_writer<
+            EdgedCurveOutputFactory< dimension > >( filename );
+        return output->is_saveable( edged_curve );
+    }
+
+    template std::vector< std::string > opengeode_mesh_api save_edged_curve(
+        const EdgedCurve< 2 >&, std::string_view );
+    template std::vector< std::string > opengeode_mesh_api save_edged_curve(
+        const EdgedCurve< 3 >&, std::string_view );
+
+    template bool opengeode_mesh_api is_edged_curve_saveable(
+        const EdgedCurve< 2 >&, std::string_view );
+    template bool opengeode_mesh_api is_edged_curve_saveable(
+        const EdgedCurve< 3 >&, std::string_view );
 } // namespace geode

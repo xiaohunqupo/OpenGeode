@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@
  *
  */
 
-#include "../common.h"
+#include "../common.hpp"
 
-#include <geode/geometry/basic_objects/infinite_line.h>
-#include <geode/geometry/bounding_box.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/basic_objects/infinite_line.hpp>
+#include <geode/geometry/bounding_box.hpp>
+#include <geode/geometry/point.hpp>
 
 #define PYTHON_BOUNDING_BOX( dimension )                                       \
     const auto name##dimension =                                               \
@@ -36,16 +36,20 @@
         .def( "add_box", &BoundingBox##dimension##D::add_box )                 \
         .def( "add_point", &BoundingBox##dimension##D::add_point )             \
         .def( "contains", &BoundingBox##dimension##D::contains )               \
-        .def( "intersects_bbox", ( bool( BoundingBox##dimension##D::* )(       \
-                                     const BoundingBox< dimension >& ) const ) \
-                                     & BoundingBox##dimension##D::intersects ) \
-        .def( "intersects_ray", ( bool( BoundingBox##dimension##D::* )(        \
-                                    const Ray< dimension >& ) const )          \
-                                    & BoundingBox##dimension##D::intersects )  \
+        .def( "intersects_bbox",                                               \
+            static_cast< bool ( BoundingBox##dimension##D::* )(                \
+                const BoundingBox< dimension >& ) const >(                     \
+                &BoundingBox##dimension##D::intersects ) )                     \
+        .def( "intersects_ray",                                                \
+            static_cast< bool ( BoundingBox##dimension##D::* )(                \
+                const Ray< dimension >& ) const >(                             \
+                &BoundingBox##dimension##D::intersects ) )                     \
         .def( "min", &BoundingBox##dimension##D::min )                         \
         .def( "max", &BoundingBox##dimension##D::max )                         \
         .def( "center", &BoundingBox##dimension##D::center )                   \
-        .def( "diagonal", &BoundingBox##dimension##D::diagonal )
+        .def( "diagonal", &BoundingBox##dimension##D::diagonal )               \
+        .def( "smallest_length", &BoundingBox##dimension##D::smallest_length ) \
+        .def( "largest_length", &BoundingBox##dimension##D::largest_length )
 
 namespace geode
 {

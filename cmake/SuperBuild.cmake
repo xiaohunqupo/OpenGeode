@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+cmake_policy(SET CMP0114 NEW)
+
 if(NOT CPACK_PACKAGE_VERSION)
     set(CPACK_PACKAGE_VERSION "master")
 endif()
@@ -32,7 +34,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 if("${CMAKE_CXX_STANDARD}" STREQUAL "")
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 17)
+endif()
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT result OUTPUT output)
+if(result)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+else()
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
 endif()
 
 # Additional cmake modules
@@ -41,7 +51,7 @@ include(ExternalProject)
 include(${PROJECT_SOURCE_DIR}/cmake/ConfigureAbseil.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ConfigureAsync++.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ConfigureBitsery.cmake)
-include(${PROJECT_SOURCE_DIR}/cmake/ConfigureFilesystem.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/ConfigureEarcut.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ConfigureMinizip.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ConfigureNanoflann.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ConfigureSpdlog.cmake)
@@ -54,8 +64,6 @@ if(OPENGEODE_WITH_PYTHON OR INCLUDE_PYBIND11)
 endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake/ConfigureOpenGeode.cmake)
-
-install(DIRECTORY ${OpenGeode_PATH_INSTALL}/ DESTINATION .)
 
 #------------------------------------------------------------------------------------------------
 # Configure CPack

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,23 @@
  *
  */
 
-#include <geode/model/helpers/component_mensurations.h>
+#include <geode/model/helpers/component_mensurations.hpp>
 
 #include <queue>
 
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/bounding_box.h>
-#include <geode/geometry/mensuration.h>
-#include <geode/geometry/point.h>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/bounding_box.hpp>
+#include <geode/geometry/mensuration.hpp>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/surface_mesh.h>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
 
-#include <geode/model/helpers/component_mesh_edges.h>
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/core/brep.h>
+#include <geode/model/helpers/component_mesh_edges.hpp>
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/representation/core/brep.hpp>
 
 namespace
 {
@@ -59,7 +59,7 @@ namespace
         }
         return volume;
     }
-    absl::optional< bool > find_surface_side( const geode::BRep& brep,
+    std::optional< bool > find_surface_side( const geode::BRep& brep,
         const geode::uuid& surface_uuid,
         const absl::flat_hash_map< geode::uuid, bool >& processed )
     {
@@ -79,18 +79,20 @@ namespace
                 const auto& surfaces_cmes =
                     geode::detail::surface_component_mesh_edges(
                         brep, unique_vertices );
-                const auto polygon_edge =
-                    surfaces_cmes.at( surface_uuid ).front();
-                const auto other_polygon_edge =
-                    surfaces_cmes.at( other_surface.id() ).front();
+                const geode::PolygonVertex polygon_vertex{
+                    surfaces_cmes.at( surface_uuid ).front()
+                };
+                const geode::PolygonVertex other_polygon_vertex{
+                    surfaces_cmes.at( other_surface.id() ).front()
+                };
                 const auto different_orientation =
-                    surface.mesh().polygon_vertex( polygon_edge )
+                    surface.mesh().polygon_vertex( polygon_vertex )
                     == other_surface.mesh().polygon_vertex(
-                        other_polygon_edge );
+                        other_polygon_vertex );
                 return other_surface_itr->second != different_orientation;
             }
         }
-        return absl::nullopt;
+        return std::nullopt;
     }
 
     std::vector< std::pair< geode::uuid, bool > > sided_surfaces(

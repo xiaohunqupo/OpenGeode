@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ ExternalProject_Add(opengeode
         -DUSE_SUPERBUILD:BOOL=OFF
         -DASYNCPLUSPLUS_INSTALL_PREFIX:PATH=${ASYNCPLUSPLUS_INSTALL_PREFIX}
         -DBITSERY_INSTALL_PREFIX:PATH=${BITSERY_INSTALL_PREFIX}
-        -DFILESYSTEM_INSTALL_PREFIX:PATH=${FILESYSTEM_INSTALL_PREFIX}
+        -DEARCUT_INSTALL_PREFIX:PATH=${EARCUT_INSTALL_PREFIX}
         -DMINIZIP_INSTALL_PREFIX:PATH=${MINIZIP_INSTALL_PREFIX}
         -DNANOFLANN_INSTALL_PREFIX:PATH=${NANOFLANN_INSTALL_PREFIX}
         -DSPDLOG_INSTALL_PREFIX:PATH=${SPDLOG_INSTALL_PREFIX}
@@ -55,14 +55,14 @@ ExternalProject_Add(opengeode
         -DSQLITE_INSTALL_PREFIX:PATH=${SQLITE_INSTALL_PREFIX}
         -DPYBIND11_INSTALL_PREFIX:PATH=${PYBIND11_INSTALL_PREFIX}
         -DPYBIND11_PYTHON_VERSION:STRING=${PYTHON_VERSION}
-        -DCMAKE_INSTALL_PREFIX:PATH=${OpenGeode_PATH_INSTALL}    
+        -DCMAKE_INSTALL_PREFIX:PATH=${OpenGeode_PATH_INSTALL}
     BINARY_DIR ${OpenGeode_PATH_BIN}
     DEPENDS
         abseil
         asyncplusplus
         bitsery
+        earcut
         gdal
-        ghcFilesystem
         minizip
         nanoflann
         spdlog
@@ -75,3 +75,31 @@ add_custom_target(third_party
     DEPENDS
         opengeode-configure
 )
+
+add_custom_target(download
+    DEPENDS
+        abseil-download
+        asyncplusplus-download
+        bitsery-download
+        earcut-download
+        gdal-download
+        minizip-download
+        nanoflann-download
+        proj-download
+        spdlog-download
+        sqlite-download
+)
+if(OPENGEODE_WITH_PYTHON OR INCLUDE_PYBIND11)
+    add_dependencies(download pybind11-download)
+endif()
+
+add_custom_target(post_install 
+    ALL
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${OpenGeode_PATH_INSTALL}/bin ${PROJECT_BINARY_DIR}/bin
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${OpenGeode_PATH_INSTALL}/lib ${PROJECT_BINARY_DIR}/lib
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${OpenGeode_PATH_INSTALL}/cmake ${PROJECT_BINARY_DIR}/cmake
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${OpenGeode_PATH_INSTALL}/include ${PROJECT_BINARY_DIR}/include
+    DEPENDS
+        opengeode)
+
+install(DIRECTORY ${OpenGeode_PATH_INSTALL}/ DESTINATION .)

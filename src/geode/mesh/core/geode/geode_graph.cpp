@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,23 @@
  *
  */
 
-#include <geode/mesh/core/geode/geode_graph.h>
+#include <geode/mesh/core/geode/geode_graph.hpp>
 
 #include <fstream>
 
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/mesh/core/private/edges_impl.h>
+#include <geode/mesh/core/internal/edges_impl.hpp>
 
 namespace geode
 {
-    class OpenGeodeGraph::Impl : public detail::EdgesImpl
+    class OpenGeodeGraph::Impl : public internal::EdgesImpl
     {
         friend class bitsery::Access;
 
     public:
-        explicit Impl( OpenGeodeGraph& mesh ) : detail::EdgesImpl( mesh ) {}
+        explicit Impl( OpenGeodeGraph& mesh ) : internal::EdgesImpl( mesh ) {}
 
     private:
         Impl() = default;
@@ -47,27 +47,20 @@ namespace geode
         {
             archive.ext( *this,
                 Growable< Archive, Impl >{ { []( Archive& a, Impl& impl ) {
-                    a.ext(
-                        impl, bitsery::ext::BaseClass< detail::EdgesImpl >{} );
+                    a.ext( impl,
+                        bitsery::ext::BaseClass< internal::EdgesImpl >{} );
                 } } } );
         }
     };
 
     OpenGeodeGraph::OpenGeodeGraph() : impl_( *this ) {}
 
-    OpenGeodeGraph::OpenGeodeGraph( OpenGeodeGraph&& other )
-        : Graph( std::move( other ) ), impl_( std::move( other.impl_ ) )
-    {
-    }
+    OpenGeodeGraph::OpenGeodeGraph( OpenGeodeGraph&& ) noexcept = default;
 
-    OpenGeodeGraph& OpenGeodeGraph::operator=( OpenGeodeGraph&& other )
-    {
-        Graph::operator=( std::move( other ) );
-        impl_ = std::move( other.impl_ );
-        return *this;
-    }
+    OpenGeodeGraph& OpenGeodeGraph::operator=(
+        OpenGeodeGraph&& ) noexcept = default;
 
-    OpenGeodeGraph::~OpenGeodeGraph() {} // NOLINT
+    OpenGeodeGraph::~OpenGeodeGraph() = default;
 
     index_t OpenGeodeGraph::get_edge_vertex(
         const EdgeVertex& edge_vertex ) const

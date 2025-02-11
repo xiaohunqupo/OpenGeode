@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/geometry/basic_objects/segment.h>
-#include <geode/geometry/bounding_box.h>
+#include <geode/geometry/basic_objects/segment.hpp>
+#include <geode/geometry/bounding_box.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
+#include <geode/mesh/core/edged_curve.hpp>
 
 #define PYTHON_EDGED_CURVE( dimension )                                        \
     const auto name##dimension =                                               \
@@ -34,14 +34,17 @@
     pybind11::class_< EdgedCurve##dimension##D, Graph,                         \
         CoordinateReferenceSystemManagers##dimension##D >(                     \
         module, name##dimension.c_str() )                                      \
-        .def_static(                                                           \
-            "create", ( std::unique_ptr< EdgedCurve##dimension##D >( * )() )   \
-                          & EdgedCurve##dimension##D::create )                 \
+        .def_static( "create",                                                 \
+            static_cast<                                                       \
+                std::unique_ptr< EdgedCurve##dimension##D > ( * )() >(         \
+                &EdgedCurve##dimension##D::create ) )                          \
         .def( "clone", &EdgedCurve##dimension##D::clone )                      \
         .def( "edge_length", &EdgedCurve##dimension##D::edge_length )          \
         .def( "edge_barycenter", &EdgedCurve##dimension##D::edge_barycenter )  \
         .def( "bounding_box", &EdgedCurve##dimension##D::bounding_box )        \
         .def( "segment", &EdgedCurve##dimension##D::segment )                  \
+        .def( "vertices_around_vertex",                                        \
+            &EdgedCurve##dimension##D::vertices_around_vertex )                \
         .def( "texture_manager", &EdgedCurve##dimension##D::texture_manager )
 
 namespace geode

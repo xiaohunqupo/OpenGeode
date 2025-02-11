@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,9 @@
 import os
 import sys
 import platform
+
 if sys.version_info >= (3, 8, 0) and platform.system() == "Windows":
-    for path in [x.strip() for x in os.environ['PATH'].split(';') if x]:
+    for path in [x.strip() for x in os.environ["PATH"].split(";") if x]:
         os.add_dll_directory(path)
 
 import opengeode_py_basic as basic
@@ -32,36 +33,35 @@ import opengeode_py_model as model
 
 def run_test_brep():
     test_dir = os.path.dirname(__file__)
-    data_dir = os.path.abspath(os.path.join(
-        test_dir, "../../../../tests/data"))
-    brep = model.load_brep(os.path.join(data_dir, "layers.og_brep"))
+    data_dir = os.path.abspath(os.path.join(test_dir, "../../../../tests/data"))
+    brep = model.load_brep(os.path.join(data_dir, "test_mesh3.og_brep"))
 
-    curve, surface, solid = model.convert_brep_into_curve_and_polygonal_surface_and_polyhedral_solid(
-        brep)
-    if curve.nb_vertices() != 16:
+    curve = model.convert_brep_into_curve(brep)
+    surface = model.convert_brep_into_surface(brep)
+    solid = model.convert_brep_into_solid(brep)
+    if curve.nb_vertices() != 154:
         raise ValueError("[Test] BRep - Wrong number of curve vertices")
-    if curve.nb_edges() != 28:
+    if curve.nb_edges() != 162:
         raise ValueError("[Test] BRep - Wrong number of curve edges")
 
-    if surface.nb_vertices() != 16:
+    if surface.nb_vertices() != 840:
         raise ValueError("[Test] BRep - Wrong number of surface vertices")
-    if surface.nb_polygons() != 16:
+    if surface.nb_polygons() != 1716:
         raise ValueError("[Test] BRep - Wrong number of surface polygons")
 
-    if solid.nb_vertices() != 16:
+    if solid.nb_vertices() != 1317:
         raise ValueError("[Test] BRep - Wrong number of solid vertices")
-    if solid.nb_polyhedra() != 0:
+    if solid.nb_polyhedra() != 5709:
         raise ValueError("[Test] BRep - Wrong number of solid polyhedra")
 
 
 def run_test_section():
     test_dir = os.path.dirname(__file__)
-    data_dir = os.path.abspath(os.path.join(
-        test_dir, "../../../../tests/data"))
+    data_dir = os.path.abspath(os.path.join(test_dir, "../../../../tests/data"))
     section = model.load_section(os.path.join(data_dir, "quad.og_sctn"))
 
-    curve, surface = model.convert_section_into_curve_and_polygonal_surface(
-        section)
+    curve = model.convert_section_into_curve(section)
+    surface = model.convert_section_into_surface(section)
     if curve.nb_vertices() != 0:
         raise ValueError("[Test] Section - Wrong number of curve vertices")
     if curve.nb_edges() != 0:
@@ -73,7 +73,7 @@ def run_test_section():
         raise ValueError("[Test] Section - Wrong number of surface polygons")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     model.OpenGeodeModelLibrary.initialize()
     run_test_brep()
     run_test_section()

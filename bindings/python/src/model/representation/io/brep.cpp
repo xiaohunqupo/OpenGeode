@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include "../../../basic/factory.h"
-#include "../../../basic/input.h"
-#include "../../../common.h"
+#include "../../../basic/factory.hpp"
+#include "../../../basic/input.hpp"
+#include "../../../common.hpp"
 
-#include <geode/model/representation/core/brep.h>
-#include <geode/model/representation/io/brep_input.h>
-#include <geode/model/representation/io/brep_output.h>
+#include <geode/model/representation/core/brep.hpp>
+#include <geode/model/representation/io/brep_input.hpp>
+#include <geode/model/representation/io/brep_output.hpp>
 
 namespace geode
 {
@@ -36,6 +36,8 @@ namespace geode
         module.def( "save_brep", &save_brep );
         module.def( "load_brep", &load_brep );
         module.def( "check_brep_missing_files", &check_brep_missing_files );
+        module.def( "is_brep_loadable", &is_brep_loadable );
+        module.def( "is_brep_saveable", &is_brep_saveable );
         PYTHON_INPUT_CLASS( BRep, "BRep" );
         PYTHON_FACTORY_CLASS( BRepInputFactory );
         PYTHON_FACTORY_CLASS( BRepOutputFactory );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/solid_edges_builder.h>
-#include <geode/mesh/builder/solid_facets_builder.h>
-#include <geode/mesh/builder/solid_mesh_builder.h>
+#include <geode/mesh/builder/solid_edges_builder.hpp>
+#include <geode/mesh/builder/solid_facets_builder.hpp>
+#include <geode/mesh/builder/solid_mesh_builder.hpp>
 
 #define PYTHON_SOLID_MESH_BUILDER( dimension )                                 \
     const auto name##dimension =                                               \
@@ -35,10 +35,7 @@
     pybind11::class_< SolidMeshBuilder##dimension##D, VertexSetBuilder,        \
         CoordinateReferenceSystemManagersBuilder##dimension##D >(              \
         module, name##dimension.c_str() )                                      \
-        .def_static( "create",                                                 \
-            ( std::unique_ptr< SolidMeshBuilder##dimension##D >( * )(          \
-                SolidMesh< dimension >& ) )                                    \
-                & SolidMeshBuilder##dimension##D::create )                     \
+        .def_static( "create", &SolidMeshBuilder##dimension##D::create )       \
         .def( "create_point", &SolidMeshBuilder##dimension##D::create_point )  \
         .def( "create_polyhedron",                                             \
             &SolidMeshBuilder##dimension##D::create_polyhedron )               \
@@ -47,9 +44,9 @@
         .def( "set_polyhedron_adjacent",                                       \
             &SolidMeshBuilder##dimension##D::set_polyhedron_adjacent )         \
         .def( "compute_polyhedron_adjacencies",                                \
-            ( void( SolidMeshBuilder##dimension##D::* )() )                    \
-                & SolidMeshBuilder##dimension##D::                             \
-                    compute_polyhedron_adjacencies )                           \
+            static_cast< void ( SolidMeshBuilder##dimension##D::* )() >(       \
+                &SolidMeshBuilder##dimension##D::                              \
+                    compute_polyhedron_adjacencies ) )                         \
         .def( "delete_polyhedra",                                              \
             &SolidMeshBuilder##dimension##D::delete_polyhedra )                \
         .def( "permute_polyhedra",                                             \

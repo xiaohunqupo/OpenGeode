@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,20 @@
  *
  */
 
-#include <geode/mesh/core/geode/register_mesh.h>
+#include <geode/mesh/core/geode/register_mesh.hpp>
 
-#include <geode/mesh/core/geode/geode_edged_curve.h>
-#include <geode/mesh/core/geode/geode_graph.h>
-#include <geode/mesh/core/geode/geode_hybrid_solid.h>
-#include <geode/mesh/core/geode/geode_point_set.h>
-#include <geode/mesh/core/geode/geode_polygonal_surface.h>
-#include <geode/mesh/core/geode/geode_polyhedral_solid.h>
-#include <geode/mesh/core/geode/geode_regular_grid_solid.h>
-#include <geode/mesh/core/geode/geode_regular_grid_surface.h>
-#include <geode/mesh/core/geode/geode_tetrahedral_solid.h>
-#include <geode/mesh/core/geode/geode_triangulated_surface.h>
-#include <geode/mesh/core/geode/geode_vertex_set.h>
-#include <geode/mesh/core/mesh_factory.h>
+#include <geode/mesh/core/geode/geode_edged_curve.hpp>
+#include <geode/mesh/core/geode/geode_graph.hpp>
+#include <geode/mesh/core/geode/geode_hybrid_solid.hpp>
+#include <geode/mesh/core/geode/geode_point_set.hpp>
+#include <geode/mesh/core/geode/geode_polygonal_surface.hpp>
+#include <geode/mesh/core/geode/geode_polyhedral_solid.hpp>
+#include <geode/mesh/core/geode/geode_regular_grid_solid.hpp>
+#include <geode/mesh/core/geode/geode_regular_grid_surface.hpp>
+#include <geode/mesh/core/geode/geode_tetrahedral_solid.hpp>
+#include <geode/mesh/core/geode/geode_triangulated_surface.hpp>
+#include <geode/mesh/core/geode/geode_vertex_set.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
 
 namespace geode
 {
@@ -47,6 +47,9 @@ namespace geode
         MeshFactory::register_default_mesh< OpenGeodeGraph >(
             Graph::type_name_static(), OpenGeodeGraph::impl_name_static() );
 
+        MeshFactory::register_default_mesh< OpenGeodePointSet1D >(
+            PointSet1D::type_name_static(),
+            OpenGeodePointSet1D::impl_name_static() );
         MeshFactory::register_default_mesh< OpenGeodePointSet2D >(
             PointSet2D::type_name_static(),
             OpenGeodePointSet2D::impl_name_static() );
@@ -54,6 +57,9 @@ namespace geode
             PointSet3D::type_name_static(),
             OpenGeodePointSet3D::impl_name_static() );
 
+        MeshFactory::register_default_mesh< OpenGeodeEdgedCurve1D >(
+            EdgedCurve1D::type_name_static(),
+            OpenGeodeEdgedCurve1D::impl_name_static() );
         MeshFactory::register_default_mesh< OpenGeodeEdgedCurve2D >(
             EdgedCurve2D::type_name_static(),
             OpenGeodeEdgedCurve2D::impl_name_static() );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/builder/vertex_set_builder.h>
-#include <geode/mesh/core/vertex_set.h>
+#include <geode/mesh/builder/vertex_set_builder.hpp>
+#include <geode/mesh/core/vertex_set.hpp>
 
 namespace geode
 {
@@ -32,9 +32,7 @@ namespace geode
     {
         pybind11::class_< VertexSetBuilder, IdentifierBuilder >(
             module, "VertexSetBuilder" )
-            .def_static( "create",
-                ( std::unique_ptr< VertexSetBuilder >( * )( VertexSet& ) )
-                    & VertexSetBuilder::create )
+            .def_static( "create", &VertexSetBuilder::create )
             .def( "create_vertex", &VertexSetBuilder::create_vertex )
             .def( "create_vertices", &VertexSetBuilder::create_vertices )
             .def( "delete_vertices", &VertexSetBuilder::delete_vertices )

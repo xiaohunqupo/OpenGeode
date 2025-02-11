@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,20 @@
  *
  */
 
-#include <geode/model/helpers/component_mesh_edges.h>
+#include <geode/model/helpers/component_mesh_edges.hpp>
 
-#include <geode/basic/algorithm.h>
+#include <geode/basic/algorithm.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/solid_mesh.h>
-#include <geode/mesh/core/surface_mesh.h>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/solid_mesh.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
 
-#include <geode/model/helpers/component_mesh_vertices.h>
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/core/brep.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/model/helpers/component_mesh_vertices.hpp>
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/representation/core/brep.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace
 {
@@ -63,13 +63,8 @@ namespace
         const geode::ComponentID& component_id,
         const std::array< geode::index_t, 2 >& edge_vertices )
     {
-        std::array< geode::index_t, 2 > edge_unique_vertices;
-        for( const auto v : geode::LRange{ 2 } )
-        {
-            edge_unique_vertices[v] =
-                model.unique_vertex( { component_id, edge_vertices[v] } );
-        }
-        return edge_unique_vertices;
+        return { model.unique_vertex( { component_id, edge_vertices[0] } ),
+            model.unique_vertex( { component_id, edge_vertices[1] } ) };
     }
 
     template < class ModelType >
@@ -114,6 +109,11 @@ namespace geode
             const Model& model,
             const std::array< geode::index_t, 2 >& edge_unique_vertices )
         {
+            if( edge_unique_vertices[0] == NO_ID
+                || edge_unique_vertices[1] == NO_ID )
+            {
+                return {};
+            }
             const auto line_pairs =
                 model_edge_pairs( model, edge_unique_vertices,
                     geode::Line< Model::dim >::component_type_static() );
@@ -151,6 +151,11 @@ namespace geode
             surface_component_mesh_edges( const Model& model,
                 const std::array< geode::index_t, 2 >& edge_unique_vertices )
         {
+            if( edge_unique_vertices[0] == NO_ID
+                || edge_unique_vertices[1] == NO_ID )
+            {
+                return {};
+            }
             const auto surface_pairs =
                 model_edge_pairs( model, edge_unique_vertices,
                     geode::Surface< Model::dim >::component_type_static() );
@@ -166,11 +171,18 @@ namespace geode
                 const auto& mesh = surface.mesh();
                 for( const auto& pair : surface_pair.second )
                 {
-                    for( auto& polygon_vertex :
-                        mesh.polygons_from_edge_vertices( pair ) )
+                    if( auto edge = mesh.polygon_edge_from_vertices(
+                            pair[0], pair[1] ) )
                     {
                         edges[surface.id()].emplace_back(
-                            std::move( polygon_vertex ) );
+                            std::move( edge.value() ) );
+                        continue;
+                    }
+                    if( auto edge = mesh.polygon_edge_from_vertices(
+                            pair[1], pair[0] ) )
+                    {
+                        edges[surface.id()].emplace_back(
+                            std::move( edge.value() ) );
                     }
                 }
             }
@@ -182,6 +194,11 @@ namespace geode
             const geode::BRep& model,
             const std::array< geode::index_t, 2 >& edge_unique_vertices )
         {
+            if( edge_unique_vertices[0] == NO_ID
+                || edge_unique_vertices[1] == NO_ID )
+            {
+                return {};
+            }
             const auto block_pairs = model_edge_pairs( model,
                 edge_unique_vertices, geode::Block3D::component_type_static() );
             if( block_pairs.empty() )

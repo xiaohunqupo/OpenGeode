@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include "../../../basic/factory.h"
-#include "../../../basic/input.h"
-#include "../../../common.h"
+#include "../../../basic/factory.hpp"
+#include "../../../basic/input.hpp"
+#include "../../../common.hpp"
 
-#include <geode/model/representation/core/section.h>
-#include <geode/model/representation/io/section_input.h>
-#include <geode/model/representation/io/section_output.h>
+#include <geode/model/representation/core/section.hpp>
+#include <geode/model/representation/io/section_input.hpp>
+#include <geode/model/representation/io/section_output.hpp>
 
 namespace geode
 {
@@ -37,6 +37,8 @@ namespace geode
         module.def( "load_section", &load_section );
         module.def(
             "check_section_missing_files", &check_section_missing_files );
+        module.def( "is_section_loadable", &is_section_loadable );
+        module.def( "is_section_saveable", &is_section_saveable );
         PYTHON_INPUT_CLASS( Section, "Section" );
         PYTHON_FACTORY_CLASS( SectionInputFactory );
         PYTHON_FACTORY_CLASS( SectionOutputFactory );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,12 @@
  *
  */
 
-#include "../../../common.h"
+#include "../../../common.hpp"
 
-#include <geode/mesh/core/polygonal_surface.h>
-#include <geode/mesh/core/triangulated_surface.h>
+#include <geode/mesh/core/polygonal_surface.hpp>
+#include <geode/mesh/core/triangulated_surface.hpp>
 
-#include <geode/model/mixin/core/surface.h>
+#include <geode/model/mixin/core/surface.hpp>
 
 #define PYTHON_SURFACE( dimension )                                            \
     const auto name##dimension =                                               \

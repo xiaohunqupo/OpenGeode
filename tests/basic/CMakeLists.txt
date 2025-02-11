@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2023 Geode-solutions
+# Copyright (c) 2019 - 2025 Geode-solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -85,4 +85,9 @@ add_geode_test(
     DEPENDENCIES
         ${PROJECT_NAME}::basic
     ESSENTIAL
+)
+add_geode_test(
+    SOURCE "test-zip-file.cpp"
+    DEPENDENCIES
+        ${PROJECT_NAME}::basic
 )

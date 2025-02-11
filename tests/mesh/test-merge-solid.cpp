@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,31 +21,31 @@
  *
  */
 
-#include <geode/tests/common.h>
+#include <geode/tests/common.hpp>
 
-#include <geode/basic/assert.h>
-#include <geode/basic/logger.h>
+#include <geode/basic/assert.hpp>
+#include <geode/basic/logger.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/solid_mesh_builder.h>
-#include <geode/mesh/core/solid_mesh.h>
-#include <geode/mesh/helpers/convert_solid_mesh.h>
+#include <geode/mesh/builder/solid_mesh_builder.hpp>
+#include <geode/mesh/core/solid_mesh.hpp>
+#include <geode/mesh/helpers/convert_solid_mesh.hpp>
 
 void test()
 {
     geode::OpenGeodeMeshLibrary::initialize();
     std::vector< geode::Point3D > points{
-        { { -1, 0, 0 } },
-        { { -1, -1, -1 } },
-        { { 0, 0, 0 } },
-        { { 1, 0, 0 } },
-        { { 0, 1, 0 } },
-        { { 1, 1, 0 } },
-        { { 0, 0, 1 } },
-        { { 1, 0, 1 } },
-        { { 0, 1, 1 } },
-        { { 1, 1, 1 } },
+        geode::Point3D{ { -1, 0, 0 } },
+        geode::Point3D{ { -1, -1, -1 } },
+        geode::Point3D{ { 0, 0, 0 } },
+        geode::Point3D{ { 1, 0, 0 } },
+        geode::Point3D{ { 0, 1, 0 } },
+        geode::Point3D{ { 1, 1, 0 } },
+        geode::Point3D{ { 0, 0, 1 } },
+        geode::Point3D{ { 1, 0, 1 } },
+        geode::Point3D{ { 0, 1, 1 } },
+        geode::Point3D{ { 1, 1, 1 } },
     };
 
     auto mesh0 = geode::SolidMesh3D::create();

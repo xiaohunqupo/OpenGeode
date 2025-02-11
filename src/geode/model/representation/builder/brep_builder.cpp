@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +21,96 @@
  *
  */
 
-#include <geode/model/representation/builder/brep_builder.h>
+#include <geode/model/representation/builder/brep_builder.hpp>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/core/mesh_id.h>
-#include <geode/mesh/core/point_set.h>
-#include <geode/mesh/core/polyhedral_solid.h>
-#include <geode/mesh/core/surface_mesh.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/model_boundary.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/representation/builder/detail/copy.h>
-#include <geode/model/representation/core/brep.h>
+#include <geode/mesh/builder/edged_curve_builder.hpp>
+#include <geode/mesh/builder/point_set_builder.hpp>
+#include <geode/mesh/builder/solid_mesh_builder.hpp>
+#include <geode/mesh/builder/surface_mesh_builder.hpp>
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/core/mesh_id.hpp>
+#include <geode/mesh/core/point_set.hpp>
+#include <geode/mesh/core/solid_mesh.hpp>
+#include <geode/mesh/core/surface_mesh.hpp>
+
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/mixin/core/block_collection.hpp>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/corner_collection.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/line_collection.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/surface_collection.hpp>
+#include <geode/model/representation/builder/detail/copy.hpp>
+#include <geode/model/representation/core/brep.hpp>
+
+namespace
+{
+    void remove_component_meshes_in_mapping( const geode::BRep& brep,
+        geode::BRepBuilder& builder,
+        const geode::ModelCopyMapping& mapping )
+    {
+        for( const auto& in2out :
+            mapping.at( geode::Corner3D::component_type_static() )
+                .in2out_map() )
+        {
+            builder.update_corner_mesh(
+                brep.corner( in2out.first ), geode::PointSet3D::create() );
+        }
+        for( const auto& in2out :
+            mapping.at( geode::Line3D::component_type_static() ).in2out_map() )
+        {
+            builder.update_line_mesh(
+                brep.line( in2out.first ), geode::EdgedCurve3D::create() );
+        }
+        for( const auto& in2out :
+            mapping.at( geode::Surface3D::component_type_static() )
+                .in2out_map() )
+        {
+            builder.update_surface_mesh(
+                brep.surface( in2out.first ), geode::SurfaceMesh3D::create() );
+        }
+        for( const auto& in2out :
+            mapping.at( geode::Block3D::component_type_static() ).in2out_map() )
+        {
+            builder.update_block_mesh(
+                brep.block( in2out.first ), geode::SolidMesh3D::create() );
+        }
+    }
+
+    template < typename Mesh >
+    absl::FixedArray< geode::index_t > save_mesh_unique_vertices(
+        const geode::BRep& model,
+        const Mesh& mesh,
+        const geode::ComponentID& component_id )
+    {
+        const auto nb_vertices = mesh.nb_vertices();
+        absl::FixedArray< geode::index_t > unique_vertices( nb_vertices );
+        for( const auto v : geode::Range{ nb_vertices } )
+        {
+            unique_vertices[v] = model.unique_vertex( { component_id, v } );
+        }
+        return unique_vertices;
+    }
+
+    void set_mesh_unique_vertices( geode::BRepBuilder& builder,
+        absl::Span< const geode::index_t > unique_vertices,
+        const geode::ComponentID& component_id,
+        geode::index_t first_new_unique_vertex )
+    {
+        for( const auto v : geode::Indices{ unique_vertices } )
+        {
+            if( unique_vertices[v] != geode::NO_ID )
+            {
+                builder.set_unique_vertex( { component_id, v },
+                    first_new_unique_vertex + unique_vertices[v] );
+            }
+        }
+    }
+} // namespace
 
 namespace geode
 {
@@ -46,6 +121,10 @@ namespace geode
           SurfacesBuilder3D( brep ),
           BlocksBuilder3D( brep ),
           ModelBoundariesBuilder3D( brep ),
+          CornerCollectionsBuilder3D( brep ),
+          LineCollectionsBuilder3D( brep ),
+          SurfaceCollectionsBuilder3D( brep ),
+          BlockCollectionsBuilder3D( brep ),
           IdentifierBuilder( brep ),
           brep_( brep )
     {
@@ -61,25 +140,95 @@ namespace geode
             "[BRepBuild::copy] BRep should be empty before copy. To add BRep "
             "components in a BRep which is not empty, use ModelConcatener." );
         set_name( brep.name() );
-        const auto mapping = copy_components( brep );
+        auto mapping = copy_components( brep );
         copy_relationships( mapping, brep );
         copy_component_geometry( mapping, brep );
         return mapping;
     }
 
+    void BRepBuilder::replace_components_meshes_by_others(
+        BRep&& other, const ModelCopyMapping& mapping )
+    {
+        BRepBuilder other_builder{ other };
+        remove_component_meshes_in_mapping( brep_, *this, mapping );
+        this->delete_isolated_vertices();
+        const auto first_new_unique_vertex_id =
+            create_unique_vertices( other.nb_unique_vertices() );
+        for( const auto& in2out :
+            mapping.at( Corner3D::component_type_static() ).in2out_map() )
+        {
+            const auto corner_unique_vertices = save_mesh_unique_vertices(
+                other, other.corner( in2out.second ).mesh(),
+                other.corner( in2out.second ).component_id() );
+            this->update_corner_mesh( brep_.corner( in2out.first ),
+                other_builder.steal_corner_mesh( in2out.second ) );
+            this->corner_mesh_builder( in2out.first )->set_id( in2out.first );
+            set_mesh_unique_vertices( *this, corner_unique_vertices,
+                brep_.corner( in2out.first ).component_id(),
+                first_new_unique_vertex_id );
+        }
+        for( const auto& in2out :
+            mapping.at( Line3D::component_type_static() ).in2out_map() )
+        {
+            const auto line_unique_vertices = save_mesh_unique_vertices( other,
+                other.line( in2out.second ).mesh(),
+                other.line( in2out.second ).component_id() );
+            this->update_line_mesh( brep_.line( in2out.first ),
+                other_builder.steal_line_mesh( in2out.second ) );
+            this->line_mesh_builder( in2out.first )->set_id( in2out.first );
+            set_mesh_unique_vertices( *this, line_unique_vertices,
+                brep_.line( in2out.first ).component_id(),
+                first_new_unique_vertex_id );
+        }
+        for( const auto& in2out :
+            mapping.at( Surface3D::component_type_static() ).in2out_map() )
+        {
+            const auto surface_unique_vertices = save_mesh_unique_vertices(
+                other, other.surface( in2out.second ).mesh(),
+                other.surface( in2out.second ).component_id() );
+            this->update_surface_mesh( brep_.surface( in2out.first ),
+                other_builder.steal_surface_mesh( in2out.second ) );
+            this->surface_mesh_builder( in2out.first )->set_id( in2out.first );
+            set_mesh_unique_vertices( *this, surface_unique_vertices,
+                brep_.surface( in2out.first ).component_id(),
+                first_new_unique_vertex_id );
+        }
+        for( const auto& in2out :
+            mapping.at( Block3D::component_type_static() ).in2out_map() )
+        {
+            const auto block_unique_vertices = save_mesh_unique_vertices( other,
+                other.block( in2out.second ).mesh(),
+                other.block( in2out.second ).component_id() );
+            this->update_block_mesh( brep_.block( in2out.first ),
+                other_builder.steal_block_mesh( in2out.second ) );
+            this->block_mesh_builder( in2out.first )->set_id( in2out.first );
+            set_mesh_unique_vertices( *this, block_unique_vertices,
+                brep_.block( in2out.first ).component_id(),
+                first_new_unique_vertex_id );
+        }
+    }
+
     ModelCopyMapping BRepBuilder::copy_components( const BRep& brep )
     {
         ModelCopyMapping mappings;
-        mappings.emplace( Corner3D::component_type_static(),
-            detail::copy_corner_components( brep, *this ) );
-        mappings.emplace( Line3D::component_type_static(),
-            detail::copy_line_components( brep, *this ) );
-        mappings.emplace( Surface3D::component_type_static(),
-            detail::copy_surface_components( brep, *this ) );
-        mappings.emplace( Block3D::component_type_static(),
-            detail::copy_block_components( brep, *this ) );
-        mappings.emplace( ModelBoundary3D::component_type_static(),
-            detail::copy_model_boundary_components( brep, *this ) );
+        detail::copy_corner_components(
+            brep, *this, mappings[Corner3D::component_type_static()] );
+        detail::copy_line_components(
+            brep, *this, mappings[Line3D::component_type_static()] );
+        detail::copy_surface_components(
+            brep, *this, mappings[Surface3D::component_type_static()] );
+        detail::copy_block_components(
+            brep, *this, mappings[Block3D::component_type_static()] );
+        detail::copy_model_boundary_components(
+            brep, *this, mappings[ModelBoundary3D::component_type_static()] );
+        detail::copy_corner_collection_components( brep, *this,
+            mappings[CornerCollection3D::component_type_static()] );
+        detail::copy_line_collection_components(
+            brep, *this, mappings[LineCollection3D::component_type_static()] );
+        detail::copy_surface_collection_components( brep, *this,
+            mappings[SurfaceCollection3D::component_type_static()] );
+        detail::copy_block_collection_components(
+            brep, *this, mappings[BlockCollection3D::component_type_static()] );
         return mappings;
     }
 
@@ -96,6 +245,14 @@ namespace geode
             brep, *this, mapping[Block3D::component_type_static()] );
         detail::copy_model_boundary_components(
             brep, *this, mapping[ModelBoundary3D::component_type_static()] );
+        detail::copy_corner_collection_components(
+            brep, *this, mapping[CornerCollection3D::component_type_static()] );
+        detail::copy_line_collection_components(
+            brep, *this, mapping[LineCollection3D::component_type_static()] );
+        detail::copy_surface_collection_components( brep, *this,
+            mapping[SurfaceCollection3D::component_type_static()] );
+        detail::copy_block_collection_components(
+            brep, *this, mapping[BlockCollection3D::component_type_static()] );
     }
 
     void BRepBuilder::copy_component_geometry(
@@ -177,6 +334,30 @@ namespace geode
         return id;
     }
 
+    const uuid& BRepBuilder::add_corner_collection()
+    {
+        const auto& id = create_corner_collection();
+        return id;
+    }
+
+    const uuid& BRepBuilder::add_line_collection()
+    {
+        const auto& id = create_line_collection();
+        return id;
+    }
+
+    const uuid& BRepBuilder::add_surface_collection()
+    {
+        const auto& id = create_surface_collection();
+        return id;
+    }
+
+    const uuid& BRepBuilder::add_block_collection()
+    {
+        const auto& id = create_block_collection();
+        return id;
+    }
+
     void BRepBuilder::add_corner( uuid corner_id )
     {
         create_corner( std::move( corner_id ) );
@@ -220,6 +401,26 @@ namespace geode
     void BRepBuilder::add_model_boundary( uuid model_boundary_id )
     {
         create_model_boundary( std::move( model_boundary_id ) );
+    }
+
+    void BRepBuilder::add_corner_collection( uuid corner_collection_id )
+    {
+        create_corner_collection( std::move( corner_collection_id ) );
+    }
+
+    void BRepBuilder::add_line_collection( uuid line_collection_id )
+    {
+        create_line_collection( std::move( line_collection_id ) );
+    }
+
+    void BRepBuilder::add_surface_collection( uuid surface_collection_id )
+    {
+        create_surface_collection( std::move( surface_collection_id ) );
+    }
+
+    void BRepBuilder::add_block_collection( uuid block_collection_id )
+    {
+        create_block_collection( std::move( block_collection_id ) );
     }
 
     void BRepBuilder::update_corner_mesh(
@@ -288,6 +489,34 @@ namespace geode
         delete_model_boundary( boundary );
     }
 
+    void BRepBuilder::remove_corner_collection(
+        const CornerCollection3D& collection )
+    {
+        unregister_component( collection.id() );
+        delete_corner_collection( collection );
+    }
+
+    void BRepBuilder::remove_line_collection(
+        const LineCollection3D& collection )
+    {
+        unregister_component( collection.id() );
+        delete_line_collection( collection );
+    }
+
+    void BRepBuilder::remove_surface_collection(
+        const SurfaceCollection3D& collection )
+    {
+        unregister_component( collection.id() );
+        delete_surface_collection( collection );
+    }
+
+    void BRepBuilder::remove_block_collection(
+        const BlockCollection3D& collection )
+    {
+        unregister_component( collection.id() );
+        delete_block_collection( collection );
+    }
+
     void BRepBuilder::add_corner_line_boundary_relationship(
         const Corner3D& corner, const Line3D& line )
     {
@@ -341,5 +570,63 @@ namespace geode
     {
         add_item_in_collection(
             surface.component_id(), boundary.component_id() );
+    }
+
+    void BRepBuilder::add_corner_in_corner_collection(
+        const Corner3D& corner, const CornerCollection3D& collection )
+    {
+        add_item_in_collection(
+            corner.component_id(), collection.component_id() );
+    }
+
+    void BRepBuilder::add_line_in_line_collection(
+        const Line3D& line, const LineCollection3D& collection )
+    {
+        add_item_in_collection(
+            line.component_id(), collection.component_id() );
+    }
+
+    void BRepBuilder::add_surface_in_surface_collection(
+        const Surface3D& surface, const SurfaceCollection3D& collection )
+    {
+        add_item_in_collection(
+            surface.component_id(), collection.component_id() );
+    }
+
+    void BRepBuilder::add_block_in_block_collection(
+        const Block3D& block, const BlockCollection3D& collection )
+    {
+        add_item_in_collection(
+            block.component_id(), collection.component_id() );
+    }
+
+    void BRepBuilder::set_point( index_t unique_vertex, const Point3D& point )
+    {
+        for( const auto& cmv : brep_.component_mesh_vertices( unique_vertex ) )
+        {
+            if( cmv.component_id.type() == Block3D::component_type_static() )
+            {
+                block_mesh_builder( cmv.component_id.id() )
+                    ->set_point( cmv.vertex, point );
+            }
+            else if( cmv.component_id.type()
+                     == Surface3D::component_type_static() )
+            {
+                surface_mesh_builder( cmv.component_id.id() )
+                    ->set_point( cmv.vertex, point );
+            }
+            else if( cmv.component_id.type()
+                     == Line3D::component_type_static() )
+            {
+                line_mesh_builder( cmv.component_id.id() )
+                    ->set_point( cmv.vertex, point );
+            }
+            else if( cmv.component_id.type()
+                     == Corner3D::component_type_static() )
+            {
+                corner_mesh_builder( cmv.component_id.id() )
+                    ->set_point( cmv.vertex, point );
+            }
+        }
     }
 } // namespace geode

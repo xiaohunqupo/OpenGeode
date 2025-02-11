@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,15 @@
  *
  */
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
-#include "../../common.h"
+#include <string>
 
-#include <geode/mesh/core/edged_curve.h>
-#include <geode/mesh/io/edged_curve_input.h>
-#include <geode/mesh/io/edged_curve_output.h>
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+#include "../../common.hpp"
+
+#include <geode/mesh/core/edged_curve.hpp>
+#include <geode/mesh/io/edged_curve_input.hpp>
+#include <geode/mesh/io/edged_curve_output.hpp>
 
 #define PYTHON_EDGED_CURVE_IO( dimension )                                     \
     const auto save##dimension =                                               \
@@ -37,13 +39,21 @@
         "load_edged_curve" + std::to_string( dimension ) + "D";                \
     module.def( load##dimension.c_str(),                                       \
         static_cast< std::unique_ptr< EdgedCurve< dimension > > ( * )(         \
-            absl::string_view ) >( &load_edged_curve< dimension > ) );         \
+            std::string_view ) >( &load_edged_curve< dimension > ) );          \
     const auto check##dimension =                                              \
         "check_edged_curve_missing_files" + std::to_string( dimension ) + "D"; \
     module.def( check##dimension.c_str(),                                      \
         &check_edged_curve_missing_files< dimension > );                       \
-    PYTHON_INPUT_CLASS( std::unique_ptr< EdgedCurve< dimension > >,            \
+    const auto loadable##dimension =                                           \
+        "is_edged_curve_loadable" + std::to_string( dimension ) + "D";         \
+    module.def(                                                                \
+        loadable##dimension.c_str(), &is_edged_curve_loadable< dimension > );  \
+    PYTHON_INPUT_MESH_CLASS( std::unique_ptr< EdgedCurve< dimension > >,       \
         "EdgedCurve" + std::to_string( dimension ) + "D" );                    \
+    const auto saveable##dimension =                                           \
+        "is_edged_curve_saveable" + std::to_string( dimension ) + "D";         \
+    module.def(                                                                \
+        saveable##dimension.c_str(), &is_edged_curve_saveable< dimension > );  \
     PYTHON_FACTORY_CLASS( EdgedCurveInputFactory##dimension##D );              \
     PYTHON_FACTORY_CLASS( EdgedCurveOutputFactory##dimension##D )
 

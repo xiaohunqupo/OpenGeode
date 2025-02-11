@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  *
  */
 
-#include <geode/basic/attribute_manager.h>
+#include <geode/basic/attribute_manager.hpp>
 
 #include <algorithm>
 
@@ -29,8 +29,8 @@
 
 #include <bitsery/traits/string.h>
 
-#include <geode/basic/logger.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/logger.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
 namespace geode
 {
@@ -43,7 +43,7 @@ namespace geode
 
     public:
         std::shared_ptr< AttributeBase > find_attribute_base(
-            absl::string_view name ) const
+            std::string_view name ) const
         {
             const auto attribute_it = attributes_.find( name );
             if( attribute_it == attributes_.end() )
@@ -54,7 +54,7 @@ namespace geode
         }
 
         void register_attribute( std::shared_ptr< AttributeBase > &attribute,
-            absl::string_view name,
+            std::string_view name,
             const AttributeBase::AttributeKey &key )
         {
             attribute->resize( nb_elements_, key );
@@ -101,6 +101,17 @@ namespace geode
             }
         }
 
+        void copy_attribute_value( index_t from_element,
+            index_t to_element,
+            const AttributeBase::AttributeKey &key )
+        {
+            for( auto &attribute_it : attributes_ )
+            {
+                attribute_it.second->compute_value(
+                    from_element, to_element, key );
+            }
+        }
+
         void interpolate_attribute_value(
             const AttributeLinearInterpolation &interpolation,
             index_t to_element,
@@ -132,9 +143,9 @@ namespace geode
                 } );
         }
 
-        absl::FixedArray< absl::string_view > attribute_names() const
+        absl::FixedArray< std::string_view > attribute_names() const
         {
-            absl::FixedArray< absl::string_view > names( attributes_.size() );
+            absl::FixedArray< std::string_view > names( attributes_.size() );
             index_t count{ 0 };
             for( const auto &attribute_it : attributes_ )
             {
@@ -143,12 +154,12 @@ namespace geode
             return names;
         }
 
-        bool attribute_exists( absl::string_view name ) const
+        bool attribute_exists( std::string_view name ) const
         {
             return attributes_.find( name ) != attributes_.end();
         }
 
-        void delete_attribute( absl::string_view name )
+        void delete_attribute( std::string_view name )
         {
             const auto attribute_it = attributes_.find( name );
             if( attribute_it != attributes_.end() )
@@ -157,13 +168,13 @@ namespace geode
             }
         }
 
-        absl::string_view attribute_type( absl::string_view name ) const
+        std::string_view attribute_type( std::string_view name ) const
         {
             const auto attribute_it = attributes_.find( name );
             if( attribute_it == attributes_.end() )
             {
-                static constexpr auto undefined = "undefined";
-                return undefined;
+                static constexpr auto UNDEFINED = "undefined";
+                return UNDEFINED;
             }
             return attribute_it->second->type();
         }
@@ -275,8 +286,8 @@ namespace geode
             }
         }
 
-        void rename_attribute( absl::string_view old_name,
-            absl::string_view new_name,
+        void rename_attribute( std::string_view old_name,
+            std::string_view new_name,
             const AttributeBase::AttributeKey &key )
         {
             const auto attribute_it = attributes_.find( old_name );
@@ -289,7 +300,7 @@ namespace geode
             attributes_.emplace( new_name, attribute );
         }
 
-        void set_attribute_properties( absl::string_view attribute_name,
+        void set_attribute_properties( std::string_view attribute_name,
             const AttributeProperties &new_properties )
         {
             const auto attribute_it = attributes_.find( attribute_name );
@@ -302,19 +313,30 @@ namespace geode
         template < typename Archive >
         void serialize( Archive &archive )
         {
-            archive.ext( *this,
-                Growable< Archive, Impl >{
-                    { []( Archive &local_archive, Impl &impl ) {
-                        local_archive.value4b( impl.nb_elements_ );
-                        local_archive.ext( impl.attributes_,
-                            bitsery::ext::StdMap{ impl.attributes_.max_size() },
-                            []( Archive &local_archive2, std::string &name,
-                                std::shared_ptr< AttributeBase > &attribute ) {
-                                local_archive2.text1b( name, name.max_size() );
+            archive.ext(
+                *this, Growable< Archive, Impl >{ { []( Archive &local_archive,
+                                                        Impl &impl ) {
+                    local_archive.value4b( impl.nb_elements_ );
+                    local_archive.ext( impl.attributes_,
+                        bitsery::ext::StdMap{ impl.attributes_.max_size() },
+                        []( Archive &local_archive2, std::string &name,
+                            std::shared_ptr< AttributeBase > &attribute ) {
+                            local_archive2.text1b( name, name.max_size() );
+                            try
+                            {
                                 local_archive2.ext(
                                     attribute, bitsery::ext::StdSmartPtr{} );
-                            } );
-                    } } } );
+                            }
+                            catch( ... )
+                            {
+                                throw OpenGeodeException{
+                                    "[AttributeManager::serialize] Cannot "
+                                    "serialize attribute ",
+                                    name, " holding type ", attribute->type()
+                                };
+                            }
+                        } );
+                } } } );
         }
 
     private:
@@ -322,21 +344,21 @@ namespace geode
         AttributesMap attributes_;
     };
 
-    AttributeManager::AttributeManager() {} // NOLINT
+    AttributeManager::AttributeManager() = default;
     AttributeManager::AttributeManager( AttributeManager &&other ) noexcept
         : impl_( std::move( other.impl_ ) )
     {
     }
-    AttributeManager::~AttributeManager() {} // NOLINT
+    AttributeManager::~AttributeManager() = default;
 
     std::shared_ptr< AttributeBase > AttributeManager::find_attribute_base(
-        absl::string_view name ) const
+        std::string_view name ) const
     {
         return impl_->find_attribute_base( name );
     }
 
     void AttributeManager::register_attribute(
-        std::shared_ptr< AttributeBase > attribute, absl::string_view name )
+        std::shared_ptr< AttributeBase > attribute, std::string_view name )
     {
         return impl_->register_attribute( attribute, name, {} );
     }
@@ -367,30 +389,36 @@ namespace geode
         impl_->assign_attribute_value( from_element, to_element, {} );
     }
 
+    void AttributeManager::copy_attribute_value(
+        index_t from_element, index_t to_element )
+    {
+        impl_->copy_attribute_value( from_element, to_element, {} );
+    }
+
     void AttributeManager::interpolate_attribute_value(
         const AttributeLinearInterpolation &interpolation, index_t to_element )
     {
         impl_->interpolate_attribute_value( interpolation, to_element, {} );
     }
 
-    absl::FixedArray< absl::string_view >
+    absl::FixedArray< std::string_view >
         AttributeManager::attribute_names() const
     {
         return impl_->attribute_names();
     }
 
-    bool AttributeManager::attribute_exists( absl::string_view name ) const
+    bool AttributeManager::attribute_exists( std::string_view name ) const
     {
         return impl_->attribute_exists( name );
     }
 
-    void AttributeManager::delete_attribute( absl::string_view name )
+    void AttributeManager::delete_attribute( std::string_view name )
     {
         impl_->delete_attribute( name );
     }
 
-    absl::string_view AttributeManager::attribute_type(
-        absl::string_view name ) const
+    std::string_view AttributeManager::attribute_type(
+        std::string_view name ) const
     {
         return impl_->attribute_type( name );
     }
@@ -447,13 +475,13 @@ namespace geode
     }
 
     void AttributeManager::rename_attribute(
-        absl::string_view old_name, absl::string_view new_name )
+        std::string_view old_name, std::string_view new_name )
     {
         impl_->rename_attribute( old_name, new_name, {} );
     }
 
     void AttributeManager::set_attribute_properties(
-        absl::string_view attribute_name,
+        std::string_view attribute_name,
         const AttributeProperties &new_properties )
     {
         impl_->set_attribute_properties( attribute_name, new_properties );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  *
  */
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
-#include "../../common.h"
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+#include "../../common.hpp"
 
-#include <geode/mesh/core/graph.h>
-#include <geode/mesh/io/graph_input.h>
-#include <geode/mesh/io/graph_output.h>
+#include <geode/mesh/core/graph.hpp>
+#include <geode/mesh/io/graph_input.hpp>
+#include <geode/mesh/io/graph_output.hpp>
 
 namespace geode
 {
@@ -35,10 +35,12 @@ namespace geode
     {
         module.def( "save_graph", &save_graph );
         module.def( "load_graph",
-            static_cast< std::unique_ptr< Graph > ( * )( absl::string_view ) >(
+            static_cast< std::unique_ptr< Graph > ( * )( std::string_view ) >(
                 &load_graph ) );
         module.def( "check_graph_missing_files", &check_graph_missing_files );
-        PYTHON_INPUT_CLASS( std::unique_ptr< Graph >, "Graph" );
+        module.def( "is_graph_loadable", &is_graph_loadable );
+        module.def( "is_graph_saveable", &is_graph_saveable );
+        PYTHON_INPUT_MESH_CLASS( std::unique_ptr< Graph >, "Graph" );
         PYTHON_FACTORY_CLASS( GraphInputFactory );
         PYTHON_FACTORY_CLASS( GraphOutputFactory );
     }

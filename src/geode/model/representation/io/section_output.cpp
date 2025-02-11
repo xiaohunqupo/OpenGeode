@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,44 @@
  *
  */
 
-#include <geode/model/representation/io/section_output.h>
+#include <geode/model/representation/io/section_output.hpp>
 
-#include <geode/basic/detail/geode_output_impl.h>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <geode/model/representation/core/section.h>
+#include <geode/basic/detail/geode_output_impl.hpp>
+#include <geode/basic/io.hpp>
+#include <geode/basic/logger.hpp>
+
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
-    void save_section( const Section& section, absl::string_view filename )
+    std::vector< std::string > save_section(
+        const Section& section, std::string_view filename )
     {
+        constexpr auto TYPE = "Section";
         try
         {
-            detail::geode_object_output_impl< SectionOutputFactory >(
-                "Section", section, filename );
+            return detail::geode_object_output_impl< SectionOutputFactory >(
+                TYPE, section, filename );
         }
         catch( const OpenGeodeException& e )
         {
             Logger::error( e.what() );
+            print_available_extensions< SectionOutputFactory >( TYPE );
             throw OpenGeodeException{ "Cannot save Section in file: ",
                 filename };
         }
+    }
+
+    bool is_section_saveable(
+        const Section& section, std::string_view filename )
+    {
+        const auto output =
+            detail::geode_object_output_writer< SectionOutputFactory >(
+                filename );
+        return output->is_saveable( section );
     }
 } // namespace geode

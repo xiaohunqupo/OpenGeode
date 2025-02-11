@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,16 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/builder/polyhedral_solid_builder.h>
+#include <geode/mesh/builder/polyhedral_solid_builder.hpp>
 
 #define PYTHON_POLYHEDRAL_SOLID_BUILDER( dimension )                           \
     const auto name##dimension =                                               \
         "PolyhedralSolidBuilder" + std::to_string( dimension ) + "D";          \
     pybind11::class_< PolyhedralSolidBuilder##dimension##D,                    \
         SolidMeshBuilder##dimension##D >( module, name##dimension.c_str() )    \
-        .def_static( "create",                                                 \
-            ( std::unique_ptr< PolyhedralSolidBuilder##dimension##D >( * )(    \
-                PolyhedralSolid< dimension >& ) )                              \
-                & PolyhedralSolidBuilder##dimension##D::create )
+        .def_static( "create", &PolyhedralSolidBuilder##dimension##D::create )
 
 namespace geode
 {

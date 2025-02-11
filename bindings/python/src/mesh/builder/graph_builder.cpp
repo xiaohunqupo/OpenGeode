@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  *
  */
 
-#include "../../common.h"
+#include "../../common.hpp"
 
-#include <geode/mesh/builder/graph_builder.h>
+#include <geode/mesh/builder/graph_builder.hpp>
 
 namespace geode
 {
@@ -31,14 +31,12 @@ namespace geode
     {
         pybind11::class_< GraphBuilder, VertexSetBuilder >(
             module, "GraphBuilder" )
-            .def_static(
-                "create", ( std::unique_ptr< GraphBuilder >( * )( Graph& ) )
-                              & GraphBuilder::create )
-            .def( "create_edge",
-                ( index_t( GraphBuilder::* )() ) & GraphBuilder::create_edge )
+            .def_static( "create", &GraphBuilder::create )
+            .def( "create_edge", static_cast< index_t ( GraphBuilder::* )() >(
+                                     &GraphBuilder::create_edge ) )
             .def( "create_edge_with_vertices",
-                ( index_t( GraphBuilder::* )( index_t, index_t ) )
-                    & GraphBuilder::create_edge )
+                static_cast< index_t ( GraphBuilder::* )( index_t, index_t ) >(
+                    &GraphBuilder::create_edge ) )
             .def( "create_edges", &GraphBuilder::create_edges )
             .def( "set_edge_vertex", &GraphBuilder::set_edge_vertex )
             .def( "delete_edges", &GraphBuilder::delete_edges )

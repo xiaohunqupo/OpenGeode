@@ -77,7 +77,7 @@ function(add_geode_python_wheel)
         set(wheel_build_directory "${PROJECT_BINARY_DIR}")
     endif()
     set(wheel_import "${wheel_build_directory}/${binary_folder}/${project_name}.py")
-    set(header "# Copyright (c) 2019 - 2023 Geode-solutions\n\n")
+    set(header "# Copyright (c) 2019 - 2025 Geode-solutions\n\n")
     file(WRITE ${wheel_init} "#${header}")
     file(WRITE ${wheel_import} "${header}")
     if(WIN32)
@@ -96,37 +96,41 @@ function(add_geode_python_wheel)
     if(NOT WHEEL_VERSION)
         set(WHEEL_VERSION "0.0.0")
     endif()
-    configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/OpenGeodeModule-setup.py.in" "${wheel_output_directory}/../setup.py")
+    configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/setup.py.in" "${wheel_output_directory}/../setup.py")
+    configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/pyproject.toml.in" "${wheel_output_directory}/../pyproject.toml")
     file(MAKE_DIRECTORY "${wheel_build_directory}/share")
+    execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install --upgrade wheel setuptools build)
     execute_process(
         COMMAND ${PYTHON_EXECUTABLE} -c 
-"from wheel.bdist_wheel import get_abi_tag, get_platform
+"from sysconfig import get_platform
 from wheel.vendored.packaging import tags
 name=tags.interpreter_name()
 version=tags.interpreter_version()
-abi=get_abi_tag()
-platform=get_platform(None)
-print(name + version + '-' + abi + '-' + platform)"
+platform=get_platform().replace('-', '_').replace('.', '_')
+print(name + version + '-' + name + version + '-' + platform)"
         OUTPUT_VARIABLE wheel_sufix
         OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
+    ) 
     string(REGEX REPLACE "-" "_" wheel_name ${GEODE_WHEEL_NAME})
     set(wheel_file "${wheel_output_path}/dist/${wheel_name}-${WHEEL_VERSION}-${wheel_sufix}.whl")
+    message(STATUS "Wheel file: ${wheel_file}")
     if(${GEODE_WHEEL_SUPERBUILD})
         set(wheel_config_folder "")
     else()
         set(wheel_config_folder "$<$<BOOL:${isMultiConfig}>:$<CONFIG>>")
     endif()
     add_custom_target(wheel
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/README.md" "${wheel_output_path}"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/bindings/python/requirements.txt" "${wheel_output_path}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${wheel_build_directory}/${binary_folder}/${wheel_config_folder}" "${wheel_output_directory}/${binary_folder}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${wheel_build_directory}/share" "${wheel_output_directory}/share"
         COMMAND ${CMAKE_COMMAND} -E remove "${wheel_output_directory}/${binary_folder}/*.py"
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+        COMMAND ${PYTHON_EXECUTABLE} -m build
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/wheel
     )
     string(CONCAT import_test "import " "${project_name}")
     add_custom_target(test-wheel
-        COMMAND ${PYTHON_EXECUTABLE} -m pip install --pre --force-reinstall ${wheel_file}
+        COMMAND ${PYTHON_EXECUTABLE} -m pip install --no-deps ${wheel_file}
         COMMAND ${PYTHON_EXECUTABLE} -c ${import_test}
     )
 endfunction()

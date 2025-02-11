@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,26 @@
  *
  */
 
-#include <geode/mesh/core/solid_facets.h>
+#include <geode/mesh/core/solid_facets.hpp>
 
 #include <absl/container/flat_hash_set.h>
 
 #include <bitsery/brief_syntax/array.h>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/bitsery_archive.h>
-#include <geode/basic/detail/mapping_after_deletion.h>
-#include <geode/basic/pimpl_impl.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/bitsery_archive.hpp>
+#include <geode/basic/detail/mapping_after_deletion.hpp>
+#include <geode/basic/pimpl_impl.hpp>
 
-#include <geode/geometry/bounding_box.h>
-#include <geode/geometry/vector.h>
+#include <geode/geometry/bounding_box.hpp>
+#include <geode/geometry/vector.hpp>
 
-#include <geode/mesh/builder/solid_mesh_builder.h>
-#include <geode/mesh/core/bitsery_archive.h>
-#include <geode/mesh/core/detail/facet_storage.h>
-#include <geode/mesh/core/mesh_factory.h>
-#include <geode/mesh/core/polyhedral_solid.h>
-#include <geode/mesh/core/solid_edges.h>
+#include <geode/mesh/builder/solid_mesh_builder.hpp>
+#include <geode/mesh/core/bitsery_archive.hpp>
+#include <geode/mesh/core/detail/facet_storage.hpp>
+#include <geode/mesh/core/mesh_factory.hpp>
+#include <geode/mesh/core/polyhedral_solid.hpp>
+#include <geode/mesh/core/solid_edges.hpp>
 
 namespace
 {
@@ -64,6 +64,8 @@ namespace geode
     {
         friend class bitsery::Access;
         using Facets = detail::FacetStorage< PolyhedronFacetVertices >;
+        using FacetsVertexCycle =
+            detail::VertexCycle< PolyhedronFacetVertices >;
 
     public:
         Impl() = default;
@@ -78,15 +80,16 @@ namespace geode
             }
         }
 
-        absl::optional< index_t > find_facet(
+        std::optional< index_t > find_facet(
             const PolyhedronFacetVertices& facet_vertices ) const
         {
-            return Facets::find_facet( facet_vertices );
+            return Facets::find_facet( FacetsVertexCycle{ facet_vertices } );
         }
 
         index_t find_or_create_facet( PolyhedronFacetVertices facet_vertices )
         {
-            return this->add_facet( std::move( facet_vertices ) );
+            return this->add_facet(
+                FacetsVertexCycle{ std::move( facet_vertices ) } );
         }
 
         const PolyhedronFacetVertices& get_facet_vertices(
@@ -111,7 +114,8 @@ namespace geode
 
         void remove_facet( PolyhedronFacetVertices facet_vertices )
         {
-            Facets::remove_facet( std::move( facet_vertices ) );
+            Facets::remove_facet(
+                FacetsVertexCycle{ std::move( facet_vertices ) } );
         }
 
         std::vector< index_t > delete_facets(
@@ -166,9 +170,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    SolidFacets< dimension >::~SolidFacets() // NOLINT
-    {
-    }
+    SolidFacets< dimension >::~SolidFacets() = default;
 
     template < index_t dimension >
     bool SolidFacets< dimension >::is_facet_isolated( index_t facet_id ) const
@@ -193,7 +195,7 @@ namespace geode
     }
 
     template < index_t dimension >
-    absl::optional< index_t > SolidFacets< dimension >::facet_from_vertices(
+    std::optional< index_t > SolidFacets< dimension >::facet_from_vertices(
         const PolyhedronFacetVertices& vertices ) const
     {
         return impl_->find_facet( vertices );

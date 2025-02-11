@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,30 +21,31 @@
  *
  */
 
-#include <geode/model/helpers/convert_brep_section.h>
+#include <geode/model/helpers/convert_brep_section.hpp>
 
-#include <geode/geometry/point.h>
+#include <geode/geometry/point.hpp>
 
-#include <geode/mesh/builder/geode/geode_edged_curve_builder.h>
-#include <geode/mesh/builder/geode/geode_hybrid_solid_builder.h>
-#include <geode/mesh/builder/geode/geode_point_set_builder.h>
-#include <geode/mesh/builder/geode/geode_polygonal_surface_builder.h>
-#include <geode/mesh/core/geode/geode_hybrid_solid.h>
-#include <geode/mesh/core/geode/geode_polygonal_surface.h>
-#include <geode/mesh/helpers/convert_edged_curve.h>
-#include <geode/mesh/helpers/convert_point_set.h>
-#include <geode/mesh/helpers/convert_surface_mesh.h>
+#include <geode/mesh/builder/geode/geode_edged_curve_builder.hpp>
+#include <geode/mesh/builder/geode/geode_hybrid_solid_builder.hpp>
+#include <geode/mesh/builder/geode/geode_point_set_builder.hpp>
+#include <geode/mesh/builder/geode/geode_polygonal_surface_builder.hpp>
+#include <geode/mesh/core/geode/geode_hybrid_solid.hpp>
+#include <geode/mesh/core/geode/geode_polygonal_surface.hpp>
+#include <geode/mesh/helpers/convert_edged_curve.hpp>
+#include <geode/mesh/helpers/convert_point_set.hpp>
+#include <geode/mesh/helpers/convert_surface_mesh.hpp>
 
-#include <geode/model/helpers/model_concatener.h>
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/mixin/core/vertex_identifier.h>
-#include <geode/model/representation/builder/brep_builder.h>
-#include <geode/model/representation/builder/detail/copy.h>
-#include <geode/model/representation/builder/section_builder.h>
-#include <geode/model/representation/core/brep.h>
-#include <geode/model/representation/core/section.h>
+#include <geode/model/helpers/model_concatener.hpp>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/model_boundaries.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/vertex_identifier.hpp>
+#include <geode/model/representation/builder/brep_builder.hpp>
+#include <geode/model/representation/builder/detail/copy.hpp>
+#include <geode/model/representation/builder/section_builder.hpp>
+#include <geode/model/representation/core/brep.hpp>
+#include <geode/model/representation/core/section.hpp>
 
 namespace
 {
@@ -54,12 +55,15 @@ namespace
     {
         geode::ModelCopyMapping mappings;
         const auto dimension = BuilderTo::dim;
-        mappings.emplace( geode::Corner< dimension >::component_type_static(),
-            geode::detail::copy_corner_components( from, builder_to ) );
-        mappings.emplace( geode::Line< dimension >::component_type_static(),
-            geode::detail::copy_line_components( from, builder_to ) );
-        mappings.emplace( geode::Surface< dimension >::component_type_static(),
-            geode::detail::copy_surface_components( from, builder_to ) );
+        geode::detail::copy_corner_components( from, builder_to,
+            mappings[geode::Corner< dimension >::component_type_static()] );
+        geode::detail::copy_line_components( from, builder_to,
+            mappings[geode::Line< dimension >::component_type_static()] );
+        geode::detail::copy_surface_components( from, builder_to,
+            mappings[geode::Surface< dimension >::component_type_static()] );
+        geode::detail::copy_model_boundary_components( from, builder_to,
+            mappings
+                [geode::ModelBoundary< dimension >::component_type_static()] );
         builder_to.copy_relationships( mappings, from );
         return mappings;
     }
@@ -98,25 +102,49 @@ namespace
         {
             auto slice0_conversion_output = convert_section_into_brep(
                 section_, options.axis_to_extrude, options.min_coordinate );
-            section_slice0_mapping_ = std::get< 1 >( slice0_conversion_output );
-            slice0_brep_mapping_ =
-                brep_builder_.copy( std::get< 0 >( slice0_conversion_output ) );
+            section_slice0_mapping_ =
+                std::move( std::get< 1 >( slice0_conversion_output ) );
+            brep_ = std::move( std::get< 0 >( slice0_conversion_output ) );
+            add_surfaces_in_model_boundaries();
 
             auto slice1_conversion_output = convert_section_into_brep(
                 section_, options.axis_to_extrude, options.max_coordinate );
-            section_slice1_mapping_ = std::get< 1 >( slice1_conversion_output );
+            section_slice1_mapping_ =
+                std::move( std::get< 1 >( slice1_conversion_output ) );
             geode::BRepConcatener brep_concatener{ brep_ };
             slice1_brep_mapping_ = brep_concatener.concatenate(
                 std::get< 0 >( slice1_conversion_output ) );
+            add_surfaces_in_model_boundaries();
+        }
+
+        void add_surfaces_in_model_boundaries()
+        {
+            const auto model_boundary_id = brep_builder_.add_model_boundary();
+            bool surface_added{ false };
+            const auto& model_boundary =
+                brep_.model_boundary( model_boundary_id );
+            for( const auto& surface : brep_.surfaces() )
+            {
+                if( brep_.nb_collections( surface.id() ) > 0 )
+                {
+                    continue;
+                }
+                brep_builder_.add_surface_in_model_boundary(
+                    surface, model_boundary );
+                surface_added = true;
+            }
+            if( !surface_added )
+            {
+                brep_builder_.remove_model_boundary( model_boundary );
+            }
         }
 
         geode::uuid section_slice0_brep_mapping(
             const geode::ComponentType& brep_component_type,
             geode::uuid section_component )
         {
-            return slice0_brep_mapping_.at( brep_component_type )
-                .in2out( section_slice0_mapping_.at( brep_component_type )
-                             .in2out( section_component ) );
+            return section_slice0_mapping_.at( brep_component_type )
+                .in2out( section_component );
         }
 
         geode::uuid section_slice1_brep_mapping(
@@ -167,13 +195,33 @@ namespace
 
         void create_surfaces()
         {
+            absl::flat_hash_map< geode::uuid, geode::uuid >
+                lines_to_model_boundaries;
+            for( const auto& model_boundary : section_.model_boundaries() )
+            {
+                const auto new_id = brep_builder_.add_model_boundary();
+                brep_builder_.set_model_boundary_name(
+                    new_id, model_boundary.name() );
+                for( const auto& item :
+                    section_.model_boundary_items( model_boundary ) )
+                {
+                    lines_to_model_boundaries[item.id()] = new_id;
+                }
+            }
             for( const auto& line : section_.lines() )
             {
-                extrude_line( line );
+                const auto surface_id = extrude_line( line );
+                if( lines_to_model_boundaries.contains( line.id() ) )
+                {
+                    brep_builder_.add_surface_in_model_boundary(
+                        brep_.surface( surface_id ),
+                        brep_.model_boundary(
+                            lines_to_model_boundaries.at( line.id() ) ) );
+                }
             }
         }
 
-        void extrude_line( const geode::Line2D& section_line )
+        geode::uuid extrude_line( const geode::Line2D& section_line )
         {
             const auto& line_slice0 = brep_.line( section_slice0_brep_mapping(
                 geode::Line3D::component_type_static(), section_line.id() ) );
@@ -204,6 +252,7 @@ namespace
                 surface_builder->create_polygon( pointids );
             }
             surface_builder->compute_polygon_adjacencies();
+            return surface.id();
         }
 
         geode::index_t find_or_create_surface_vertex( const geode::Line3D& line,
@@ -213,10 +262,12 @@ namespace
             const auto line_pointid = line.mesh().edge_vertex( e_vertex );
             const auto uvertex_id =
                 brep_.unique_vertex( { line.component_id(), line_pointid } );
-            for( const auto vertex :
-                brep_.component_mesh_vertices( uvertex_id, surface.id() ) )
+            for( const auto& cmv : brep_.component_mesh_vertices( uvertex_id ) )
             {
-                return vertex;
+                if( cmv.component_id.id() == surface.id() )
+                {
+                    return cmv.vertex;
+                }
             }
             auto surface_builder =
                 brep_builder_.surface_mesh_builder( surface.id() );
@@ -312,10 +363,12 @@ namespace
             const auto surf_pointid = surface.mesh().polygon_vertex( p_vertex );
             const auto uvertex_id =
                 brep_.unique_vertex( { surface.component_id(), surf_pointid } );
-            for( const auto vertex :
-                brep_.component_mesh_vertices( uvertex_id, block.id() ) )
+            for( const auto& cmv : brep_.component_mesh_vertices( uvertex_id ) )
             {
-                return vertex;
+                if( cmv.component_id.id() == block.id() )
+                {
+                    return cmv.vertex;
+                }
             }
             auto block_builder = brep_builder_.block_mesh_builder( block.id() );
             auto pt_id = block_builder->create_point(
@@ -415,7 +468,6 @@ namespace
         geode::BRep brep_;
         geode::BRepBuilder brep_builder_;
         geode::ModelCopyMapping section_slice0_mapping_;
-        geode::ModelCopyMapping slice0_brep_mapping_;
         geode::ModelCopyMapping section_slice1_mapping_;
         geode::ModelCopyMapping slice1_brep_mapping_;
     };
@@ -428,7 +480,7 @@ namespace geode
     {
         Section section;
         SectionBuilder builder{ section };
-        DEBUG_CONST auto mappings =
+        auto mappings =
             copy_components< BRep, SectionBuilder >( brep, builder );
         for( const auto& corner : brep.corners() )
         {
@@ -462,8 +514,14 @@ namespace geode
     {
         BRep brep;
         BRepBuilder builder{ brep };
-        DEBUG_CONST auto mappings =
+        auto mappings =
             copy_components< Section, BRepBuilder >( section, builder );
+        // Remove wrong transfer of Model Boundaries
+        mappings.remove( ModelBoundary3D::component_type_static() );
+        for( const auto& model_boundary : brep.model_boundaries() )
+        {
+            builder.remove_model_boundary( model_boundary );
+        }
         for( const auto& corner : section.corners() )
         {
             builder.update_corner_mesh(

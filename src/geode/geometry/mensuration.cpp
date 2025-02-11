@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,17 @@
  *
  */
 
-#include <geode/geometry/mensuration.h>
+#include <geode/geometry/mensuration.hpp>
 
-#include <geode/geometry/basic_objects/tetrahedron.h>
-#include <geode/geometry/basic_objects/triangle.h>
-#include <geode/geometry/distance.h>
-#include <geode/geometry/perpendicular.h>
+#include <geode/geometry/basic_objects/tetrahedron.hpp>
+#include <geode/geometry/basic_objects/triangle.hpp>
+#include <geode/geometry/distance.hpp>
+#include <geode/geometry/perpendicular.hpp>
 
 namespace geode
 {
     static constexpr std::array< std::array< geode::local_index_t, 3 >, 4 >
-        signed_volume_vertices_order{ { { 1, 2, 3 }, { 3, 2, 0 }, { 3, 0, 1 },
+        SIGNED_VOLUME_VERTICES_ORDER{ { { 1, 2, 3 }, { 3, 2, 0 }, { 3, 0, 1 },
             { 1, 0, 2 } } };
 
     template < index_t dimension >
@@ -43,15 +43,15 @@ namespace geode
         const auto l1 = point_point_distance( tri_v[1].get(), tri_v[2].get() );
         const auto l2 = point_point_distance( tri_v[2].get(), tri_v[0].get() );
         const auto p = ( l0 + l1 + l2 ) / 2;
-        if( p - l0 <= global_epsilon )
+        if( p - l0 <= GLOBAL_EPSILON )
         {
             return 0;
         }
-        if( p - l1 <= global_epsilon )
+        if( p - l1 <= GLOBAL_EPSILON )
         {
             return 0;
         }
-        if( p - l2 <= global_epsilon )
+        if( p - l2 <= GLOBAL_EPSILON )
         {
             return 0;
         }
@@ -81,29 +81,32 @@ namespace geode
     double tetrahedron_signed_volume( const Tetrahedron& tetra )
     {
         const auto& vertices = tetra.vertices();
+        for( const auto v0 : LRange{ 3 } )
+        {
+            for( const auto v1 : LRange{ v0 + 1, 4 } )
+            {
+                const Vector3D edge{ vertices[v0], vertices[v1] };
+                if( edge.length() == 0 )
+                {
+                    return 0;
+                }
+            }
+        }
         for( const auto v : LRange{ 4 } )
         {
-            const auto v1 = signed_volume_vertices_order[v][0];
-            const auto v2 = signed_volume_vertices_order[v][1];
-            const auto v3 = signed_volume_vertices_order[v][2];
+            const auto v1 = SIGNED_VOLUME_VERTICES_ORDER[v][0];
+            const auto v2 = SIGNED_VOLUME_VERTICES_ORDER[v][1];
+            const auto v3 = SIGNED_VOLUME_VERTICES_ORDER[v][2];
             const Vector3D edge02{ vertices[v], vertices[v2] };
             const auto edge02_length = edge02.length();
-            if( edge02_length == 0 )
-            {
-                return 0;
-            }
             const Vector3D edge03{ vertices[v], vertices[v3] };
             const auto edge03_length = edge03.length();
-            if( edge03_length == 0 )
-            {
-                return 0;
-            }
             const auto cross02_03 = edge02.cross( edge03 );
             if( cross02_03.length()
-                > global_angular_epsilon * edge02_length * edge03_length )
+                > GLOBAL_ANGULAR_EPSILON * edge02_length * edge03_length )
             {
-                return Vector3D{ vertices[v], vertices[v1] }.dot( cross02_03 )
-                       / 6.;
+                const Vector3D edge01{ vertices[v], vertices[v1] };
+                return edge01.dot( cross02_03 ) / 6.;
             }
         }
         OPENGEODE_ASSERT_NOT_REACHED(

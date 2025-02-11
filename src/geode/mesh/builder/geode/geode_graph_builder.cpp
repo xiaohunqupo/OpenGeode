@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  *
  */
 
-#include <geode/mesh/builder/geode/geode_graph_builder.h>
+#include <geode/mesh/builder/geode/geode_graph_builder.hpp>
 
-#include <geode/mesh/builder/mesh_builder_factory.h>
-#include <geode/mesh/core/geode/geode_graph.h>
+#include <geode/mesh/builder/mesh_builder_factory.hpp>
+#include <geode/mesh/core/geode/geode_graph.hpp>
 
 namespace geode
 {
@@ -38,6 +38,9 @@ namespace geode
         : GraphBuilder( mesh ), geode_graph_( mesh )
     {
     }
+
+    OpenGeodeGraphBuilder::OpenGeodeGraphBuilder(
+        OpenGeodeGraphBuilder&& ) noexcept = default;
 
     void OpenGeodeGraphBuilder::do_create_vertex()
     {

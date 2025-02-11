@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,21 @@
  *
  */
 
-#include <geode/model/mixin/core/bitsery_archive.h>
+#include <geode/model/mixin/core/bitsery_archive.hpp>
 
-#include <geode/basic/attribute_manager.h>
-#include <geode/basic/bitsery_archive.h>
+#include <geode/basic/attribute_manager.hpp>
+#include <geode/basic/bitsery_archive.hpp>
 
-#include <geode/model/mixin/core/block.h>
-#include <geode/model/mixin/core/corner.h>
-#include <geode/model/mixin/core/line.h>
-#include <geode/model/mixin/core/model_boundary.h>
-#include <geode/model/mixin/core/surface.h>
-#include <geode/model/mixin/core/vertex_identifier.h>
+#include <geode/model/mixin/core/block.hpp>
+#include <geode/model/mixin/core/block_collection.hpp>
+#include <geode/model/mixin/core/corner.hpp>
+#include <geode/model/mixin/core/corner_collection.hpp>
+#include <geode/model/mixin/core/line.hpp>
+#include <geode/model/mixin/core/line_collection.hpp>
+#include <geode/model/mixin/core/model_boundary.hpp>
+#include <geode/model/mixin/core/surface.hpp>
+#include <geode/model/mixin/core/surface_collection.hpp>
+#include <geode/model/mixin/core/vertex_identifier.hpp>
 
 namespace bitsery
 {
@@ -42,7 +46,10 @@ namespace bitsery
             : PolymorphicDerivedClasses< geode::Corner2D,
                   geode::Line2D,
                   geode::Surface2D,
-                  geode::ModelBoundary2D >
+                  geode::ModelBoundary2D,
+                  geode::CornerCollection2D,
+                  geode::LineCollection2D,
+                  geode::SurfaceCollection2D >
         {
         };
 
@@ -52,7 +59,11 @@ namespace bitsery
                   geode::Line3D,
                   geode::Surface3D,
                   geode::Block3D,
-                  geode::ModelBoundary3D >
+                  geode::ModelBoundary3D,
+                  geode::CornerCollection3D,
+                  geode::LineCollection3D,
+                  geode::SurfaceCollection3D,
+                  geode::BlockCollection3D >
         {
         };
     } // namespace ext

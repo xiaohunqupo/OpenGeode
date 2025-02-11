@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,23 @@
  *
  */
 
-#include <geode/model/representation/io/geode/geode_section_output.h>
+#include <geode/model/representation/io/geode/geode_section_output.hpp>
+
+#include <filesystem>
+#include <string>
+#include <vector>
 
 #include <async++.h>
 
-#include <ghc/filesystem.hpp>
+#include <geode/basic/uuid.hpp>
+#include <geode/basic/zip_file.hpp>
 
-#include <geode/basic/uuid.h>
-#include <geode/basic/zip_file.h>
+#include <geode/model/representation/core/section.hpp>
 
 namespace geode
 {
     void OpenGeodeSectionOutput::save_section_files(
-        const Section& section, absl::string_view directory ) const
+        const Section& section, std::string_view directory ) const
     {
         async::parallel_invoke(
             [&directory, &section] {
@@ -52,6 +56,9 @@ namespace geode
             },
             [&directory, &section] {
                 section.save_model_boundaries( directory );
+                section.save_corner_collections( directory );
+                section.save_line_collections( directory );
+                section.save_surface_collections( directory );
             } );
     }
 
@@ -59,16 +66,18 @@ namespace geode
         const ZipFile& zip_writer ) const
     {
         for( const auto& file :
-            ghc::filesystem::directory_iterator( zip_writer.directory() ) )
+            std::filesystem::directory_iterator( zip_writer.directory() ) )
         {
             zip_writer.archive_file( file.path().string() );
         }
     }
 
-    void OpenGeodeSectionOutput::write( const Section& section ) const
+    std::vector< std::string > OpenGeodeSectionOutput::write(
+        const Section& section ) const
     {
         const ZipFile zip_writer{ filename(), uuid{}.string() };
         save_section_files( section, zip_writer.directory() );
         archive_section_files( zip_writer );
+        return { to_string( filename() ) };
     }
 } // namespace geode

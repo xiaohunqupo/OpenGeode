@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  *
  */
 
-#include "../../../common.h"
+#include "../../../common.hpp"
 
-#include <geode/model/mixin/core/vertex_identifier.h>
+#include <geode/model/mixin/core/vertex_identifier.hpp>
 
 namespace geode
 {
@@ -33,22 +33,13 @@ namespace geode
             .def( pybind11::init<>() )
             .def( "nb_unique_vertices", &VertexIdentifier::nb_unique_vertices )
             .def( "component_mesh_vertices",
-                ( const std::vector< ComponentMeshVertex >& (
-                    VertexIdentifier::*) ( index_t ) const )
-                    & VertexIdentifier::component_mesh_vertices )
-            .def( "filtered_component_mesh_vertices_by_type",
-                ( std::vector< ComponentMeshVertex >( VertexIdentifier::* )(
-                    index_t, const ComponentType& ) const )
-                    & VertexIdentifier::component_mesh_vertices )
-            .def( "filtered_component_mesh_vertices_by_id",
-                ( std::vector< index_t >( VertexIdentifier::* )(
-                    index_t, const uuid& ) const )
-                    & VertexIdentifier::component_mesh_vertices )
+                &VertexIdentifier::component_mesh_vertices )
             .def( "unique_vertex", &VertexIdentifier::unique_vertex );
 
         pybind11::class_< ComponentMeshVertex >( module, "ComponentMeshVertex" )
             .def( pybind11::init< ComponentID, index_t >() )
             .def( pybind11::self == pybind11::self )
+            .def( "string", &ComponentMeshVertex::string )
             .def_readwrite( "component_id", &ComponentMeshVertex::component_id )
             .def_readwrite( "vertex", &ComponentMeshVertex::vertex );
     }

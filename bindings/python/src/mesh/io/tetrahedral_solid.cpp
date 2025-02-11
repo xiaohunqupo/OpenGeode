@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 - 2023 Geode-solutions
+ * Copyright (c) 2019 - 2025 Geode-solutions
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,15 @@
  *
  */
 
-#include "../../basic/factory.h"
-#include "../../basic/input.h"
-#include "../../common.h"
+#include <string>
 
-#include <geode/mesh/core/tetrahedral_solid.h>
-#include <geode/mesh/io/tetrahedral_solid_input.h>
-#include <geode/mesh/io/tetrahedral_solid_output.h>
+#include "../../basic/factory.hpp"
+#include "../../basic/input.hpp"
+#include "../../common.hpp"
+
+#include <geode/mesh/core/tetrahedral_solid.hpp>
+#include <geode/mesh/io/tetrahedral_solid_input.hpp>
+#include <geode/mesh/io/tetrahedral_solid_output.hpp>
 
 #define PYTHON_TETRAHEDRAL_SOLID_IO( dimension )                               \
     const auto save##dimension =                                               \
@@ -38,13 +40,21 @@
         "load_tetrahedral_solid" + std::to_string( dimension ) + "D";          \
     module.def( load##dimension.c_str(),                                       \
         static_cast< std::unique_ptr< TetrahedralSolid< dimension > > ( * )(   \
-            absl::string_view ) >( &load_tetrahedral_solid< dimension > ) );   \
+            std::string_view ) >( &load_tetrahedral_solid< dimension > ) );    \
     const auto check##dimension = "check_tetrahedral_solid_missing_files"      \
                                   + std::to_string( dimension ) + "D";         \
     module.def( check##dimension.c_str(),                                      \
         &check_tetrahedral_solid_missing_files< dimension > );                 \
-    PYTHON_INPUT_CLASS( std::unique_ptr< TetrahedralSolid< dimension > >,      \
+    const auto loadable##dimension =                                           \
+        "is_tetrahedral_solid_loadable" + std::to_string( dimension ) + "D";   \
+    module.def( loadable##dimension.c_str(),                                   \
+        &is_tetrahedral_solid_loadable< dimension > );                         \
+    PYTHON_INPUT_MESH_CLASS( std::unique_ptr< TetrahedralSolid< dimension > >, \
         "TetrahedralSolid" + std::to_string( dimension ) + "D" );              \
+    const auto saveable##dimension =                                           \
+        "is_tetrahedral_solid_saveable" + std::to_string( dimension ) + "D";   \
+    module.def( saveable##dimension.c_str(),                                   \
+        &is_tetrahedral_solid_saveable< dimension > );                         \
     PYTHON_FACTORY_CLASS( TetrahedralSolidInputFactory##dimension##D );        \
     PYTHON_FACTORY_CLASS( TetrahedralSolidOutputFactory##dimension##D )
 
